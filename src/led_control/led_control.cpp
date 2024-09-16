@@ -14,22 +14,22 @@ void initializeLEDStrips() {
         // Hard-code pin assignments at compile time by using a switch case
         switch (ledPins[i]) {
             case LED_PIN_1:
-                FastLED.addLeds<WS2812B, LED_PIN_1, BRG>(leds[i], numLEDsPerStrip[i]);
+                FastLED.addLeds<WS2812B, LED_PIN_1, RBG>(leds[i], numLEDsPerStrip[i]);
                 break;
             case LED_PIN_2:
-                FastLED.addLeds<WS2812B, LED_PIN_2, BRG>(leds[i], numLEDsPerStrip[i]);
+                FastLED.addLeds<WS2812B, LED_PIN_2, RBG>(leds[i], numLEDsPerStrip[i]);
                 break;
             case LED_PIN_3:
-                FastLED.addLeds<WS2812B, LED_PIN_3, BRG>(leds[i], numLEDsPerStrip[i]);
+                FastLED.addLeds<WS2812B, LED_PIN_3, RBG>(leds[i], numLEDsPerStrip[i]);
                 break;
             case LED_PIN_4:
-                FastLED.addLeds<WS2812B, LED_PIN_4, BRG>(leds[i], numLEDsPerStrip[i]);
+                FastLED.addLeds<WS2812B, LED_PIN_4, RBG>(leds[i], numLEDsPerStrip[i]);
                 break;
             case LED_PIN_5:
-                FastLED.addLeds<WS2812B, LED_PIN_5, BRG>(leds[i], numLEDsPerStrip[i]);
+                FastLED.addLeds<WS2812B, LED_PIN_5, RBG>(leds[i], numLEDsPerStrip[i]);
                 break;
             case LED_PIN_6:
-                FastLED.addLeds<WS2812B, LED_PIN_6, BRG>(leds[i], numLEDsPerStrip[i]);
+                FastLED.addLeds<WS2812B, LED_PIN_6, RBG>(leds[i], numLEDsPerStrip[i]);
                 break;
             default:
                 // Handle error if an unsupported pin is passed (optional)
@@ -90,5 +90,5 @@ void runAnimations() {
     rainbowAnimation(2);  // Strip 3: Rainbow
     fadeAnimation(3, CRGB::Blue);  // Strip 4: Fading blue
     rainbowAnimation(4);  // Strip 5: Rainbow
-    blinkAnimation(5, CRGB::White);  // Strip 6: Blinking white
+    blinkAnimation(5, CRGB::Pink);  // Strip 6: Blinking white
 }

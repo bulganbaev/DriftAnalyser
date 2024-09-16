@@ -90,28 +90,27 @@ void checkBootButton() {
 
     // Проверка с антидребезгом
     if ((millis() - lastDebounceTime) > debounceDelay) {
+        // Если кнопка нажата (LOW) и еще не была обработана как удержание
         if (reading == LOW && !isButtonHeld) {
             buttonPressTime = millis();  // Начало удержания кнопки
             isButtonHeld = true;
         }
 
-        // Проверка на короткое нажатие (менее 3 секунд)
-        if (isButtonHeld && (millis() - buttonPressTime > buttonShortPressTime) && (millis() - buttonPressTime < buttonHoldTime)) {
-            Serial.println("Short press detected, doing some action...");
-            // Здесь можно выполнить действие для короткого нажатия, если нужно
-            isButtonHeld = false;  // Сброс состояния удержания
-        }
-
-        // Проверка на длинное нажатие (более 3 секунд)
-        if (isButtonHeld && (millis() - buttonPressTime > buttonHoldTime)) {
-            Serial.println("BOOT button held, forgetting Wi-Fi and starting AP mode...");
-            forgetWiFi();  // Забудем все сохраненные сети
-            startWiFiConfigPortal();  // Запустим точку доступа
-            isButtonHeld = false;  // Сброс состояния удержания
-        }
-
         // Сброс состояния кнопки при отпускании
-        if (reading == HIGH) {
+        if (reading == HIGH && isButtonHeld) {
+            // Если кнопка была удержана более 3 секунд, это длинное нажатие
+            if (millis() - buttonPressTime >= buttonHoldTime) {
+                Serial.println("BOOT button held, forgetting Wi-Fi and starting AP mode...");
+                forgetWiFi();  // Забудем все сохраненные сети
+                startWiFiConfigPortal();  // Запустим точку доступа
+            } 
+            // Если кнопка была удержана менее 3 секунд, это короткое нажатие
+            else if (millis() - buttonPressTime >= buttonShortPressTime) {
+                Serial.println("Short press detected, doing some action...");
+                // Действие для короткого нажатия
+            }
+
+            // Сбрасываем состояние удержания кнопки
             isButtonHeld = false;
         }
     }

@@ -3,7 +3,6 @@
 #include "pins/pins.h"
 #include "led_control/led_control.h"
 #include "gps_controller/gps_controller.h"
-#include "telegram_bot/telegram_bot.h"
 
 void setup() {
     Serial.begin(115200);
@@ -20,8 +19,6 @@ void setup() {
      // Initialize the GPS module
     initializeGPS();
 
-    // Initialize the Telegram bot
-    initializeTelegramBot();
 }
 
 void loop() {
@@ -31,7 +28,5 @@ void loop() {
     // Show the results on the LED strips
     FastLED.show();
     // Adjust delay for animation speed control
-
-    checkTelegramMessages();
     delay(50);
 }
