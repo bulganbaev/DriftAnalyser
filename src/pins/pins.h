@@ -19,4 +19,9 @@
 #define GPS_TX_PIN 1  // TXD0 (UART0 default)
 #define GPS_PPS_PIN 48  // PPS (Pulse Per Second) on GPIO48
 
+//TJA1050 pins
+#define CAN_RX_PIN 16
+#define CAN_TX_PIN 35
+#define CAN_STB_PIN 15
+
 #endif
