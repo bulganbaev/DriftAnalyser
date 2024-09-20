@@ -4,6 +4,7 @@
 #include <Arduino.h>
 #include "driver/twai.h"  // TWAI (CAN) driver
 
+
 class CANBus {
 public:
     void begin(int rxPin, int txPin, int stbPin, twai_timing_config_t timingConfig);

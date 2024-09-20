@@ -1,5 +1,6 @@
 #include "can_bus.h"
 #include <Arduino.h>
+#include "front/front.h"
 
 void CANBus::begin(int rxPin, int txPin, int stbPin, twai_timing_config_t timingConfig) {
     this->stbPin = stbPin;

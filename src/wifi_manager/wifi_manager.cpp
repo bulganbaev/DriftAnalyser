@@ -3,6 +3,7 @@
 #include <WiFi.h>
 #include "pins/pins.h"
 #include "config/config.h"
+#include "front/front.h"
 
 // Переменные для антидребезга и удержания кнопки
 unsigned long lastDebounceTime = 0;

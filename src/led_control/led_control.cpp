@@ -1,5 +1,4 @@
 #include "led_control.h"
-
 // Define the LED pins and number of LEDs for each strip
 const int ledPins[NUM_STRIPS] = {LED_PIN_1, LED_PIN_2, LED_PIN_3, LED_PIN_4, LED_PIN_5, LED_PIN_6};
 
