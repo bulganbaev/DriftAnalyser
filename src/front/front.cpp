@@ -2,6 +2,7 @@
 #include "front.h"
 #include "config/config.h"
 #include "obd2/obd2.h"
+#include "can_bus/can_bus.h"
 #include <WiFi.h>
 
 #define LOG_BUFFER_SIZE 2048  // Define the log buffer size
@@ -11,7 +12,7 @@ AsyncWebServer server(80);
 
 // Define the extern OBD2 instance
 extern OBD2 obd2;
-
+extern CANBus canBus;
 
 
 void setupAccessPoint() {
@@ -47,8 +48,12 @@ void handleGetObd(AsyncWebServerRequest *request) {
     uint8_t speed = obd2.getSpeed();
     int8_t engineTemp = obd2.getEngineTemp();
 
-    // Create a response string with OBD2 data
-    String response = "RPM: " + String(rpm) +
+    // Check the CAN bus connection status
+    String canBusStatus = canBus.isConnected() ? "Connected" : "Not Connected";
+
+    // Create a response string with OBD2 data and CAN bus status
+    String response = "CAN Bus Status: " + canBusStatus + 
+                      "\nRPM: " + String(rpm) +
                       "\nThrottle Position: " + String(throttlePosition) +
                       "\nSpeed: " + String(speed) +
                       "\nEngine Temperature: " + String(engineTemp);
