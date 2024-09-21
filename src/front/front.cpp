@@ -5,7 +5,6 @@
 #include "can_bus/can_bus.h"
 #include <WiFi.h>
 
-#define LOG_BUFFER_SIZE 2048  // Define the log buffer size
 
 // Create a web server object on port 80
 AsyncWebServer server(80);
@@ -30,8 +29,6 @@ void setupAccessPoint() {
 
     // Route to display OBD2 data
     server.on("/getObd", HTTP_GET, handleGetObd);
-
-    // Route to display log data
 
     // Start the web server
     server.begin();
