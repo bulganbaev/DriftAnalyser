@@ -13,7 +13,7 @@ extern OBD2 obd2;
 
 // Define global state for CAN settings
 CanSettings can_setting = {
-    .minRPM = 1000,  // Default min RPM
+    .minRPM = 2000,  // Default min RPM
     .maxRPM = 7000   // Default max RPM
 };
 
@@ -152,21 +152,93 @@ void rainbowCycle(int stripIndex) {
 }
 
 void rpmLevel(int stripIndex) {
-    int level = obd2.getRPM(); // Use actual RPM data from OBD2
-    fill_solid(leds[stripIndex], numLEDsPerStrip[stripIndex], CRGB::Black); // Clear strip
+    int level = obd2.getRPM();  // Получение текущего значения RPM от OBD2
 
-    int numLedsToLight = map(level, can_setting.minRPM, can_setting.maxRPM, 0, numLEDsPerStrip[stripIndex]);
+    fill_solid(leds[stripIndex], numLEDsPerStrip[stripIndex], CRGB::Black); // Очищаем светодиоды
 
+    int MIN_LEVEL = can_setting.minRPM;
+    int MAX_LEVEL = can_setting.maxRPM;
+
+    // Вычисляем количество светодиодов, которые нужно зажечь, на основе уровня RPM
+    int numLedsToLight = map(level, MIN_LEVEL, MAX_LEVEL, 0, numLEDsPerStrip[stripIndex]);
+
+    // Определяем точки перехода цветов
+    int firstTransitionPoint = numLedsToLight * 0.1;  // Переход от синего к зеленому
+    int secondTransitionPoint = numLedsToLight * 0.2; // Переход от зеленого к желтому
+    int thirdTransitionPoint = numLedsToLight * 0.3;  // Переход от желтого к оранжевому
+    int fourthTransitionPoint = numLedsToLight * 0.5; // Переход от оранжевого к красному
+    int fifthTransitionPoint = numLedsToLight * 0.7;  // Переход от красного к пурпурному
+    int sixthTransitionPoint = numLedsToLight * 0.9;  // Переход от пурпурного к белому
+
+    // Запускаем анимацию на основе уровня RPM
     for (int i = 0; i < numLedsToLight; i++) {
-        leds[stripIndex][i] = CRGB::Red; 
+        // Вычисляем индекс текущего светодиода
+        int ledIndex = i;
+
+        // Инициализируем параметры смешивания и начальные/конечные цвета
+        float blendFactor = 0;
+        CRGB startColor;
+        CRGB endColor;
+
+        if (i <= firstTransitionPoint) {
+            // Переход от синего к зеленому
+            blendFactor = float(i) / firstTransitionPoint;
+            startColor = CRGB::Blue;
+            endColor = CRGB::Green;
+        } else if (i <= secondTransitionPoint) {
+            // Переход от зеленого к желтому
+            blendFactor = float(i - firstTransitionPoint) / (secondTransitionPoint - firstTransitionPoint);
+            startColor = CRGB::Green;
+            endColor = CRGB::Yellow;
+        } else if (i <= thirdTransitionPoint) {
+            // Переход от желтого к оранжевому
+            blendFactor = float(i - secondTransitionPoint) / (thirdTransitionPoint - secondTransitionPoint);
+            startColor = CRGB::Yellow;
+            endColor = CRGB::Orange;
+        } else if (i <= fourthTransitionPoint) {
+            // Переход от оранжевого к красному
+            blendFactor = float(i - thirdTransitionPoint) / (fourthTransitionPoint - thirdTransitionPoint);
+            startColor = CRGB::Orange;
+            endColor = CRGB::Red;
+        } else if (i <= fifthTransitionPoint) {
+            // Переход от красного к пурпурному
+            blendFactor = float(i - fourthTransitionPoint) / (fifthTransitionPoint - fourthTransitionPoint);
+            startColor = CRGB::Red;
+            endColor = CRGB::Purple;
+        } else if (i <= sixthTransitionPoint) {
+            // Переход от пурпурного к розовому
+            blendFactor = float(i - fifthTransitionPoint) / (sixthTransitionPoint - fifthTransitionPoint);
+            startColor = CRGB::Purple;
+            endColor = CRGB::Pink;
+        } else {
+            // Переход от розового к белому
+            blendFactor = float(i - sixthTransitionPoint) / (numLedsToLight - sixthTransitionPoint);
+            startColor = CRGB::Pink;
+            endColor = CRGB::White;
+        }
+
+        // Смешивание цветов на основе коэффициента смешивания
+        CRGB color = blend(startColor, endColor, uint8_t(blendFactor * 255));
+        leds[stripIndex][ledIndex] = color; // Устанавливаем цвет для текущего светодиода
     }
-    FastLED.setBrightness(mapBrightness(stripSettings[stripIndex].brightness));
-    FastLED.show();
+
+    FastLED.setBrightness(mapBrightness(stripSettings[stripIndex].brightness)); // Устанавливаем яркость
+    FastLED.show(); // Отображаем изменения
 }
+
+
 
 void runAnimations() {
     for (int i = 0; i < NUM_STRIPS; i++) {
-        if (stripSettings[i].mode == 1) {
+        // Determine the current animation to use based on the mode
+        bool useRpmLevel = (stripSettings[i].mode == 2) || 
+                           (stripSettings[i].mode == 3 && obd2.getRPM() >= can_setting.minRPM);
+
+        if (useRpmLevel) {
+            // Use RPM-based animation
+            rpmLevel(i);
+        } else {
+            // Use regular animation based on animationIndex
             switch (stripSettings[i].animationIndex) {
                 case 0:
                     staticColor(i);
@@ -184,8 +256,6 @@ void runAnimations() {
                     rainbowCycle(i);
                     break;
             }
-        } else if (stripSettings[i].mode == 2) {
-            rpmLevel(i);
         }
     }
 }
