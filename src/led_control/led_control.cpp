@@ -151,80 +151,81 @@ void rainbowCycle(int stripIndex) {
     delay(mapSpeed(stripSettings[stripIndex].speed));
 }
 
-void rpmLevel(int stripIndex) {
-    int level = obd2.getRPM();  // Получение текущего значения RPM от OBD2
 
-    fill_solid(leds[stripIndex], numLEDsPerStrip[stripIndex], CRGB::Black); // Очищаем светодиоды
+CRGB getColorForSection(int currentLED, int numLeds) {
+    // Define the section thresholds for 7 sections
+    int section1 = numLeds * 0.142;  // 1/7 of the strip
+    int section2 = numLeds * 0.285;  // 2/7 of the strip
+    int section3 = numLeds * 0.428;  // 3/7 of the strip
+    int section4 = numLeds * 0.571;  // 4/7 of the strip
+    int section5 = numLeds * 0.714;  // 5/7 of the strip
+    int section6 = numLeds * 0.857;  // 6/7 of the strip
+
+    // Return the color based on the section
+    if (currentLED < section1) {
+        return CRGB::Blue;        // First section, cold (low RPM)
+    } else if (currentLED < section2) {
+        return CRGB::Cyan;        // Second section, slightly higher, still cool
+    } else if (currentLED < section3) {
+        return CRGB::Green;       // Third section, moderate RPM, neutral
+    } else if (currentLED < section4) {
+        return CRGB::Yellow;      // Fourth section, starting to warm up
+    } else if (currentLED < section5) {
+        return CRGB::Orange;      // Fifth section, getting warmer
+    } else if (currentLED < section6) {
+        return CRGB::Red;         // Sixth section, hot, high RPM
+    } else {
+        return CRGB::Magenta;     // Last section, max RPM, very hot
+    }
+}
+
+
+void rpmLevel(int stripIndex, bool bottom = false) {
+    int level = obd2.getRPM();  // Get the current RPM level
+    int numLeds = numLEDsPerStrip[stripIndex];
+    // Clear LEDs
+    fill_solid(leds[stripIndex], numLeds, CRGB::Black);
 
     int MIN_LEVEL = can_setting.minRPM;
     int MAX_LEVEL = can_setting.maxRPM;
 
-    // Вычисляем количество светодиодов, которые нужно зажечь, на основе уровня RPM
-    int numLedsToLight = map(level, MIN_LEVEL, MAX_LEVEL, 0, numLEDsPerStrip[stripIndex]);
+    int numLedsToLight = map(level, MIN_LEVEL, MAX_LEVEL, 0, bottom ? numLEDsPerStrip[stripIndex] / 2 - 1 : numLEDsPerStrip[stripIndex]);
 
-    // Определяем точки перехода цветов
-    int firstTransitionPoint = numLedsToLight * 0.1;  // Переход от синего к зеленому
-    int secondTransitionPoint = numLedsToLight * 0.2; // Переход от зеленого к желтому
-    int thirdTransitionPoint = numLedsToLight * 0.3;  // Переход от желтого к оранжевому
-    int fourthTransitionPoint = numLedsToLight * 0.5; // Переход от оранжевого к красному
-    int fifthTransitionPoint = numLedsToLight * 0.7;  // Переход от красного к пурпурному
-    int sixthTransitionPoint = numLedsToLight * 0.9;  // Переход от пурпурного к белому
+    
 
-    // Запускаем анимацию на основе уровня RPM
-    for (int i = 0; i < numLedsToLight; i++) {
-        // Вычисляем индекс текущего светодиода
-        int ledIndex = i;
+    if (bottom) {
+        int midPoint = numLEDsPerSide[0] / 2;  // Midpoint of the front strip
 
-        // Инициализируем параметры смешивания и начальные/конечные цвета
-        float blendFactor = 0;
-        CRGB startColor;
-        CRGB endColor;
+        // Lighting from the middle outwards, mirroring for both sides
+        for (int i = 0; i < numLedsToLight; i++) {
+            // Calculate the current color based on the section
+            CRGB currentColor = getColorForSection(i, numLeds/2);
 
-        if (i <= firstTransitionPoint) {
-            // Переход от синего к зеленому
-            blendFactor = float(i) / firstTransitionPoint;
-            startColor = CRGB::Blue;
-            endColor = CRGB::Green;
-        } else if (i <= secondTransitionPoint) {
-            // Переход от зеленого к желтому
-            blendFactor = float(i - firstTransitionPoint) / (secondTransitionPoint - firstTransitionPoint);
-            startColor = CRGB::Green;
-            endColor = CRGB::Yellow;
-        } else if (i <= thirdTransitionPoint) {
-            // Переход от желтого к оранжевому
-            blendFactor = float(i - secondTransitionPoint) / (thirdTransitionPoint - secondTransitionPoint);
-            startColor = CRGB::Yellow;
-            endColor = CRGB::Orange;
-        } else if (i <= fourthTransitionPoint) {
-            // Переход от оранжевого к красному
-            blendFactor = float(i - thirdTransitionPoint) / (fourthTransitionPoint - thirdTransitionPoint);
-            startColor = CRGB::Orange;
-            endColor = CRGB::Red;
-        } else if (i <= fifthTransitionPoint) {
-            // Переход от красного к пурпурному
-            blendFactor = float(i - fourthTransitionPoint) / (fifthTransitionPoint - fourthTransitionPoint);
-            startColor = CRGB::Red;
-            endColor = CRGB::Purple;
-        } else if (i <= sixthTransitionPoint) {
-            // Переход от пурпурного к розовому
-            blendFactor = float(i - fifthTransitionPoint) / (sixthTransitionPoint - fifthTransitionPoint);
-            startColor = CRGB::Purple;
-            endColor = CRGB::Pink;
-        } else {
-            // Переход от розового к белому
-            blendFactor = float(i - sixthTransitionPoint) / (numLedsToLight - sixthTransitionPoint);
-            startColor = CRGB::Pink;
-            endColor = CRGB::White;
+            // Light the front side (from midpoint outwards)
+            leds[stripIndex][midPoint + i] = currentColor;
+
+            // Mirror the lighting for the other half
+            int mirroredIndex = 2 * midPoint - i - 1;
+            if (mirroredIndex >= 0) {
+                leds[stripIndex][mirroredIndex] = currentColor;
+            } else {
+                leds[stripIndex][numLEDsPerStrip[stripIndex] + mirroredIndex] = currentColor;
+            }
         }
-
-        // Смешивание цветов на основе коэффициента смешивания
-        CRGB color = blend(startColor, endColor, uint8_t(blendFactor * 255));
-        leds[stripIndex][ledIndex] = color; // Устанавливаем цвет для текущего светодиода
+    } else {
+        // Standard mode: Light LEDs from start to numLedsToLight
+        for (int i = 0; i < numLedsToLight; i++) {
+            leds[stripIndex][i] = getColorForSection(i, numLeds);
+        }
     }
 
-    FastLED.setBrightness(mapBrightness(stripSettings[stripIndex].brightness)); // Устанавливаем яркость
-    FastLED.show(); // Отображаем изменения
+    // Show the LEDs
+    FastLED.show();
 }
+
+
+
+
 
 
 
@@ -236,7 +237,7 @@ void runAnimations() {
 
         if (useRpmLevel) {
             // Use RPM-based animation
-            rpmLevel(i);
+            rpmLevel(i, false);
         } else {
             // Use regular animation based on animationIndex
             switch (stripSettings[i].animationIndex) {
