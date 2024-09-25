@@ -8,7 +8,7 @@ const int ledPins[NUM_STRIPS] = {LED_PIN_1, LED_PIN_2, LED_PIN_3, LED_PIN_4, LED
 CanSettings can_setting = {2000, 7000, 100, 100};  // Default CAN settings
 StripSettings stripSettings[NUM_STRIPS] = {};      // Initialize with default values
 
-extern const int numLEDsPerStrip[NUM_STRIPS];
+extern int numLEDsPerStrip[NUM_STRIPS];
 
 // Make the OBD2 object available
 extern OBD2 obd2;
@@ -24,15 +24,31 @@ CRGB uintToCrgb(uint32_t color) {
     return CRGB((color >> 16) & 0xFF, (color >> 8) & 0xFF, color & 0xFF);
 }
 
-void initializeLEDStrips() {
+// Function to deallocate the memory
+void deinitializeLEDStrips() {
     for (int i = 0; i < NUM_STRIPS; i++) {
-        leds[i] = new CRGB[numLEDsPerStrip[i]];  // Allocate memory for each strip's LEDs
+        if (leds[i]) {
+            delete[] leds[i];  // Deallocate memory for each strip
+            leds[i] = nullptr;  // Set pointer to null to avoid dangling pointer
+        }
+    }
+}
+
+// Function to initialize/reinitialize the LED strips
+void initializeLEDStrips() {
+    deinitializeLEDStrips();  // Deallocate previous memory
+
+    for (int i = 0; i < NUM_STRIPS; i++) {
+        leds[i] = new CRGB[numLEDsPerStrip[i]];  // Allocate new memory based on the updated numLEDsPerStrip
 
         // Debug message to check initialization
         Serial.print("Initializing strip ");
         Serial.print(i + 1);
         Serial.print(" with pin ");
-        Serial.println(ledPins[i]);
+        Serial.print(ledPins[i]);
+        Serial.print(" and ");
+        Serial.print(numLEDsPerStrip[i]);
+        Serial.println(" LEDs");
 
         // Initialize each strip with specific pin and WS2812B LED protocol
         switch (ledPins[i]) {
@@ -57,7 +73,6 @@ void initializeLEDStrips() {
         }
     }
 }
-
 // Utility function to map speed from 0-100 to a usable delay
 int mapSpeed(int speed) {
     return map(speed, 0, 100, 100, 1);  // Higher speed means shorter delay
@@ -266,8 +281,8 @@ void runAnimations() {
        
 
         // Determine if the RPM-based animation should be used
-        bool useRpmLevel = (stripSettings[i].mode == "RPM") || 
-                           (stripSettings[i].mode == "HYBRID" && obd2.getRPM() >= can_setting.minRPM);
+        bool useRpmLevel = (stripSettings[i].mode == 1) || 
+                           (stripSettings[i].mode == 2 && obd2.getRPM() >= can_setting.minRPM);
 
         if (useRpmLevel) {
             Serial.println("Using RPM-based animation");

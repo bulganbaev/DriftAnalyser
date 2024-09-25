@@ -56,7 +56,7 @@ bool CANBus::readFrame(twai_message_t &rx_frame) {
     }
 
     // Read TWAI (CAN) frame
-    if (twai_receive(&rx_frame, pdMS_TO_TICKS(1)) == ESP_OK) {
+    if (twai_receive(&rx_frame, pdMS_TO_TICKS(10)) == ESP_OK) {
         return true;
     }
     return false;
@@ -69,5 +69,5 @@ void CANBus::sendFrame(twai_message_t &tx_frame) {
     }
 
     // Send TWAI (CAN) frame
-    twai_transmit(&tx_frame, pdMS_TO_TICKS(1));
+    twai_transmit(&tx_frame, pdMS_TO_TICKS(10));
 }

@@ -15,7 +15,7 @@ struct CanSettings {
 
 // Define a structure for strip settings
 struct StripSettings {
-    String mode;                // Mode 1: Non-RPM, Mode 2: RPM-based
+    int mode;                // Mode 1: Non-RPM, Mode 2: RPM-based
     int animationIndex;      // Index to choose the animation
     uint32_t color;              // Single color for non-RPM animations
     int brightness;          // Brightness (0-100)
@@ -30,7 +30,7 @@ extern int wavePosition1;
 extern CanSettings can_setting;
 extern StripSettings stripSettings[NUM_STRIPS];
 // Extern LED and side settings
-extern const int numLEDsPerStrip[NUM_STRIPS];  
+extern  int numLEDsPerStrip[NUM_STRIPS];  
 
 // Function to initialize the LED strips
 void initializeLEDStrips();

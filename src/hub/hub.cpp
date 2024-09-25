@@ -7,20 +7,21 @@
 GyverHub hub;
 
 // External settings from led_control
-const int numLEDsPerStrip[NUM_STRIPS] = {276, 194, 94, 94, 94, 94};
+int numLEDsPerStrip[NUM_STRIPS] = {276, 194, 94, 94, 94, 94};  // Make this modifiable
 
 extern CanSettings can_setting;  // External declaration of can_setting
 extern StripSettings stripSettings[NUM_STRIPS];  // External declaration of stripSettings
-
 
 // Define a structure for storing settings
 struct SavedData {
     CanSettings can_setting;
     StripSettings stripSettings[NUM_STRIPS];
+    int numLEDsPerStrip[NUM_STRIPS];  // Add this to SavedData for saving
 };
 
 // Create an instance of SavedData for saving and loading settings
-SavedData savedData = {.can_setting = {.minRPM = 2000, .maxRPM = 7000, .speed=100, .brightess = 100}}; // Initialize default CAN settings
+SavedData savedData = {.can_setting = {.minRPM = 2000, .maxRPM = 7000, .speed = 100, .brightess = 100}, 
+                       .numLEDsPerStrip = {276, 194, 94, 94, 94, 94}};  // Initialize default CAN settings
 
 int selectedStrip = 0;  // Variable to hold the selected LED strip for configuration
 
@@ -35,6 +36,21 @@ void setupHub() {
     }
     Serial.println("LittleFS initialized");
 
+    // Attempt to read the saved data
+    if (fileData.read()) {
+        Serial.println("Settings loaded successfully from file.");
+    } else {
+        Serial.println("Failed to load settings from file. Using default settings.");
+    }
+
+    // Apply saved settings to the global can_setting, stripSettings, and numLEDsPerStrip arrays
+    can_setting = savedData.can_setting;
+    for (int i = 0; i < NUM_STRIPS; i++) {
+        stripSettings[i] = savedData.stripSettings[i];
+        numLEDsPerStrip[i] = savedData.numLEDsPerStrip[i];
+    }
+    selectedStrip = 0;  // Default to the first strip
+
     // Start Wi-Fi in AP mode
     WiFi.mode(WIFI_AP);
     if (!WiFi.softAP(AP_SSID, AP_PASSWORD)) {
@@ -48,7 +64,7 @@ void setupHub() {
     Serial.println(WiFi.softAPIP());
 
     // Set up GyverHub interface
-    hub.config(F("MyDevice"), F("ESP32"), F("💡"));
+    hub.config(F("MyDevices"), F("ZverCUSTOM"), F("💡"));
     hub.onBuild(build);
     hub.begin();
 
@@ -56,16 +72,6 @@ void setupHub() {
         Serial.println("GyverHub failed to initialize!");
         return;  // Abort if GyverHub fails to start
     }
-
-    // Read the saved data
-    fileData.read();
-
-    // Apply saved settings to the global can_setting and stripSettings arrays
-    can_setting = savedData.can_setting;
-    for (int i = 0; i < NUM_STRIPS; i++) {
-        stripSettings[i] = savedData.stripSettings[i];
-    }
-    selectedStrip = 0;  // Default to the first strip
 
     Serial.println("GyverHub initialized successfully");
 }
@@ -96,31 +102,37 @@ void build(gh::Builder& b) {
         b.Gauge(&engineTemp).label(F("Temp")).size(3).range(0, 200, 1);
         b.Gauge(&throttle).label(F("Throttle")).size(3).range(0, 100, 1);
     }
-    String selectedStripString = "0";
+
     // LED Strip Selection Section
     {
         gh::Row stripSelectRow(b);
         b.Select(&selectedStrip).label("Select LED Strip").size(3).text("0;1;2;3;4;5");
-        snprintf(buffer, sizeof(buffer), "Strip %d Bottom", selectedStrip);
-        b.Switch(&stripSettings[selectedStrip].bottom).label(buffer).size(3);
-        b.Color(&stripSettings[selectedStrip].color).label("Color").size(3);
 
+        
+        snprintf(buffer, sizeof(buffer), "Strip %d Bottom", selectedStrip);
+        if (stripSettings[selectedStrip].mode > 0){
+            b.Switch(&stripSettings[selectedStrip].bottom).label(buffer).size(3);
+            if(stripSettings[selectedStrip].bottom){
+                b.Spinner(&stripSettings[selectedStrip].center).label("Middle").size(3).range(0,numLEDsPerStrip[selectedStrip],1 );
+            }
+        }
+        b.Color(&stripSettings[selectedStrip].color).label("Color").size(3);
     }
 
-    
     // Configuration for the selected LED strip
     {
         gh::Row stripConfigRow(b);
-
         snprintf(buffer, sizeof(buffer), "Strip %d Mode", selectedStrip);
         b.Select(&stripSettings[selectedStrip].mode).label(buffer).size(3).text("NON-RPM; RPM; HYBRID");
 
         snprintf(buffer, sizeof(buffer), "Strip %d Animation", selectedStrip);
         b.Select(&stripSettings[selectedStrip].animationIndex).label(buffer).size(3).text("Static Color;Theater Chase;Color Wave;Breathing Light;Rainbow Cycle;Snake;Meteor Rain;Twinkle;Running Lights");
-}
+        
+        // Control the number of LEDs per strip
+        snprintf(buffer, sizeof(buffer), "Strip %d LEDs", selectedStrip);
+        b.Spinner(&numLEDsPerStrip[selectedStrip]).label(buffer).size(3).range(1, 1000, 1);  // Adjust range as needed
 
-
-
+    }
 
     // CAN Settings
     {
@@ -137,7 +149,13 @@ void build(gh::Builder& b) {
 
     // If something changed, trigger the update
     if (b.changed()) {
+        savedData.can_setting = can_setting;
+        for (int i = 0; i < NUM_STRIPS; i++) {
+            savedData.stripSettings[i] = stripSettings[i];
+            savedData.numLEDsPerStrip[i] = numLEDsPerStrip[i];
+        }
         // Save the data to file
+        Serial.println("Data changed, saving to file...");
         fileData.update();
         hub.sendRefresh();
     }

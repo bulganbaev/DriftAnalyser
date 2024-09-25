@@ -2,8 +2,8 @@
 #define CONFIG_H
 
 // Настройки Wi-Fi
-#define AP_SSID "ESP32_AP"      // Имя точки доступа
-#define AP_PASSWORD "password"  // Пароль для точки доступа
+#define AP_SSID "ZverCustomLed"      // Имя точки доступа
+#define AP_PASSWORD "qwerty12345"  // Пароль для точки доступа
 #define NUM_STRIPS 6
 
 
