@@ -79,6 +79,33 @@ void setupHub() {
 void updateHub() {
     hub.tick();
     fileData.tick();  // Save the data on timeout if needed
+    static int lastRPM = 0;
+    int currentRPM = obd2.getRPM();
+    if (currentRPM != lastRPM) {
+        lastRPM = currentRPM;
+        hub.sendUpdate("rpm");
+    }
+
+    static int lastSpeed = 0;
+    int currentSpeed = obd2.getSpeed();
+    if (currentSpeed != lastSpeed) {
+        lastSpeed = currentSpeed;
+        hub.sendUpdate("speed");
+    }
+
+    static int lastTemp = 0;
+    int currentTemp = obd2.getEngineTemp();
+    if (currentTemp != lastTemp) {
+        lastTemp = currentTemp;
+        hub.sendUpdate("temp");
+    }
+
+    static int lastThrottle = 0;
+    int currentThrottle = obd2.getThrottlePosition();
+    if (currentThrottle != lastThrottle) {
+        lastThrottle = currentThrottle;
+        hub.sendUpdate("throttle");
+    }
 }
 
 void build(gh::Builder& b) {
@@ -87,20 +114,19 @@ void build(gh::Builder& b) {
     // OBD2 Data Section
     {
         gh::Row obd2Row(b);
-        int rpm = obd2.getRPM();
-        int speed = obd2.getSpeed();
-
-        b.Gauge(&rpm).label(F("RPM")).size(3).range(0, 9000, 1);
-        b.Gauge(&speed).label(F("Speed")).size(3).range(0, 300, 1);
+        String rpm = String(obd2.getRPM());
+        String speed = String(obd2.getSpeed());
+        b.Gauge_("rpm", &rpm).label(F("RPM")).size(3).range(0, 9000, 1);
+        b.Gauge_("speed", &speed).label(F("Speed")).size(3).range(0, 300, 1);
     }
 
     {
         gh::Row obd2Row(b);
-        int engineTemp = obd2.getEngineTemp();
-        int throttle = obd2.getThrottlePosition();
+        String engineTemp = String(obd2.getEngineTemp());
+        String throttle = String(obd2.getThrottlePosition());
 
-        b.Gauge(&engineTemp).label(F("Temp")).size(3).range(0, 200, 1);
-        b.Gauge(&throttle).label(F("Throttle")).size(3).range(0, 100, 1);
+        b.Gauge_("temp", &engineTemp).label(F("Temp")).size(3).range(0, 200, 1);
+        b.Gauge_("throttle", &throttle).label(F("Throttle")).size(3).range(0, 100, 1);
     }
 
     // LED Strip Selection Section
