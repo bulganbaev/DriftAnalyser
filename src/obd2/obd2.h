@@ -3,7 +3,6 @@
 
 #include "can_bus/can_bus.h"
 #include "driver/twai.h"  // Include TWAI driver
-#include "front/front.h"
 
 class OBD2 {
 public:

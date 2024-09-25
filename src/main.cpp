@@ -1,8 +1,8 @@
 #include <Arduino.h>
-#include "front/front.h"
 #include "led_control/led_control.h"
 #include "obd2/obd2.h"
 #include "can_bus/can_bus.h"
+#include "hub/hub.h"
 
 CANBus canBus;
 OBD2 obd2;
@@ -12,9 +12,6 @@ void setup() {
 
     // Log the start of the system
     Serial.println("System initializing...\n");
-
-    // Set up the access point and web server
-    setupAccessPoint();
 
     // Initialize LED strips or other setup tasks
     initializeLEDStrips();
@@ -28,21 +25,16 @@ void setup() {
     // Initialize the OBD2 communication
     obd2.begin(canBus);
     Serial.println("OBD2 initialized\n");
+
+    setupHub();
+
 }
 
 void loop() {
-    // Handle the web server
-    handleWebServer();
-
+    updateHub();
     // Update OBD2 data and log it
     obd2.updateOBD2Data();
-
     // Run LED animations or other tasks
     runAnimations();
 
-    // Display LED effects
-    FastLED.show();
-
-    // Adjust delay for controlling animation speed
-    delay(50);
 }

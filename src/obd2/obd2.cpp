@@ -72,31 +72,9 @@ bool OBD2::readEngineTemp(int8_t &temp) {
 }
 
 void OBD2::updateOBD2Data() {
-    if (readRPM(rpm)) {
-        Serial.print("RPM: ");
-        Serial.println(rpm);
-    } else {
-        Serial.println("Failed to read RPM");
+    readThrottlePosition(throttlePosition);
+    readRPM(rpm);
+    readSpeed(speed);
+    readEngineTemp(engineTemp);
     }
 
-    if (readThrottlePosition(throttlePosition)) {
-        Serial.print("Throttle Position: ");
-        Serial.println(throttlePosition);
-    } else {
-        Serial.println("Failed to read Throttle Position");
-    }
-
-    if (readSpeed(speed)) {
-        Serial.print("Speed: ");
-        Serial.println(speed);
-    } else {
-        Serial.println("Failed to read Speed");
-    }
-
-    if (readEngineTemp(engineTemp)) {
-        Serial.print("Engine Temperature: ");
-        Serial.println(engineTemp);
-    } else {
-        Serial.println("Failed to read Engine Temperature");
-    }
-}
