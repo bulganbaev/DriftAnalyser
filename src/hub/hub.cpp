@@ -12,6 +12,9 @@ int numLEDsPerStrip[NUM_STRIPS] = {276, 194, 94, 94, 94, 94};  // Make this modi
 extern CanSettings can_setting;  // External declaration of can_setting
 extern StripSettings stripSettings[NUM_STRIPS];  // External declaration of stripSettings
 
+unsigned long lastUpdate = 0;
+const unsigned long updateInterval = 1000;  // 1 second interval
+
 // Define a structure for storing settings
 struct SavedData {
     CanSettings can_setting;
@@ -26,11 +29,51 @@ SavedData savedData = {.can_setting = {.minRPM = 2000, .maxRPM = 7000, .speed = 
 int selectedStrip = 0;  // Variable to hold the selected LED strip for configuration
 
 // Create a FileData object to handle saving and loading the SavedData structure
-FileData fileData(&LittleFS, "/settings.dat", 'A', &savedData, sizeof(savedData));
+FileData fileData(&LittleFS, "/settings2.dat", 'A', &savedData, sizeof(savedData));
 
 void formatLittleFS() {
     Serial.println("Formatting LittleFS...");
     LittleFS.format();  // This will erase all data on LittleFS and format it
+}
+
+void compareFiles(const char* file1, const char* file2) {
+    File f1 = LittleFS.open(file1, "r");
+    File f2 = LittleFS.open(file2, "r");
+
+    if (!f1 || !f2) {
+        Serial.println("Failed to open one or both files for comparison.");
+        return;
+    }
+
+    size_t fileSize1 = f1.size();
+    size_t fileSize2 = f2.size();
+
+    if (fileSize1 != fileSize2) {
+        Serial.printf("Files %s and %s have different sizes.\n", file1, file2);
+        f1.close();
+        f2.close();
+        return;
+    }
+
+    bool identical = true;
+    while (f1.available() && f2.available()) {
+        char byte1 = f1.read();
+        char byte2 = f2.read();
+
+        if (byte1 != byte2) {
+            identical = false;
+            Serial.printf("Difference at byte %ld: %02X != %02X\n", f1.position(), byte1, byte2);
+        }
+    }
+
+    if (identical) {
+        Serial.printf("Files %s and %s are identical.\n", file1, file2);
+    } else {
+        Serial.printf("Files %s and %s are different.\n", file1, file2);
+    }
+
+    f1.close();
+    f2.close();
 }
 
 void setupHub() {
@@ -46,11 +89,11 @@ void setupHub() {
     Serial.println("LittleFS initialized");
 
     // Check if the settings file exists
-    if (!LittleFS.exists("/settings.dat")) {
-        Serial.println("/settings.dat does not exist, creating a new one...");
-        File file = LittleFS.open("/settings.dat", "w");  // Create the file if it doesn't exist
+    if (!LittleFS.exists("/settings2.dat")) {
+        Serial.println("/settings2.dat does not exist, creating a new one...");
+        File file = LittleFS.open("/settings2.dat", "w");  // Create the file if it doesn't exist
         if (!file) {
-            Serial.println("Failed to create /settings.dat!");
+            Serial.println("Failed to create /settings2.dat!");
             return;  // Abort if the file cannot be created
         }
         file.close();  // Close the file after creating it
@@ -98,42 +141,16 @@ void setupHub() {
 void updateHub() {
     hub.tick();
     fileData.tick();  // Save the data on timeout if needed
-     static gh::Timer tmr(100);  // период 1 секунда
-
-    // каждую секунду будем обновлять заголовок
-    if (tmr) {
+    unsigned long currentTime = millis();
+    
+    if (currentTime - lastUpdate >= updateInterval) {
+        lastUpdate = currentTime;
         hub.sendUpdate("rpm");
         hub.sendUpdate("speed");
         hub.sendUpdate("throttle");
         hub.sendUpdate("temp");
     }
-    // static int lastRPM = 0;
-    // int currentRPM = obd2.getRPM();
-    // if (currentRPM != lastRPM) {
-    //     lastRPM = currentRPM;
-    //     hub.sendUpdate("rpm");
-    // }
-
-    // static int lastSpeed = 0;
-    // int currentSpeed = obd2.getSpeed();
-    // if (currentSpeed != lastSpeed) {
-    //     lastSpeed = currentSpeed;
-    //     hub.sendUpdate("speed");
-    // }
-
-    // static int lastTemp = 0;
-    // int currentTemp = obd2.getEngineTemp();
-    // if (currentTemp != lastTemp) {
-    //     lastTemp = currentTemp;
-    //     hub.sendUpdate("temp");
-    // }
-
-    // static int lastThrottle = 0;
-    // int currentThrottle = obd2.getThrottlePosition();
-    // if (currentThrottle != lastThrottle) {
-    //     lastThrottle = currentThrottle;
-    //     hub.sendUpdate("throttle");
-    // }
+    
 }
 
 void build(gh::Builder& b) {

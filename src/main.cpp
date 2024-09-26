@@ -31,7 +31,6 @@ void setup() {
 }
 
 void loop() {
-    Serial.println("tick");
     updateHub();
     // Update OBD2 data and log it
     obd2.updateOBD2Data();

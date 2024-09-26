@@ -97,7 +97,6 @@ void deinitializeLEDStrips() {
 
 // Function to initialize/reinitialize the LED strips
 void initializeLEDStrips() {
-    deinitializeLEDStrips();  // Deallocate previous memory
 
     for (int i = 0; i < NUM_STRIPS; i++) {
         leds[i] = new CRGB[numLEDsPerStrip[i]];  // Allocate new memory based on the updated numLEDsPerStrip
