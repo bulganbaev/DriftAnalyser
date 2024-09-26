@@ -9,7 +9,7 @@ OBD2 obd2;
 
 void setup() {
     Serial.begin(115200);
-
+    delay(2000);
     // Log the start of the system
     Serial.println("System initializing...\n");
 
@@ -31,10 +31,12 @@ void setup() {
 }
 
 void loop() {
+    Serial.println("tick");
     updateHub();
     // Update OBD2 data and log it
     obd2.updateOBD2Data();
     // Run LED animations or other tasks
     runAnimations();
+    
 
 }

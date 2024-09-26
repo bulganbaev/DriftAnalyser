@@ -34,6 +34,10 @@ extern  int numLEDsPerStrip[NUM_STRIPS];
 
 // Function to initialize the LED strips
 void initializeLEDStrips();
+void reinit(int index);
+void deinit(int index);
+void init(int index);
+void deinitializeLEDStrips();
 
 // Different animation types for LED strips
 void staticColor(int stripIndex);

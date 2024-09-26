@@ -28,14 +28,33 @@ int selectedStrip = 0;  // Variable to hold the selected LED strip for configura
 // Create a FileData object to handle saving and loading the SavedData structure
 FileData fileData(&LittleFS, "/settings.dat", 'A', &savedData, sizeof(savedData));
 
+void formatLittleFS() {
+    Serial.println("Formatting LittleFS...");
+    LittleFS.format();  // This will erase all data on LittleFS and format it
+}
+
 void setupHub() {
     // Initialize the file system (for saving settings)
     if (!LittleFS.begin()) {
         Serial.println("Failed to initialize LittleFS!");
-        return;  // Abort if the file system fails to start
+        formatLittleFS();  // Format if mounting fails
+        if (!LittleFS.begin()) {
+            Serial.println("Failed to mount LittleFS after formatting!");
+            return;  // Abort if the file system fails to start after formatting
+        }
     }
     Serial.println("LittleFS initialized");
 
+    // Check if the settings file exists
+    if (!LittleFS.exists("/settings.dat")) {
+        Serial.println("/settings.dat does not exist, creating a new one...");
+        File file = LittleFS.open("/settings.dat", "w");  // Create the file if it doesn't exist
+        if (!file) {
+            Serial.println("Failed to create /settings.dat!");
+            return;  // Abort if the file cannot be created
+        }
+        file.close();  // Close the file after creating it
+    }
     // Attempt to read the saved data
     if (fileData.read()) {
         Serial.println("Settings loaded successfully from file.");
@@ -184,7 +203,7 @@ void build(gh::Builder& b) {
 
     // If something changed, trigger the update
     if (b.changed()) {
-        initializeLEDStrips(); 
+        reinit(selectedStrip); 
         savedData.can_setting = can_setting;
         for (int i = 0; i < NUM_STRIPS; i++) {
             savedData.stripSettings[i] = stripSettings[i];

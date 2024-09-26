@@ -23,6 +23,67 @@ int wavePosition2 = 0;
 CRGB uintToCrgb(uint32_t color) {
     return CRGB((color >> 16) & 0xFF, (color >> 8) & 0xFF, color & 0xFF);
 }
+void deinit(int index) {
+    if (index >= 0 && index < NUM_STRIPS) {
+        if (leds[index]) {
+            delete[] leds[index];  // Deallocate memory for the specific strip
+            leds[index] = nullptr;  // Set pointer to null to avoid dangling pointer
+            Serial.print("Deinitialized strip ");
+            Serial.println(index + 1);
+        }
+    } else {
+        Serial.println("Invalid index for deinit");
+    }
+}
+
+void init(int index) {
+    if (index >= 0 && index < NUM_STRIPS) {
+        leds[index] = new CRGB[numLEDsPerStrip[index]];  // Allocate new memory for the specific strip
+
+        Serial.print("Initializing strip ");
+        Serial.print(index + 1);
+        Serial.print(" with pin ");
+        Serial.print(ledPins[index]);
+        Serial.print(" and ");
+        Serial.print(numLEDsPerStrip[index]);
+        Serial.println(" LEDs");
+
+        // Initialize each strip with specific pin and WS2812B LED protocol
+        switch (ledPins[index]) {
+            case LED_PIN_1:
+                FastLED.addLeds<WS2812B, LED_PIN_1, RGB>(leds[index], numLEDsPerStrip[index]);
+                break;
+            case LED_PIN_2:
+                FastLED.addLeds<WS2812B, LED_PIN_2, RGB>(leds[index], numLEDsPerStrip[index]);
+                break;
+            case LED_PIN_3:
+                FastLED.addLeds<WS2812B, LED_PIN_3, RGB>(leds[index], numLEDsPerStrip[index]);
+                break;
+            case LED_PIN_4:
+                FastLED.addLeds<WS2812B, LED_PIN_4, RGB>(leds[index], numLEDsPerStrip[index]);
+                break;
+            case LED_PIN_5:
+                FastLED.addLeds<WS2812B, LED_PIN_5, RGB>(leds[index], numLEDsPerStrip[index]);
+                break;
+            case LED_PIN_6:
+                FastLED.addLeds<WS2812B, LED_PIN_6, RGB>(leds[index], numLEDsPerStrip[index]);
+                break;
+            default:
+                Serial.println("Invalid pin for initialization");
+                break;
+        }
+    } else {
+        Serial.println("Invalid index for init");
+    }
+}
+
+void reinit(int index) {
+    Serial.print("Reinitializing strip ");
+    Serial.println(index + 1);
+
+    deinit(index);  // First, deinitialize the specific strip
+    init(index);    // Then, initialize it again with the updated settings
+}
 
 // Function to deallocate the memory
 void deinitializeLEDStrips() {
