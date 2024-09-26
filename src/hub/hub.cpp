@@ -79,33 +79,42 @@ void setupHub() {
 void updateHub() {
     hub.tick();
     fileData.tick();  // Save the data on timeout if needed
-    static int lastRPM = 0;
-    int currentRPM = obd2.getRPM();
-    if (currentRPM != lastRPM) {
-        lastRPM = currentRPM;
+     static gh::Timer tmr(100);  // период 1 секунда
+
+    // каждую секунду будем обновлять заголовок
+    if (tmr) {
         hub.sendUpdate("rpm");
-    }
-
-    static int lastSpeed = 0;
-    int currentSpeed = obd2.getSpeed();
-    if (currentSpeed != lastSpeed) {
-        lastSpeed = currentSpeed;
         hub.sendUpdate("speed");
-    }
-
-    static int lastTemp = 0;
-    int currentTemp = obd2.getEngineTemp();
-    if (currentTemp != lastTemp) {
-        lastTemp = currentTemp;
+        hub.sendUpdate("throttle");
         hub.sendUpdate("temp");
     }
+    // static int lastRPM = 0;
+    // int currentRPM = obd2.getRPM();
+    // if (currentRPM != lastRPM) {
+    //     lastRPM = currentRPM;
+    //     hub.sendUpdate("rpm");
+    // }
 
-    static int lastThrottle = 0;
-    int currentThrottle = obd2.getThrottlePosition();
-    if (currentThrottle != lastThrottle) {
-        lastThrottle = currentThrottle;
-        hub.sendUpdate("throttle");
-    }
+    // static int lastSpeed = 0;
+    // int currentSpeed = obd2.getSpeed();
+    // if (currentSpeed != lastSpeed) {
+    //     lastSpeed = currentSpeed;
+    //     hub.sendUpdate("speed");
+    // }
+
+    // static int lastTemp = 0;
+    // int currentTemp = obd2.getEngineTemp();
+    // if (currentTemp != lastTemp) {
+    //     lastTemp = currentTemp;
+    //     hub.sendUpdate("temp");
+    // }
+
+    // static int lastThrottle = 0;
+    // int currentThrottle = obd2.getThrottlePosition();
+    // if (currentThrottle != lastThrottle) {
+    //     lastThrottle = currentThrottle;
+    //     hub.sendUpdate("throttle");
+    // }
 }
 
 void build(gh::Builder& b) {
@@ -175,6 +184,7 @@ void build(gh::Builder& b) {
 
     // If something changed, trigger the update
     if (b.changed()) {
+        initializeLEDStrips(); 
         savedData.can_setting = can_setting;
         for (int i = 0; i < NUM_STRIPS; i++) {
             savedData.stripSettings[i] = stripSettings[i];
