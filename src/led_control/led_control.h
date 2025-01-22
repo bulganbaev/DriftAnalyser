@@ -30,7 +30,7 @@ extern int wavePosition1;
 extern CanSettings can_setting;
 extern StripSettings stripSettings[NUM_STRIPS];
 // Extern LED and side settings
-extern  int numLEDsPerStrip[NUM_STRIPS];  
+extern int numLedsPerStrip[6];
 
 // Function to initialize the LED strips
 void initializeLEDStrips();

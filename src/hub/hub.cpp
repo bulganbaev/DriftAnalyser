@@ -7,7 +7,12 @@
 GyverHub hub;
 
 // External settings from led_control
-int numLEDsPerStrip[NUM_STRIPS] = {276, 194, 94, 94, 94, 94};  // Make this modifiable
+int numLEDsStrip1 = 276;
+int numLEDsStrip2 = 194;
+int numLEDsStrip3 = 94;
+int numLEDsStrip4 = 94;
+int numLEDsStrip5 = 94;
+int numLEDsStrip6 = 94;
 
 extern CanSettings can_setting;  // External declaration of can_setting
 extern StripSettings stripSettings[NUM_STRIPS];  // External declaration of stripSettings
@@ -19,17 +24,30 @@ const unsigned long updateInterval = 1000;  // 1 second interval
 struct SavedData {
     CanSettings can_setting;
     StripSettings stripSettings[NUM_STRIPS];
-    int numLEDsPerStrip[NUM_STRIPS];  // Add this to SavedData for saving
+    int numLEDsStrip1;
+    int numLEDsStrip2;
+    int numLEDsStrip3;
+    int numLEDsStrip4;
+    int numLEDsStrip5;
+    int numLEDsStrip6;
 };
 
 // Create an instance of SavedData for saving and loading settings
-SavedData savedData = {.can_setting = {.minRPM = 2000, .maxRPM = 7000, .speed = 100, .brightess = 100}, 
-                       .numLEDsPerStrip = {276, 194, 94, 94, 94, 94}};  // Initialize default CAN settings
+SavedData savedData = {
+    .can_setting = {.minRPM = 2000, .maxRPM = 7000, .speed = 100, .brightess = 100},
+    .numLEDsStrip1 = 276,
+    .numLEDsStrip2 = 194,
+    .numLEDsStrip3 = 94,
+    .numLEDsStrip4 = 94,
+    .numLEDsStrip5 = 94,
+    .numLEDsStrip6 = 94
+};
 
 int selectedStrip = 0;  // Variable to hold the selected LED strip for configuration
+int numLedsPerStrip[6] = {numLEDsStrip1, numLEDsStrip2, numLEDsStrip3, numLEDsStrip4, numLEDsStrip5, numLEDsStrip6};
 
 // Create a FileData object to handle saving and loading the SavedData structure
-FileData fileData(&LittleFS, "/settings2.dat", 'A', &savedData, sizeof(savedData));
+FileData fileData(&LittleFS, "/settings.dat", 'A', &savedData, sizeof(savedData));
 
 void formatLittleFS() {
     Serial.println("Formatting LittleFS...");
@@ -109,8 +127,20 @@ void setupHub() {
     can_setting = savedData.can_setting;
     for (int i = 0; i < NUM_STRIPS; i++) {
         stripSettings[i] = savedData.stripSettings[i];
-        numLEDsPerStrip[i] = savedData.numLEDsPerStrip[i];
+        
     }
+    numLEDsStrip1 = savedData.numLEDsStrip1;
+    numLEDsStrip2 = savedData.numLEDsStrip2;
+    numLEDsStrip3 = savedData.numLEDsStrip3;
+    numLEDsStrip4 = savedData.numLEDsStrip4;
+    numLEDsStrip5 = savedData.numLEDsStrip5;
+    numLEDsStrip6 = savedData.numLEDsStrip6;
+    numLedsPerStrip[0] = savedData.numLEDsStrip1;
+    numLedsPerStrip[1] = savedData.numLEDsStrip2;
+    numLedsPerStrip[2] = savedData.numLEDsStrip3;
+    numLedsPerStrip[3] = savedData.numLEDsStrip4;
+    numLedsPerStrip[4] = savedData.numLEDsStrip5;
+    numLedsPerStrip[5] = savedData.numLEDsStrip6;
     selectedStrip = 0;  // Default to the first strip
 
     // Start Wi-Fi in AP mode
@@ -125,6 +155,7 @@ void setupHub() {
     Serial.print("IP Address: ");
     Serial.println(WiFi.softAPIP());
 
+
     // Set up GyverHub interface
     hub.config(F("MyDevices"), F("ZverCUSTOM"), F("💡"));
     hub.onBuild(build);
@@ -136,6 +167,7 @@ void setupHub() {
     }
 
     Serial.println("GyverHub initialized successfully");
+    
 }
 
 void updateHub() {
@@ -184,7 +216,7 @@ void build(gh::Builder& b) {
         if (stripSettings[selectedStrip].mode > 0){
             b.Switch(&stripSettings[selectedStrip].bottom).label(buffer).size(3);
             if(stripSettings[selectedStrip].bottom){
-                b.Spinner(&stripSettings[selectedStrip].center).label("Middle").size(3).range(0,numLEDsPerStrip[selectedStrip],1 );
+                b.Spinner(&stripSettings[selectedStrip].center).label("Middle").size(3).range(0,numLedsPerStrip[selectedStrip],1 );
             }
         }
         b.Color(&stripSettings[selectedStrip].color).label("Color").size(3);
@@ -201,7 +233,8 @@ void build(gh::Builder& b) {
         
         // Control the number of LEDs per strip
         snprintf(buffer, sizeof(buffer), "Strip %d LEDs", selectedStrip);
-        b.Spinner(&numLEDsPerStrip[selectedStrip]).label(buffer).size(3).range(1, 1000, 1);  // Adjust range as needed
+       
+        b.Spinner(&numLedsPerStrip[selectedStrip]).label(buffer).size(3).range(1, 1000, 1);  // Adjust range as needed
 
     }
 
@@ -220,12 +253,18 @@ void build(gh::Builder& b) {
 
     // If something changed, trigger the update
     if (b.changed()) {
+        
         reinit(selectedStrip); 
         savedData.can_setting = can_setting;
         for (int i = 0; i < NUM_STRIPS; i++) {
             savedData.stripSettings[i] = stripSettings[i];
-            savedData.numLEDsPerStrip[i] = numLEDsPerStrip[i];
         }
+        savedData.numLEDsStrip1 = numLedsPerStrip[0];
+        savedData.numLEDsStrip2 = numLedsPerStrip[1];
+        savedData.numLEDsStrip3 = numLedsPerStrip[2];
+        savedData.numLEDsStrip4 = numLedsPerStrip[3];
+        savedData.numLEDsStrip5 = numLedsPerStrip[4];
+        savedData.numLEDsStrip6 = numLedsPerStrip[5];
         // Save the data to file
         Serial.println("Data changed, saving to file...");
         fileData.update();

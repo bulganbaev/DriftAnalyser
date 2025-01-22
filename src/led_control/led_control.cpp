@@ -8,8 +8,7 @@ const int ledPins[NUM_STRIPS] = {LED_PIN_1, LED_PIN_2, LED_PIN_3, LED_PIN_4, LED
 CanSettings can_setting = {2000, 7000, 100, 100};  // Default CAN settings
 StripSettings stripSettings[NUM_STRIPS] = {};      // Initialize with default values
 
-extern int numLEDsPerStrip[NUM_STRIPS];
-
+extern int numLedsPerStrip[6];
 // Make the OBD2 object available
 extern OBD2 obd2;
 
@@ -37,51 +36,16 @@ void deinit(int index) {
 }
 
 void init(int index) {
-    if (index >= 0 && index < NUM_STRIPS) {
-        leds[index] = new CRGB[numLEDsPerStrip[index]];  // Allocate new memory for the specific strip
-
-        Serial.print("Initializing strip ");
-        Serial.print(index + 1);
-        Serial.print(" with pin ");
-        Serial.print(ledPins[index]);
-        Serial.print(" and ");
-        Serial.print(numLEDsPerStrip[index]);
-        Serial.println(" LEDs");
-
-        // Initialize each strip with specific pin and WS2812B LED protocol
-        switch (ledPins[index]) {
-            case LED_PIN_1:
-                FastLED.addLeds<WS2812B, LED_PIN_1, RGB>(leds[index], numLEDsPerStrip[index]);
-                break;
-            case LED_PIN_2:
-                FastLED.addLeds<WS2812B, LED_PIN_2, RGB>(leds[index], numLEDsPerStrip[index]);
-                break;
-            case LED_PIN_3:
-                FastLED.addLeds<WS2812B, LED_PIN_3, RGB>(leds[index], numLEDsPerStrip[index]);
-                break;
-            case LED_PIN_4:
-                FastLED.addLeds<WS2812B, LED_PIN_4, RGB>(leds[index], numLEDsPerStrip[index]);
-                break;
-            case LED_PIN_5:
-                FastLED.addLeds<WS2812B, LED_PIN_5, RGB>(leds[index], numLEDsPerStrip[index]);
-                break;
-            case LED_PIN_6:
-                FastLED.addLeds<WS2812B, LED_PIN_6, RGB>(leds[index], numLEDsPerStrip[index]);
-                break;
-            default:
-                Serial.println("Invalid pin for initialization");
-                break;
-        }
-    } else {
-        Serial.println("Invalid index for init");
-    }
+    for (int i = numLedsPerStrip[index]; i < 1000; i++) {
+                leds[index][i] = CRGB::Black;  // Set LED to black
+            }
 }
 
 void reinit(int index) {
     Serial.print("Reinitializing strip ");
     Serial.println(index + 1);
 
-    deinit(index);  // First, deinitialize the specific strip
+    // deinit(index);  // First, deinitialize the specific strip
     init(index);    // Then, initialize it again with the updated settings
 }
 
@@ -99,7 +63,8 @@ void deinitializeLEDStrips() {
 void initializeLEDStrips() {
 
     for (int i = 0; i < NUM_STRIPS; i++) {
-        leds[i] = new CRGB[numLEDsPerStrip[i]];  // Allocate new memory based on the updated numLEDsPerStrip
+        
+        leds[i] = new CRGB[1000];  // Allocate new memory based on the updated numLEDsPerStrip
 
         // Debug message to check initialization
         Serial.print("Initializing strip ");
@@ -107,30 +72,32 @@ void initializeLEDStrips() {
         Serial.print(" with pin ");
         Serial.print(ledPins[i]);
         Serial.print(" and ");
-        Serial.print(numLEDsPerStrip[i]);
+        Serial.print(numLedsPerStrip[i]);
         Serial.println(" LEDs");
 
         // Initialize each strip with specific pin and WS2812B LED protocol
         switch (ledPins[i]) {
             case LED_PIN_1:
-                FastLED.addLeds<WS2812B, LED_PIN_1, RGB>(leds[i], numLEDsPerStrip[i]);
+                FastLED.addLeds<WS2812B, LED_PIN_1, RGB>(leds[i], numLedsPerStrip[i]);
                 break;
             case LED_PIN_2:
-                FastLED.addLeds<WS2812B, LED_PIN_2, RGB>(leds[i], numLEDsPerStrip[i]);
+                FastLED.addLeds<WS2812B, LED_PIN_2, RGB>(leds[i], numLedsPerStrip[i]);
                 break;
             case LED_PIN_3:
-                FastLED.addLeds<WS2812B, LED_PIN_3, RGB>(leds[i], numLEDsPerStrip[i]);
+                FastLED.addLeds<WS2812B, LED_PIN_3, RGB>(leds[i], numLedsPerStrip[i]);
                 break;
             case LED_PIN_4:
-                FastLED.addLeds<WS2812B, LED_PIN_4, RGB>(leds[i], numLEDsPerStrip[i]);
+                FastLED.addLeds<WS2812B, LED_PIN_4, RGB>(leds[i], numLedsPerStrip[i]);
                 break;
             case LED_PIN_5:
-                FastLED.addLeds<WS2812B, LED_PIN_5, RGB>(leds[i], numLEDsPerStrip[i]);
+                FastLED.addLeds<WS2812B, LED_PIN_5, RGB>(leds[i], numLedsPerStrip[i]);
                 break;
             case LED_PIN_6:
-                FastLED.addLeds<WS2812B, LED_PIN_6, RGB>(leds[i], numLEDsPerStrip[i]);
+                FastLED.addLeds<WS2812B, LED_PIN_6, RGB>(leds[i], numLedsPerStrip[i]);
                 break;
         }
+        init(i);
+
     }
 }
 // Utility function to map speed from 0-100 to a usable delay
@@ -145,7 +112,7 @@ int mapBrightness(int brightness) {
 
 void staticColor(int stripIndex) {
     CRGB color = uintToCrgb(stripSettings[stripIndex].color);
-    for (int i = 0; i < numLEDsPerStrip[stripIndex]; i++) {
+    for (int i = 0; i < numLedsPerStrip[stripIndex]; i++) {
         leds[stripIndex][i] = color;
     }
 }
@@ -153,13 +120,13 @@ void staticColor(int stripIndex) {
 void theaterChase(int stripIndex) {
     CRGB color = uintToCrgb(stripSettings[stripIndex].color);
 
-    fill_solid(leds[stripIndex], numLEDsPerStrip[stripIndex], CRGB::Black);
+    fill_solid(leds[stripIndex], numLedsPerStrip[stripIndex], CRGB::Black);
 
-    for (int i = 0; i < numLEDsPerStrip[stripIndex]; i += 3) {
-        leds[stripIndex][(i + wavePosition1) % numLEDsPerStrip[stripIndex]] = color;
+    for (int i = 0; i < numLedsPerStrip[stripIndex]; i += 3) {
+        leds[stripIndex][(i + wavePosition1) % numLedsPerStrip[stripIndex]] = color;
     }
 
-    wavePosition1 = (wavePosition1 + 1) % numLEDsPerStrip[stripIndex];
+    wavePosition1 = (wavePosition1 + 1) % numLedsPerStrip[stripIndex];
 }
 
 void snake(int stripIndex) {
@@ -168,16 +135,16 @@ void snake(int stripIndex) {
     int snakeLength = 20;  // Length of the chase "snake"
     
     // Clear the strip before updating
-    fill_solid(leds[stripIndex], numLEDsPerStrip[stripIndex], CRGB::Black);
+    fill_solid(leds[stripIndex], numLedsPerStrip[stripIndex], CRGB::Black);
 
     // Update the LEDs for the theater chase effect
     for (int i = 0; i < snakeLength; i++) {
-        int ledIndex = (i + wavePosition2) % numLEDsPerStrip[stripIndex];
+        int ledIndex = (i + wavePosition2) % numLedsPerStrip[stripIndex];
         leds[stripIndex][ledIndex] = color;  // Set the current segment of the chase
     }
 
     // Move the wave position to create   the chase effect
-    wavePosition2 = (wavePosition2 + 2 * snakeLength / 3) % numLEDsPerStrip[stripIndex];
+    wavePosition2 = (wavePosition2 + 2 * snakeLength / 3) % numLedsPerStrip[stripIndex];
 
 }
 
@@ -188,7 +155,7 @@ void colorWave(int stripIndex) {
 
     // Create a gradient color wave that moves across the strip
     uint8_t waveLength = 20;  // Adjust the length of each color wave
-    for (int i = 0; i < numLEDsPerStrip[stripIndex]; i++) {
+    for (int i = 0; i < numLedsPerStrip[stripIndex]; i++) {
         uint8_t colorIndex = (startIndex + i * 255 / waveLength) % 255;  // Calculate color index for each LED
         leds[stripIndex][i] = CHSV(colorIndex, 255, 255);  // Use HSV for smooth color transitions
     }
@@ -214,7 +181,7 @@ void breathingLight(int stripIndex) {
         }
     }
 
-    for (int i = 0; i < numLEDsPerStrip[stripIndex]; i++) {
+    for (int i = 0; i < numLedsPerStrip[stripIndex]; i++) {
         leds[stripIndex][i] = color;
         leds[stripIndex][i].fadeLightBy(255 - brightness);
     }
@@ -223,8 +190,8 @@ void breathingLight(int stripIndex) {
 void rainbowCycle(int stripIndex) {
     static uint8_t hue = 0;
 
-    for (int i = 0; i < numLEDsPerStrip[stripIndex]; i++) {
-        leds[stripIndex][i] = CHSV(hue + (i * 256 / numLEDsPerStrip[stripIndex]), 255, can_setting.brightess);
+    for (int i = 0; i < numLedsPerStrip[stripIndex]; i++) {
+        leds[stripIndex][i] = CHSV(hue + (i * 256 / numLedsPerStrip[stripIndex]), 255, can_setting.brightess);
     }
 
     hue = (hue + map(can_setting.speed, 1, 100, 1, 10)) % 256;
@@ -235,7 +202,7 @@ void meteorRain(int stripIndex) {
     static int meteorPos = 0;  // Track the position of the meteor
     
     // Fade the LEDs slightly
-    for (int i = 0; i < numLEDsPerStrip[stripIndex]; i++) {
+    for (int i = 0; i < numLedsPerStrip[stripIndex]; i++) {
         leds[stripIndex][i].fadeToBlackBy(64);  // Fades each pixel to simulate a trail
     }
 
@@ -243,16 +210,16 @@ void meteorRain(int stripIndex) {
     leds[stripIndex][meteorPos] = color;
 
     // Move the meteor forward
-    meteorPos = (meteorPos + 1) % numLEDsPerStrip[stripIndex];
+    meteorPos = (meteorPos + 1) % numLedsPerStrip[stripIndex];
 }
 void twinkle(int stripIndex) {
     CRGB color = uintToCrgb(stripSettings[stripIndex].color);
     
     // Randomly pick an LED to twinkle
-    int randomLed = random(numLEDsPerStrip[stripIndex]);
+    int randomLed = random(numLedsPerStrip[stripIndex]);
     
     // Fade all LEDs slightly
-    for (int i = 0; i < numLEDsPerStrip[stripIndex]; i++) {
+    for (int i = 0; i < numLedsPerStrip[stripIndex]; i++) {
         leds[stripIndex][i].fadeToBlackBy(50);
     }
     
@@ -264,7 +231,7 @@ void runningLights(int stripIndex) {
     static int position = 0;
 
     // Create a sine wave effect
-    for (int i = 0; i < numLEDsPerStrip[stripIndex]; i++) {
+    for (int i = 0; i < numLedsPerStrip[stripIndex]; i++) {
         int brightness = 128 + sin8(position + i * 16);  // Sine wave brightness effect
         leds[stripIndex][i] = color;
         leds[stripIndex][i].fadeToBlackBy(255 - brightness);  // Apply the sine wave to the strip
@@ -304,7 +271,7 @@ CRGB getColorForSection(int currentLED, int numLeds) {
 
 void rpmLevel(int stripIndex) {
     int level = obd2.getRPM();  // Get the current RPM level
-    int numLeds = numLEDsPerStrip[stripIndex];
+    int numLeds = numLedsPerStrip[stripIndex];
     bool bottom = stripSettings[stripIndex].bottom;
     int center = stripSettings[stripIndex].center;
 
@@ -313,7 +280,7 @@ void rpmLevel(int stripIndex) {
     int MIN_LEVEL = can_setting.minRPM;
     int MAX_LEVEL = can_setting.maxRPM;
 
-    int numLedsToLight = map(level, MIN_LEVEL, MAX_LEVEL, 0, bottom ? numLEDsPerStrip[stripIndex] / 2 - 1 : numLEDsPerStrip[stripIndex]);
+    int numLedsToLight = map(level, MIN_LEVEL, MAX_LEVEL, 0, bottom ? numLedsPerStrip[stripIndex] / 2 - 1 : numLedsPerStrip[stripIndex]);
 
     if (bottom) {
         int midPoint =  center/ 2;  // Midpoint of the front strip
@@ -324,7 +291,7 @@ void rpmLevel(int stripIndex) {
             if (mirroredIndex >= 0) {
                 leds[stripIndex][mirroredIndex] = currentColor;
             } else {
-                leds[stripIndex][numLEDsPerStrip[stripIndex] + mirroredIndex] = currentColor;
+                leds[stripIndex][numLedsPerStrip[stripIndex] + mirroredIndex] = currentColor;
             }
         }
     } else {
