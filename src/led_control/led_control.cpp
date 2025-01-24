@@ -305,7 +305,8 @@ void rpmLevel(int stripIndex) {
 void runAnimations() {
     for (int i = 0; i < NUM_STRIPS; i++) {
         // Log the current strip number
-       
+        init(i);
+
 
         // Determine if the RPM-based animation should be used
         bool useRpmLevel = (stripSettings[i].mode == 1) || 

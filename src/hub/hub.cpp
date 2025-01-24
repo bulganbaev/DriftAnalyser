@@ -241,14 +241,17 @@ void build(gh::Builder& b) {
     // CAN Settings
     {
         gh::Row canRow(b);
-        b.Spinner(&can_setting.minRPM).label("CAN Min RPM").size(3).range(0, 8000, 100);
-        b.Spinner(&can_setting.maxRPM).label("CAN Max RPM").size(3).range(0, 8000, 100);
+        b.Spinner(&can_setting.minRPM).label("CAN Min RPM").size(3).range(0, can_setting.maxRPM, 100);
+        b.Spinner(&can_setting.maxRPM).label("CAN Max RPM").size(3).range(can_setting.minRPM, 8000, 100);
     }
 
     {
         gh::Row canRow(b);
-        b.Spinner(&can_setting.speed).label("Animation Speed").size(3).range(0, 100, 1);
-        b.Spinner(&can_setting.brightess).label("Animation Brightness").size(3).range(0, 100, 1);
+        b.Slider(&can_setting.speed).label("Animation Speed").size(6).range(0, 100, 1);
+    }
+    {
+        gh::Row canRow(b);
+        b.Slider(&can_setting.brightess).label("Animation Brightness").size(6).range(0, 100, 1);
     }
 
     // If something changed, trigger the update
