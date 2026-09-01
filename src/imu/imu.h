@@ -16,5 +16,8 @@ extern ImuData imu;
 
 void imuSetup();
 void imuTick();
+void imuCalibrate();      // current rest reading becomes zero
+float imuLateralG();      // along drive.lateralAxis, offset removed
+float imuYawRate();       // deg/s along drive.yawAxis, offset removed
 
 #endif

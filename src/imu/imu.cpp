@@ -1,6 +1,7 @@
 #include "imu.h"
 #include <Wire.h>
 #include "pins/pins.h"
+#include "settings/settings.h"
 
 ImuData imu;
 
@@ -115,4 +116,33 @@ void imuTick() {
         samplesToPrint--;
         Serial.printf("IMU a=%.2f %.2f %.2f g  g=%.1f %.1f %.1f dps  t=%.1f\n", imu.ax, imu.ay, imu.az, imu.gx, imu.gy, imu.gz, imu.temp);
     }
+}
+
+static float axisValue(const float* v, const float* off, int axis) {
+    int i = constrain(axis, 0, 5) / 2;
+    float x = v[i] - off[i];
+    return (axis & 1) ? -x : x;
+}
+
+void imuCalibrate() {
+    if (!imu.ok) return;
+    drive.accOff[0] = imu.ax;
+    drive.accOff[1] = imu.ay;
+    drive.accOff[2] = imu.az;
+    drive.gyrOff[0] = imu.gx;
+    drive.gyrOff[1] = imu.gy;
+    drive.gyrOff[2] = imu.gz;
+    Serial.println("IMU calibrated");
+}
+
+float imuLateralG() {
+    if (!imu.ok) return 0;
+    float a[3] = {imu.ax, imu.ay, imu.az};
+    return axisValue(a, drive.accOff, drive.lateralAxis);
+}
+
+float imuYawRate() {
+    if (!imu.ok) return 0;
+    float g[3] = {imu.gx, imu.gy, imu.gz};
+    return axisValue(g, drive.gyrOff, drive.yawAxis);
 }

@@ -23,6 +23,9 @@ struct StripSettings {
     int center;
     int numLeds;
     int colorOrder;          // 0 RGB, 1 GRB, 2 BGR, 3 RBG, 4 GBR, 5 BRG
+    bool enabled;            // strip output on/off
+    int scaleSource;         // 0 RPM, 1 speed, 2 throttle, 3 lateral G, 4 yaw rate
+    bool reverse;            // flip direction
 };
 
 #define MAX_LEDS 1000

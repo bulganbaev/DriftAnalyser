@@ -8,7 +8,7 @@ const int ledPins[NUM_STRIPS] = {LED_PIN_1, LED_PIN_2, LED_PIN_3, LED_PIN_4, LED
 CanSettings can_setting = {2000, 7000, 100, 100};  // Default CAN settings
 StripSettings stripSettings[NUM_STRIPS] = {};      // Initialize with default values
 
-extern int numLedsPerStrip[6];
+int numLedsPerStrip[NUM_STRIPS] = {276, 194, 94, 94, 94, 94};
 // Make the OBD2 object available
 extern OBD2 obd2;
 
