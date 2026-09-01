@@ -28,12 +28,19 @@ static bool probe(uint8_t a) {
 }
 
 void imuSetup() {
-    Wire.begin(IMU_SDA_PIN, IMU_SCL_PIN, 400000);
+    Wire.begin(IMU_SDA_PIN, IMU_SCL_PIN, 100000);
+    delay(50);
     for (uint8_t a : {0x68, 0x69}) {
         if (probe(a)) { addr = a; break; }
     }
     if (!addr) {
-        Serial.println("MPU-6050 not found");
+        Serial.print("MPU-6050 not found, I2C scan:");
+        int found = 0;
+        for (uint8_t a = 1; a < 127; a++) {
+            Wire.beginTransmission(a);
+            if (Wire.endTransmission() == 0) { Serial.printf(" 0x%02X", a); found++; }
+        }
+        Serial.println(found ? "" : " nothing");
         return;
     }
     writeReg(0x6B, 0x01);  // wake up, PLL with X gyro ref
