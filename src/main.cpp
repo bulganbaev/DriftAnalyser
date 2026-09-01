@@ -3,6 +3,7 @@
 #include "obd2/obd2.h"
 #include "can_bus/can_bus.h"
 #include "hub/hub.h"
+#include "vehicle/vehicle.h"
 
 CANBus canBus;
 OBD2 obd2;
@@ -24,16 +25,17 @@ void setup() {
 
     // Initialize the OBD2 communication
     obd2.begin(canBus);
+    vehicleSetup(canBus, obd2);
     Serial.println("OBD2 initialized\n");
 
     setupHub();
+    vehicleSetMode(canMode);
 
 }
 
 void loop() {
     updateHub();
-    // Update OBD2 data and log it
-    obd2.updateOBD2Data();
+    vehicleTick();
     // Run LED animations or other tasks
     runAnimations();
     

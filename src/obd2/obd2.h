@@ -4,6 +4,8 @@
 #include "can_bus/can_bus.h"
 #include "driver/twai.h"  // Include TWAI driver
 
+struct VehicleData;
+
 class OBD2 {
 public:
     // Initialize OBD2 with CAN bus object
@@ -24,11 +26,11 @@ public:
     // Update all OBD2 data (for printing and web server)
     void updateOBD2Data();
 
-    // Getters for the current OBD2 values
-    uint16_t getRPM() const { return rpm; }
-    uint8_t getThrottlePosition() const { return throttlePosition; }
-    uint8_t getSpeed() const { return speed; }
-    int8_t getEngineTemp() const { return engineTemp; }
+    // Getters read the shared vehicle data (filled by OBD2 or BMW decoder)
+    uint16_t getRPM() const;
+    uint8_t getThrottlePosition() const;
+    uint8_t getSpeed() const;
+    int8_t getEngineTemp() const;
 
 private:
     CANBus *canBus;  // Pointer to CAN bus object

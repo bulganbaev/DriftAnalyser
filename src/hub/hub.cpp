@@ -2,6 +2,7 @@
 #include <LittleFS.h>
 #include <FileData.h>
 #include <WiFi.h>
+#include "vehicle/vehicle.h"
 
 // GyverHub object
 GyverHub hub;
@@ -32,6 +33,7 @@ struct SavedData {
     int numLEDsStrip6;
     char wifiSsid[33];
     char wifiPass[65];
+    int canMode;
 };
 
 // Create an instance of SavedData for saving and loading settings
@@ -228,6 +230,7 @@ void setupHub() {
     savedData.wifiPass[sizeof(savedData.wifiPass) - 1] = 0;
     wifiSsid = savedData.wifiSsid;
     wifiPass = savedData.wifiPass;
+    canMode = constrain(savedData.canMode, 0, 2);
 
     wifiSetup();
 
@@ -258,12 +261,33 @@ void updateHub() {
         hub.sendUpdate("speed");
         hub.sendUpdate("throttle");
         hub.sendUpdate("temp");
+        hub.sendUpdate("wifi");
+        hub.sendUpdate("can");
     }
     
 }
 
+static String wifiStatusString() {
+    if (WiFi.status() == WL_CONNECTED) return "STA " + WiFi.SSID() + " " + WiFi.localIP().toString();
+    if (apOn) return "AP " + WiFi.softAPIP().toString();
+    return wifiSsid.length() ? "connecting " + wifiSsid : "idle";
+}
+
+static void applyToAllStrips(int from) {
+    for (int i = 0; i < NUM_STRIPS; i++) {
+        if (i == from) continue;
+        stripSettings[i].mode = stripSettings[from].mode;
+        stripSettings[i].animationIndex = stripSettings[from].animationIndex;
+        stripSettings[i].color = stripSettings[from].color;
+        stripSettings[i].colorOrder = stripSettings[from].colorOrder;
+        stripSettings[i].bottom = stripSettings[from].bottom;
+        stripSettings[i].center = stripSettings[from].center;
+    }
+}
+
 void build(gh::Builder& b) {
     char buffer[64];
+    bool forceSave = false;
     
     // OBD2 Data Section
     {
@@ -281,6 +305,27 @@ void build(gh::Builder& b) {
 
         b.Gauge_("temp", &engineTemp).label(F("Temp")).size(3).range(0, 200, 1);
         b.Gauge_("throttle", &throttle).label(F("Throttle")).size(3).range(0, 100, 1);
+    }
+
+    // Status
+    {
+        gh::Row statusRow(b);
+        String wifiStatus = wifiStatusString();
+        String canStatus = canStatusString();
+        b.Label_("wifi", &wifiStatus).label(F("Wi-Fi")).size(3);
+        b.Label_("can", &canStatus).label(F("CAN")).size(3);
+    }
+
+    {
+        gh::Row canModeRow(b);
+        if (b.Select(&canMode).label("CAN Source").size(3).text("OBD2;BMW MS43;Sniffer (Serial)").click()) {
+            vehicleSetMode(canMode);
+        }
+        if (b.Button().label("Reboot").size(3).click()) {
+            fileData.updateNow();
+            delay(100);
+            ESP.restart();
+        }
     }
 
     // LED Strip Selection Section
@@ -316,6 +361,10 @@ void build(gh::Builder& b) {
        
         b.Spinner(&numLedsPerStrip[selectedStrip]).label(buffer).size(3).range(1, MAX_LEDS, 1);  // Adjust range as needed
 
+        if (b.Button().label("Apply to all strips").size(3).click()) {
+            applyToAllStrips(selectedStrip);
+            forceSave = true;
+        }
     }
 
     // Wi-Fi Settings
@@ -342,7 +391,7 @@ void build(gh::Builder& b) {
     }
 
     // If something changed, trigger the update
-    if (b.changed()) {
+    if (b.changed() || forceSave) {
         
         reinit(selectedStrip); 
         savedData.can_setting = can_setting;
@@ -357,6 +406,7 @@ void build(gh::Builder& b) {
         savedData.numLEDsStrip6 = numLedsPerStrip[5];
         strlcpy(savedData.wifiSsid, wifiSsid.c_str(), sizeof(savedData.wifiSsid));
         strlcpy(savedData.wifiPass, wifiPass.c_str(), sizeof(savedData.wifiPass));
+        savedData.canMode = canMode;
         // Save the data to file
         Serial.println("Data changed, saving to file...");
         fileData.update();

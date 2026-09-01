@@ -6,16 +6,28 @@
 
 class CANBus {
 public:
-    void begin(int rxPin, int txPin, int stbPin, twai_timing_config_t timingConfig);
-    bool readFrame(twai_message_t &rx_frame);
+    void begin(int rxPin, int txPin, int stbPin, twai_timing_config_t timingConfig, bool listenOnly = false);
+    // stop, uninstall and bring the driver back in the requested mode
+    void restart(bool listenOnly);
+    bool readFrame(twai_message_t &rx_frame, uint32_t timeoutMs = 10);
     void sendFrame(twai_message_t &tx_frame);
-    
+
+    bool isDriverRunning() const { return connected; }
+    bool isListenOnly() const { return listenOnly; }
+    String stateName() const;
+
     // Public method to check if the CAN bus is connected and active
     bool isConnected() const;
 
 private:
-    int stbPin;        // STB pin to control CAN transceiver
-    bool connected;    // Connection status of CAN bus
+    void install();
+
+    int rxPin = -1;
+    int txPin = -1;
+    int stbPin = -1;
+    twai_timing_config_t timing;
+    bool listenOnly = false;
+    bool connected = false;    // driver installed and started
 };
 
 #endif // CAN_BUS_H

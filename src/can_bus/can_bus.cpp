@@ -1,32 +1,58 @@
 #include "can_bus.h"
 #include <Arduino.h>
 
-void CANBus::begin(int rxPin, int txPin, int stbPin, twai_timing_config_t timingConfig) {
+void CANBus::begin(int rxPin, int txPin, int stbPin, twai_timing_config_t timingConfig, bool listenOnly) {
+    this->rxPin = rxPin;
+    this->txPin = txPin;
     this->stbPin = stbPin;
+    this->timing = timingConfig;
+    this->listenOnly = listenOnly;
+
     pinMode(stbPin, OUTPUT);
     digitalWrite(stbPin, LOW); // Set STB pin low to activate CAN transceiver
 
-    connected = false; // Initially, not connected
+    install();
+}
 
-    // Install TWAI driver
-    twai_general_config_t generalConfig = TWAI_GENERAL_CONFIG_DEFAULT((gpio_num_t)txPin, (gpio_num_t)rxPin, TWAI_MODE_NORMAL);
+void CANBus::install() {
+    connected = false;
+    twai_mode_t mode = listenOnly ? TWAI_MODE_LISTEN_ONLY : TWAI_MODE_NORMAL;
+    twai_general_config_t generalConfig = TWAI_GENERAL_CONFIG_DEFAULT((gpio_num_t)txPin, (gpio_num_t)rxPin, mode);
+    generalConfig.rx_queue_len = 32;
     twai_filter_config_t filterConfig = TWAI_FILTER_CONFIG_ACCEPT_ALL();
 
-    // Initialize TWAI driver
-    if (twai_driver_install(&generalConfig, &timingConfig, &filterConfig) == ESP_OK) {
-        Serial.println("TWAI driver installed");
-    } else {
+    if (twai_driver_install(&generalConfig, &timing, &filterConfig) != ESP_OK) {
         Serial.println("Failed to install TWAI driver");
-        return; // Return early if installation fails
+        return;
     }
-
-    // Start TWAI driver
-    if (twai_start() == ESP_OK) {
-        Serial.println("TWAI driver started");
-        connected = true;  // Set connected to true when successfully started
-    } else {
+    if (twai_start() != ESP_OK) {
         Serial.println("Failed to start TWAI driver");
+        twai_driver_uninstall();
+        return;
+    }
+    connected = true;
+    Serial.println(listenOnly ? "TWAI started (listen only)" : "TWAI started (normal)");
+}
+
+void CANBus::restart(bool listenOnly) {
+    if (connected) {
+        twai_stop();
+        twai_driver_uninstall();
         connected = false;
+    }
+    this->listenOnly = listenOnly;
+    install();
+}
+
+String CANBus::stateName() const {
+    if (!connected) return F("off");
+    twai_status_info_t st;
+    if (twai_get_status_info(&st) != ESP_OK) return F("?");
+    switch (st.state) {
+        case TWAI_STATE_RUNNING:    return F("running");
+        case TWAI_STATE_BUS_OFF:    return F("bus-off");
+        case TWAI_STATE_RECOVERING: return F("recovering");
+        default:                    return F("stopped");
     }
 }
 
@@ -49,25 +75,12 @@ bool CANBus::isConnected() const {
     return false;  // Default to not connected
 }
 
-bool CANBus::readFrame(twai_message_t &rx_frame) {
-    if (!connected) {
-        Serial.println("Cannot read, CAN bus not connected");
-        return false;
-    }
-
-    // Read TWAI (CAN) frame
-    if (twai_receive(&rx_frame, pdMS_TO_TICKS(10)) == ESP_OK) {
-        return true;
-    }
-    return false;
+bool CANBus::readFrame(twai_message_t &rx_frame, uint32_t timeoutMs) {
+    if (!connected) return false;
+    return twai_receive(&rx_frame, pdMS_TO_TICKS(timeoutMs)) == ESP_OK;
 }
 
 void CANBus::sendFrame(twai_message_t &tx_frame) {
-    if (!connected) {
-        Serial.println("Cannot send, CAN bus not connected");
-        return;
-    }
-
-    // Send TWAI (CAN) frame
+    if (!connected || listenOnly) return;
     twai_transmit(&tx_frame, pdMS_TO_TICKS(10));
 }

@@ -1,5 +1,11 @@
 #include "obd2/obd2.h"
+#include "vehicle/vehicle.h"
 #include <Arduino.h>
+
+uint16_t OBD2::getRPM() const { return vehicle.rpm; }
+uint8_t OBD2::getThrottlePosition() const { return vehicle.throttle; }
+uint8_t OBD2::getSpeed() const { return vehicle.speed; }
+int8_t OBD2::getEngineTemp() const { return vehicle.temp; }
 
 void OBD2::begin(CANBus &can) {
     this->canBus = &can;
@@ -35,7 +41,8 @@ bool OBD2::readRPM(uint16_t &rpm) {
     twai_message_t rx_frame;
     if (requestPID(0x0C, rx_frame)) {  // 0x0C is the PID for RPM
         rpm = ((rx_frame.data[3] << 8) | rx_frame.data[4]) / 4;
-        this->rpm = rpm;  // Store the RPM value
+        vehicle.rpm = rpm;
+        vehicle.lastUpdate = millis();
         return true;
     }
     return false;
@@ -45,7 +52,8 @@ bool OBD2::readThrottlePosition(uint8_t &throttle) {
     twai_message_t rx_frame;
     if (requestPID(0x11, rx_frame)) {  // 0x11 is the PID for throttle position
         throttle = rx_frame.data[3];  // Throttle position is in the third byte
-        this->throttlePosition = throttle;  // Store the throttle position value
+        vehicle.throttle = throttle;
+        vehicle.lastUpdate = millis();
         return true;
     }
     return false;
@@ -55,7 +63,8 @@ bool OBD2::readSpeed(uint8_t &speed) {
     twai_message_t rx_frame;
     if (requestPID(0x0D, rx_frame)) {  // 0x0D is the PID for vehicle speed
         speed = rx_frame.data[3];  // Speed is in the third byte
-        this->speed = speed;  // Store the speed value
+        vehicle.speed = speed;
+        vehicle.lastUpdate = millis();
         return true;
     }
     return false;
@@ -65,7 +74,8 @@ bool OBD2::readEngineTemp(int8_t &temp) {
     twai_message_t rx_frame;
     if (requestPID(0x05, rx_frame)) {  // 0x05 is the PID for engine coolant temperature
         temp = rx_frame.data[3] - 40;  // Temperature is in the third byte, offset by -40
-        this->engineTemp = temp;  // Store the engine temperature value
+        vehicle.temp = temp;
+        vehicle.lastUpdate = millis();
         return true;
     }
     return false;
