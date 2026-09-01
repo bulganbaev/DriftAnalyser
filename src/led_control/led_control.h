@@ -37,10 +37,7 @@ extern int numLedsPerStrip[6];
 
 // Function to initialize the LED strips
 void initializeLEDStrips();
-void reinit(int index);
-void deinit(int index);
-void init(int index);
-void deinitializeLEDStrips();
+void init(int index);    // apply numLedsPerStrip[index] to FastLED, blank the tail
 
 // Different animation types for LED strips
 void staticColor(int stripIndex);

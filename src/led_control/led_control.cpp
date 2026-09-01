@@ -44,13 +44,6 @@ void init(int index) {
     for (int i = numLedsPerStrip[index]; i < MAX_LEDS; i++) leds[index][i] = CRGB::Black;
 }
 
-void reinit(int index) {
-    init(index);
-}
-
-void deinit(int index) {}
-void deinitializeLEDStrips() {}
-
 void initializeLEDStrips() {
     for (int i = 0; i < NUM_STRIPS; i++) {
         leds[i] = new CRGB[MAX_LEDS];
