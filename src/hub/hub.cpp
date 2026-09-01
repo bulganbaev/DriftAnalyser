@@ -30,6 +30,8 @@ struct SavedData {
     int numLEDsStrip4;
     int numLEDsStrip5;
     int numLEDsStrip6;
+    char wifiSsid[33];
+    char wifiPass[65];
 };
 
 // Create an instance of SavedData for saving and loading settings
@@ -48,6 +50,85 @@ int numLedsPerStrip[6] = {numLEDsStrip1, numLEDsStrip2, numLEDsStrip3, numLEDsSt
 
 // Create a FileData object to handle saving and loading the SavedData structure
 FileData fileData(&LittleFS, "/settings.dat", 'A', &savedData, sizeof(savedData));
+
+// Wi-Fi: STA to saved network, own AP as fallback
+String wifiSsid, wifiPass;
+static bool apOn = false;
+static unsigned long staDownSince = 0;   // 0 = connected
+static unsigned long lastStaAttempt = 0;
+const unsigned long STA_TIMEOUT = 20000;  // no STA this long -> raise AP
+const unsigned long STA_RETRY = 30000;    // retry STA while AP is on
+
+static void startAP() {
+    if (apOn) return;
+    WiFi.mode(wifiSsid.length() ? WIFI_AP_STA : WIFI_AP);
+    if (WiFi.softAP(AP_SSID, AP_PASSWORD)) {
+        apOn = true;
+        Serial.print("AP started, IP: ");
+        Serial.println(WiFi.softAPIP());
+    } else {
+        Serial.println("Failed to start Access Point!");
+    }
+}
+
+static void stopAP() {
+    if (!apOn) return;
+    WiFi.softAPdisconnect(true);
+    WiFi.mode(WIFI_STA);
+    apOn = false;
+    Serial.println("AP stopped");
+}
+
+static void startSTA() {
+    Serial.print("Connecting to Wi-Fi: ");
+    Serial.println(wifiSsid);
+    WiFi.begin(wifiSsid.c_str(), wifiPass.c_str());
+    lastStaAttempt = millis();
+}
+
+static void wifiSetup() {
+    WiFi.setAutoReconnect(false);
+    if (!wifiSsid.length()) {
+        startAP();
+        return;
+    }
+    WiFi.mode(WIFI_STA);
+    staDownSince = millis();
+    startSTA();
+}
+
+static void wifiReconnect() {
+    if (!wifiSsid.length()) {
+        WiFi.disconnect();
+        startAP();
+        return;
+    }
+    if (!apOn) WiFi.mode(WIFI_STA);
+    staDownSince = millis();
+    startSTA();
+}
+
+static void wifiTick() {
+    if (!wifiSsid.length()) return;
+    unsigned long now = millis();
+
+    if (WiFi.status() == WL_CONNECTED) {
+        if (staDownSince) {
+            staDownSince = 0;
+            Serial.print("Wi-Fi connected, IP: ");
+            Serial.println(WiFi.localIP());
+        }
+        stopAP();
+        return;
+    }
+
+    if (!staDownSince) {
+        staDownSince = now;
+        Serial.println("Wi-Fi lost");
+    }
+    if (!apOn && now - staDownSince >= STA_TIMEOUT) startAP();
+    if (now - lastStaAttempt >= STA_RETRY) startSTA();
+}
 
 void formatLittleFS() {
     Serial.println("Formatting LittleFS...");
@@ -142,18 +223,12 @@ void setupHub() {
     numLedsPerStrip[4] = savedData.numLEDsStrip5;
     numLedsPerStrip[5] = savedData.numLEDsStrip6;
     selectedStrip = 0;  // Default to the first strip
+    savedData.wifiSsid[sizeof(savedData.wifiSsid) - 1] = 0;
+    savedData.wifiPass[sizeof(savedData.wifiPass) - 1] = 0;
+    wifiSsid = savedData.wifiSsid;
+    wifiPass = savedData.wifiPass;
 
-    // Start Wi-Fi in AP mode
-    WiFi.mode(WIFI_AP);
-    if (!WiFi.softAP(AP_SSID, AP_PASSWORD)) {
-        Serial.println("Failed to start Access Point!");
-        return;  // Abort if the AP fails to start
-    }
-
-    // Print the IP address of the AP
-    Serial.println("Access Point started successfully");
-    Serial.print("IP Address: ");
-    Serial.println(WiFi.softAPIP());
+    wifiSetup();
 
 
     // Set up GyverHub interface
@@ -171,6 +246,7 @@ void setupHub() {
 }
 
 void updateHub() {
+    wifiTick();
     hub.tick();
     fileData.tick();  // Save the data on timeout if needed
     unsigned long currentTime = millis();
@@ -241,6 +317,16 @@ void build(gh::Builder& b) {
 
     }
 
+    // Wi-Fi Settings
+    {
+        gh::Row wifiRow(b);
+        b.Input(&wifiSsid).label("Wi-Fi SSID").size(3).maxLen(32);
+        b.Pass(&wifiPass).label("Wi-Fi Password").size(3).maxLen(64);
+        if (b.Button().label("Reconnect").size(2).click()) {
+            wifiReconnect();
+        }
+    }
+
     // CAN Settings
     {
         gh::Row canRow(b);
@@ -268,6 +354,8 @@ void build(gh::Builder& b) {
         savedData.numLEDsStrip4 = numLedsPerStrip[3];
         savedData.numLEDsStrip5 = numLedsPerStrip[4];
         savedData.numLEDsStrip6 = numLedsPerStrip[5];
+        strlcpy(savedData.wifiSsid, wifiSsid.c_str(), sizeof(savedData.wifiSsid));
+        strlcpy(savedData.wifiPass, wifiPass.c_str(), sizeof(savedData.wifiPass));
         // Save the data to file
         Serial.println("Data changed, saving to file...");
         fileData.update();
