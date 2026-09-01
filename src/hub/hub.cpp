@@ -312,8 +312,8 @@ void build(gh::Builder& b) {
         gh::Row statusRow(b);
         String wifiStatus = wifiStatusString();
         String canStatus = canStatusString();
-        b.Label_("wifi", &wifiStatus).label(F("Wi-Fi")).size(3);
-        b.Label_("can", &canStatus).label(F("CAN")).size(3);
+        b.Label_("wifi", wifiStatus).label(F("Wi-Fi")).size(3);
+        b.Label_("can", canStatus).label(F("CAN")).size(3);
     }
 
     {
