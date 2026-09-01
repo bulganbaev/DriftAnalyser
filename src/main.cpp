@@ -7,6 +7,7 @@
 #include "net/net.h"
 #include "vehicle/vehicle.h"
 #include "imu/imu.h"
+#include "system/system.h"
 
 CANBus canBus;
 OBD2 obd2;
@@ -17,6 +18,7 @@ void setup() {
     Serial.println("System initializing...");
 
     settingsBegin();
+    sysBegin();
     initializeLEDStrips();
 
     twai_timing_config_t timingConfig = TWAI_TIMING_CONFIG_500KBITS();
@@ -27,7 +29,7 @@ void setup() {
     netBegin();
     setupHub();
     imuSetup();
-    Serial.println("Ready");
+    sysLog(F("ready"));
 }
 
 void loop() {

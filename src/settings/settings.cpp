@@ -3,6 +3,7 @@
 #include <FileData.h>
 #include "net/net.h"
 #include "vehicle/vehicle.h"
+#include "system/system.h"
 
 SavedData savedData;
 DriveSettings& drive = savedData.drive;

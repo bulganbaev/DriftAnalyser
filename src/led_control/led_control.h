@@ -58,6 +58,7 @@ void police(int stripIndex);
 void confetti(int stripIndex);
 void colorWipe(int stripIndex);
 void sinelon(int stripIndex);
+void gForce(int stripIndex);
 
 // RPM-based animation
 void rpmLevel(int stripIndex);

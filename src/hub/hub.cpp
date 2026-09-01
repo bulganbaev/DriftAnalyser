@@ -1,9 +1,11 @@
 #include "hub.h"
 #include <WiFi.h>
+#include <LittleFS.h>
 #include "settings/settings.h"
 #include "net/net.h"
 #include "vehicle/vehicle.h"
 #include "imu/imu.h"
+#include "system/system.h"
 
 GyverHub hub;
 
@@ -14,11 +16,15 @@ const unsigned long updateInterval = 1000;
 
 static const char* SCALE_SOURCES = "RPM;Speed;Throttle;Lateral G;Yaw rate";
 static const char* AXES = "+X;-X;+Y;-Y;+Z;-Z";
-static const char* ANIMATIONS = "Static Color;Theater Chase;Color Wave;Breathing Light;Rainbow Cycle;Snake;Meteor Rain;Twinkle;Running Lights;Larson Scanner;Fire;Police;Confetti;Color Wipe;Sinelon";
+static const char* ANIMATIONS = "Static Color;Theater Chase;Color Wave;Breathing Light;Rainbow Cycle;Snake;Meteor Rain;Twinkle;Running Lights;Larson Scanner;Fire;Police;Confetti;Color Wipe;Sinelon;G Force";
 
 void setupHub() {
     hub.config(F("MyDevices"), F("ZverCUSTOM"), F("💡"));
     hub.onBuild(build);
+    hub.onReboot([](gh::Reboot r) {
+        settingsSaveNow();
+        sysLog(r == gh::Reboot::Ota ? F("reboot: OTA update") : r == gh::Reboot::OtaUrl ? F("reboot: OTA url") : F("reboot: hub"));
+    });
     hub.begin();
     if (!hub.running()) {
         Serial.println("GyverHub failed to initialize!");
@@ -36,6 +42,7 @@ void updateHub() {
     static const char* always[] = {"rpm", "speed", "throttle", "temp", "wifi", "can", "sta", "ap", "latg", "yaw"};
     for (const char* n : always) hub.sendUpdate(n);
     if (canMode == CAN_MODE_SNIFFER) hub.sendUpdate("sniff");
+    if (hub.menu == 5) { hub.sendUpdate("uptime"); hub.sendUpdate("heap"); }
     if (imu.ok && hub.menu == 4) {
         static const char* names[] = {"ax", "ay", "az", "gx", "gy", "gz", "imutemp"};
         for (const char* n : names) hub.sendUpdate(n);
@@ -292,10 +299,39 @@ static void buildImu(gh::Builder& b) {
     }
 }
 
+static void buildSystem(gh::Builder& b) {
+    {
+        gh::Row r(b);
+        b.Label_("uptime", sysUptime()).label(F("Uptime")).size(2);
+        b.Label(sysResetReason()).label(F("Last reset")).size(2);
+        b.Label_("heap", String(ESP.getFreeHeap() / 1024) + " / min " + String(ESP.getMinFreeHeap() / 1024) + " kB").label(F("Free heap")).size(2);
+    }
+    {
+        gh::Row r(b);
+        b.Label(sysBuildInfo()).label(F("Build")).size(3).fontSize(14);
+        b.Label(String(LittleFS.usedBytes() / 1024) + " / " + String(LittleFS.totalBytes() / 1024) + " kB").label(F("Flash FS")).size(3);
+    }
+    {
+        gh::Row r(b);
+        b.Text_("log", sysLogTail()).label(F("Log")).rows(18).size(6);
+    }
+    {
+        gh::Row r(b);
+        if (b.Button().label("Refresh log").size(2).click()) hub.sendRefresh();
+        if (b.Button().label("Clear log").size(2).click()) { sysClearLog(); hub.sendRefresh(); }
+        if (b.Button().label("Reboot").size(2).click()) {
+            settingsSaveNow();
+            sysLog(F("reboot from hub"));
+            delay(100);
+            ESP.restart();
+        }
+    }
+}
+
 void build(gh::Builder& b) {
     bool forceSave = false;
 
-    b.Menu(F("Dashboard;LEDs;CAN;Wi-Fi;IMU"));
+    b.Menu(F("Dashboard;LEDs;CAN;Wi-Fi;IMU;System"));
 
     switch (b.menu()) {
         case 0: buildDashboard(b); break;
@@ -303,6 +339,7 @@ void build(gh::Builder& b) {
         case 2: buildCan(b); break;
         case 3: buildWifi(b); break;
         case 4: buildImu(b); break;
+        case 5: buildSystem(b); break;
     }
 
     if (b.changed() || forceSave) {

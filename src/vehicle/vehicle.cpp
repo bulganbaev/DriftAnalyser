@@ -1,4 +1,5 @@
 #include "vehicle.h"
+#include "system/system.h"
 
 VehicleData vehicle;
 int canMode = CAN_MODE_OBD2;
@@ -39,8 +40,7 @@ void vehicleSetMode(int mode) {
     canMode = mode;
     sniffUsed = 0;
     if (canBus) canBus->restart(mode != CAN_MODE_OBD2);
-    Serial.print("CAN mode: ");
-    Serial.println(mode == CAN_MODE_OBD2 ? "OBD2" : mode == CAN_MODE_BMW ? "BMW MS43" : "Sniffer");
+    sysLog(String("CAN mode: ") + (mode == CAN_MODE_OBD2 ? "OBD2" : mode == CAN_MODE_BMW ? "BMW MS43" : "Sniffer"));
 }
 
 // BMW E46 / MS43 PT-CAN, 500 kbit

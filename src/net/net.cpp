@@ -1,6 +1,7 @@
 #include "net.h"
 #include <WiFi.h>
 #include "config/config.h"
+#include "system/system.h"
 
 String wifiSsid, wifiPass;
 
@@ -15,8 +16,7 @@ static void startAP() {
     WiFi.mode(wifiSsid.length() ? WIFI_AP_STA : WIFI_AP);
     if (WiFi.softAP(AP_SSID, AP_PASSWORD)) {
         apOn = true;
-        Serial.print("AP started, IP: ");
-        Serial.println(WiFi.softAPIP());
+        sysLog("AP started " + WiFi.softAPIP().toString());
     } else {
         Serial.println("Failed to start Access Point!");
     }
@@ -68,8 +68,7 @@ void netTick() {
     if (WiFi.status() == WL_CONNECTED) {
         if (staDownSince) {
             staDownSince = 0;
-            Serial.print("Wi-Fi connected, IP: ");
-            Serial.println(WiFi.localIP());
+            sysLog("Wi-Fi connected " + WiFi.SSID() + " " + WiFi.localIP().toString());
         }
         stopAP();
         return;
@@ -77,7 +76,7 @@ void netTick() {
 
     if (!staDownSince) {
         staDownSince = now;
-        Serial.println("Wi-Fi lost");
+        sysLog(F("Wi-Fi lost"));
     }
     if (!apOn && now - staDownSince >= STA_TIMEOUT) startAP();
     if (now - lastStaAttempt >= STA_RETRY) startSTA();

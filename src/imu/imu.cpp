@@ -2,6 +2,7 @@
 #include <Wire.h>
 #include "pins/pins.h"
 #include "settings/settings.h"
+#include "system/system.h"
 
 ImuData imu;
 
@@ -44,7 +45,7 @@ static bool tryInit() {
 
     uint8_t who = 0;
     readRegs(0x75, &who, 1);
-    Serial.printf("MPU-6050 at 0x%02X, WHO_AM_I=0x%02X\n", addr, who);
+    sysLog("MPU-6050 at 0x" + String(addr, HEX) + " WHO_AM_I=0x" + String(who, HEX));
 
     bool ok = writeReg(0x6B, 0x80);  // reset
     delay(100);
@@ -88,7 +89,7 @@ void imuTick() {
     uint8_t buf[14];
     if (!readRegs(0x3B, buf, 14)) {
         if (++readFails >= 10) {
-            Serial.println("MPU-6050 lost");
+            sysLog(F("MPU-6050 lost"));
             imu.ok = false;
             lastInitTry = now;
         }

@@ -228,6 +228,17 @@ void sinelon(int s) {
     leds[s][p] += color;
 }
 
+// Whole strip coloured by lateral G: blue one way, red the other, brightness by magnitude
+void gForce(int s) {
+    int n = numLedsPerStrip[s];
+    float g = drive.maxLateralG > 0 ? imuLateralG() / drive.maxLateralG : 0;
+    g = constrain(g, -1.0f, 1.0f);
+    uint8_t v = (uint8_t)(fabsf(g) * 255);
+    CRGB c = g < 0 ? CRGB(0, 0, 255) : CRGB(255, 0, 0);
+    c.nscale8(max(v, (uint8_t)8));
+    fill_solid(leds[s], n, c);
+}
+
 CRGB getColorForSection(int currentLED, int numLeds) {
     // 7 colour bands, cold to hot
     static const CRGB bands[7] = {CRGB::Blue, CRGB::Cyan, CRGB::Green, CRGB::Yellow, CRGB::Orange, CRGB::Red, CRGB::Magenta};
@@ -323,6 +334,7 @@ static void renderStrip(int i) {
         case 12: confetti(i); break;
         case 13: colorWipe(i); break;
         case 14: sinelon(i); break;
+        case 15: gForce(i); break;
         default: staticColor(i); break;
     }
 }
