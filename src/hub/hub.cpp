@@ -228,6 +228,9 @@ void build(gh::Builder& b) {
         snprintf(buffer, sizeof(buffer), "Strip %d Mode", selectedStrip);
         b.Select(&stripSettings[selectedStrip].mode).label(buffer).size(3).text("NON-RPM; RPM; HYBRID");
 
+        snprintf(buffer, sizeof(buffer), "Strip %d Color Order", selectedStrip);
+        b.Select(&stripSettings[selectedStrip].colorOrder).label(buffer).size(3).text("RGB;GRB;BGR;RBG;GBR;BRG");
+
         snprintf(buffer, sizeof(buffer), "Strip %d Animation", selectedStrip);
         b.Select(&stripSettings[selectedStrip].animationIndex).label(buffer).size(3).text("Static Color;Theater Chase;Color Wave;Breathing Light;Rainbow Cycle;Snake;Meteor Rain;Twinkle;Running Lights");
         

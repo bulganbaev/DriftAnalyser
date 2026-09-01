@@ -22,6 +22,36 @@ int wavePosition2 = 0;
 CRGB uintToCrgb(uint32_t color) {
     return CRGB((color >> 16) & 0xFF, (color >> 8) & 0xFF, color & 0xFF);
 }
+
+// Strips are registered as RGB; other orders are emulated by swapping
+// channels in the buffer right before show() and restoring after.
+static const uint8_t colorOrderMap[6][3] = {
+    {0, 1, 2},  // RGB
+    {1, 0, 2},  // GRB
+    {2, 1, 0},  // BGR
+    {0, 2, 1},  // RBG
+    {1, 2, 0},  // GBR
+    {2, 0, 1},  // BRG
+};
+
+static void applyColorOrder(int stripIndex, bool inverse) {
+    int order = stripSettings[stripIndex].colorOrder;
+    if (order <= 0 || order >= 6) return;
+    const uint8_t* m = colorOrderMap[order];
+    for (int i = 0; i < numLedsPerStrip[stripIndex]; i++) {
+        CRGB src = leds[stripIndex][i];
+        CRGB& dst = leds[stripIndex][i];
+        if (!inverse) {
+            dst[0] = src[m[0]];
+            dst[1] = src[m[1]];
+            dst[2] = src[m[2]];
+        } else {
+            dst[m[0]] = src[0];
+            dst[m[1]] = src[1];
+            dst[m[2]] = src[2];
+        }
+    }
+}
 void deinit(int index) {
     if (index >= 0 && index < NUM_STRIPS) {
         if (leds[index]) {
@@ -349,7 +379,9 @@ void runAnimations() {
         }
         }
     }
+    for (int i = 0; i < NUM_STRIPS; i++) applyColorOrder(i, false);
     FastLED.show();
+    for (int i = 0; i < NUM_STRIPS; i++) applyColorOrder(i, true);
     FastLED.setBrightness(can_setting.brightess);
     delay(mapSpeed(can_setting.speed));
 }

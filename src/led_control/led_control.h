@@ -22,6 +22,7 @@ struct StripSettings {
     bool bottom;             // Whether the strip is bottom or full length
     int center;
     int numLeds;
+    int colorOrder;          // 0 RGB, 1 GRB, 2 BGR, 3 RBG, 4 GBR, 5 BRG
 };
 
 // Global variables for can_settings and wave position
