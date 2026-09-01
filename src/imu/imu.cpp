@@ -28,6 +28,10 @@ static bool probe(uint8_t a) {
 }
 
 void imuSetup() {
+    pinMode(IMU_SDA_PIN, INPUT_PULLUP);
+    pinMode(IMU_SCL_PIN, INPUT_PULLUP);
+    delay(5);
+    Serial.printf("I2C idle levels: SDA=%d SCL=%d\n", digitalRead(IMU_SDA_PIN), digitalRead(IMU_SCL_PIN));
     Wire.begin(IMU_SDA_PIN, IMU_SCL_PIN, 100000);
     delay(50);
     for (uint8_t a : {0x68, 0x69}) {

@@ -90,6 +90,7 @@ static void startSTA() {
 }
 
 static void wifiSetup() {
+    WiFi.persistent(false);  // creds live in settings.dat, don't write NVS on every boot
     WiFi.setAutoReconnect(false);
     if (!wifiSsid.length()) {
         startAP();
