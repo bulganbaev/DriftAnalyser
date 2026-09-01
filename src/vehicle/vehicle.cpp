@@ -19,6 +19,11 @@ static unsigned long lastFrameMillis = 0;
 struct SniffEntry {
     uint32_t id;
     uint32_t count;
+    uint32_t rate;        // frames in the last full second
+    uint32_t rateCount;   // frames in the current second
+    uint8_t dlc;
+    uint8_t data[8];
+    bool extd;
     unsigned long lastPrint;
 };
 const int SNIFF_MAX = 64;
@@ -69,9 +74,15 @@ static void sniffFrame(const twai_message_t& f) {
         e = &sniff[sniffUsed++];
         e->id = f.identifier;
         e->count = 0;
+        e->rate = 0;
+        e->rateCount = 0;
         e->lastPrint = 0;
     }
     e->count++;
+    e->rateCount++;
+    e->dlc = f.data_length_code;
+    e->extd = f.extd;
+    memcpy(e->data, f.data, 8);
     if (now - e->lastPrint < SNIFF_PRINT_INTERVAL) return;
     e->lastPrint = now;
 
@@ -86,6 +97,10 @@ void vehicleTick() {
         lastRateTick = now;
         framesPerSec = frameCount;
         frameCount = 0;
+        for (int i = 0; i < sniffUsed; i++) {
+            sniff[i].rate = sniff[i].rateCount;
+            sniff[i].rateCount = 0;
+        }
     }
     if (!canBus) return;
 
@@ -117,4 +132,20 @@ String canStatusString() {
         if (lastFrameMillis) s += " last " + String((millis() - lastFrameMillis) / 1000) + "s";
     }
     return s;
+}
+
+// Sniffer table for the hub: one line per ID
+String sniffTableString() {
+    if (!sniffUsed) return F("no frames yet");
+    String out;
+    out.reserve(sniffUsed * 48);
+    char line[64];
+    for (int i = 0; i < sniffUsed; i++) {
+        SniffEntry& e = sniff[i];
+        int n = snprintf(line, sizeof(line), "%s%03X [%d]", e.extd ? "x" : "", (unsigned)e.id, e.dlc);
+        for (int j = 0; j < e.dlc && j < 8; j++) n += snprintf(line + n, sizeof(line) - n, " %02X", e.data[j]);
+        out += line;
+        out += "  " + String(e.rate) + "/s n=" + String(e.count) + "\n";
+    }
+    return out;
 }

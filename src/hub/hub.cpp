@@ -263,6 +263,7 @@ void updateHub() {
         hub.sendUpdate("temp");
         hub.sendUpdate("wifi");
         hub.sendUpdate("can");
+        if (canMode == CAN_MODE_SNIFFER) hub.sendUpdate("sniff");
     }
     
 }
@@ -326,6 +327,12 @@ void build(gh::Builder& b) {
             delay(100);
             ESP.restart();
         }
+    }
+
+    if (canMode == CAN_MODE_SNIFFER) {
+        gh::Row sniffRow(b);
+        String table = sniffTableString();
+        b.Text_("sniff", table).label(F("CAN frames")).rows(16).size(6);
     }
 
     // LED Strip Selection Section

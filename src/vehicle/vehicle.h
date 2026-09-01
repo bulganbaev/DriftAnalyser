@@ -27,5 +27,6 @@ void vehicleSetup(CANBus& can, OBD2& obd);
 void vehicleSetMode(int mode);
 void vehicleTick();
 String canStatusString();
+String sniffTableString();
 
 #endif
