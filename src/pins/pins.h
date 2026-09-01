@@ -9,9 +9,9 @@
 // LED strip GPIO pins
 #define LED_PIN_1 10
 #define LED_PIN_2 21
-#define LED_PIN_3 14
+#define LED_PIN_3 41
 #define LED_PIN_4 42
-#define LED_PIN_5 41
+#define LED_PIN_5 14
 #define LED_PIN_6 40
 
 // GPS module pins
