@@ -13,6 +13,7 @@ extern int numLedsPerStrip[6];
 extern OBD2 obd2;
 
 CRGB* leds[NUM_STRIPS];
+CLEDController* controllers[NUM_STRIPS] = {};
 
 // Global variable for animation wave position
 int wavePosition1 = 0;
@@ -66,6 +67,9 @@ void deinit(int index) {
 }
 
 void init(int index) {
+    if (numLedsPerStrip[index] < 1) numLedsPerStrip[index] = 1;
+    if (numLedsPerStrip[index] > 1000) numLedsPerStrip[index] = 1000;
+    if (controllers[index]) controllers[index]->setLeds(leds[index], numLedsPerStrip[index]);
     for (int i = numLedsPerStrip[index]; i < 1000; i++) {
                 leds[index][i] = CRGB::Black;  // Set LED to black
             }
@@ -108,22 +112,22 @@ void initializeLEDStrips() {
         // Initialize each strip with specific pin and WS2812B LED protocol
         switch (ledPins[i]) {
             case LED_PIN_1:
-                FastLED.addLeds<WS2812B, LED_PIN_1, RGB>(leds[i], numLedsPerStrip[i]);
+                controllers[i] = &FastLED.addLeds<WS2812B, LED_PIN_1, RGB>(leds[i], numLedsPerStrip[i]);
                 break;
             case LED_PIN_2:
-                FastLED.addLeds<WS2812B, LED_PIN_2, RGB>(leds[i], numLedsPerStrip[i]);
+                controllers[i] = &FastLED.addLeds<WS2812B, LED_PIN_2, RGB>(leds[i], numLedsPerStrip[i]);
                 break;
             case LED_PIN_3:
-                FastLED.addLeds<WS2812B, LED_PIN_3, RGB>(leds[i], numLedsPerStrip[i]);
+                controllers[i] = &FastLED.addLeds<WS2812B, LED_PIN_3, RGB>(leds[i], numLedsPerStrip[i]);
                 break;
             case LED_PIN_4:
-                FastLED.addLeds<WS2812B, LED_PIN_4, RGB>(leds[i], numLedsPerStrip[i]);
+                controllers[i] = &FastLED.addLeds<WS2812B, LED_PIN_4, RGB>(leds[i], numLedsPerStrip[i]);
                 break;
             case LED_PIN_5:
-                FastLED.addLeds<WS2812B, LED_PIN_5, RGB>(leds[i], numLedsPerStrip[i]);
+                controllers[i] = &FastLED.addLeds<WS2812B, LED_PIN_5, RGB>(leds[i], numLedsPerStrip[i]);
                 break;
             case LED_PIN_6:
-                FastLED.addLeds<WS2812B, LED_PIN_6, RGB>(leds[i], numLedsPerStrip[i]);
+                controllers[i] = &FastLED.addLeds<WS2812B, LED_PIN_6, RGB>(leds[i], numLedsPerStrip[i]);
                 break;
         }
         init(i);

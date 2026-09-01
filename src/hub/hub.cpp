@@ -222,6 +222,7 @@ void setupHub() {
     numLedsPerStrip[3] = savedData.numLEDsStrip4;
     numLedsPerStrip[4] = savedData.numLEDsStrip5;
     numLedsPerStrip[5] = savedData.numLEDsStrip6;
+    for (int i = 0; i < NUM_STRIPS; i++) init(i);  // apply saved LED counts to FastLED
     selectedStrip = 0;  // Default to the first strip
     savedData.wifiSsid[sizeof(savedData.wifiSsid) - 1] = 0;
     savedData.wifiPass[sizeof(savedData.wifiPass) - 1] = 0;
