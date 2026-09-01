@@ -1,18 +1,20 @@
 #include "led_control.h"
 #include "obd2/obd2.h"
+#include "settings/settings.h"
+#include "vehicle/vehicle.h"
+#include "imu/imu.h"
 
-// Define the LED pins array here (or in another shared header if needed)
 const int ledPins[NUM_STRIPS] = {LED_PIN_1, LED_PIN_2, LED_PIN_3, LED_PIN_4, LED_PIN_5, LED_PIN_6};
 
-// Use external variables from hub.cpp
-CanSettings can_setting = {2000, 7000, 100, 100};  // Default CAN settings
-StripSettings stripSettings[NUM_STRIPS] = {};      // Initialize with default values
-
+CanSettings can_setting = {2000, 7000, 100, 100};
+StripSettings stripSettings[NUM_STRIPS] = {};
 int numLedsPerStrip[NUM_STRIPS] = {276, 194, 94, 94, 94, 94};
-// Make the OBD2 object available
+
 extern OBD2 obd2;
 
+// Animations render into leds[], the transformed copy in out[] is what FastLED sends
 CRGB* leds[NUM_STRIPS];
+static CRGB* out[NUM_STRIPS];
 CLEDController* controllers[NUM_STRIPS] = {};
 
 // Per-strip animation state so strips don't share counters
@@ -26,121 +28,49 @@ struct AnimState {
 };
 static AnimState anim[NUM_STRIPS];
 
-// Helper function to convert `uint` color to CRGB
 CRGB uintToCrgb(uint32_t color) {
     return CRGB((color >> 16) & 0xFF, (color >> 8) & 0xFF, color & 0xFF);
 }
 
-// Strips are registered as RGB; other orders are emulated by swapping
-// channels in the buffer right before show() and restoring after.
+// 0 RGB, 1 GRB, 2 BGR, 3 RBG, 4 GBR, 5 BRG
 static const uint8_t colorOrderMap[6][3] = {
-    {0, 1, 2},  // RGB
-    {1, 0, 2},  // GRB
-    {2, 1, 0},  // BGR
-    {0, 2, 1},  // RBG
-    {1, 2, 0},  // GBR
-    {2, 0, 1},  // BRG
+    {0, 1, 2}, {1, 0, 2}, {2, 1, 0}, {0, 2, 1}, {1, 2, 0}, {2, 0, 1},
 };
-
-static void applyColorOrder(int stripIndex, bool inverse) {
-    int order = stripSettings[stripIndex].colorOrder;
-    if (order <= 0 || order >= 6) return;
-    const uint8_t* m = colorOrderMap[order];
-    for (int i = 0; i < numLedsPerStrip[stripIndex]; i++) {
-        CRGB src = leds[stripIndex][i];
-        CRGB& dst = leds[stripIndex][i];
-        if (!inverse) {
-            dst[0] = src[m[0]];
-            dst[1] = src[m[1]];
-            dst[2] = src[m[2]];
-        } else {
-            dst[m[0]] = src[0];
-            dst[m[1]] = src[1];
-            dst[m[2]] = src[2];
-        }
-    }
-}
-void deinit(int index) {
-    if (index >= 0 && index < NUM_STRIPS) {
-        if (leds[index]) {
-            delete[] leds[index];  // Deallocate memory for the specific strip
-            leds[index] = nullptr;  // Set pointer to null to avoid dangling pointer
-            Serial.print("Deinitialized strip ");
-            Serial.println(index + 1);
-        }
-    } else {
-        Serial.println("Invalid index for deinit");
-    }
-}
 
 void init(int index) {
     if (numLedsPerStrip[index] < 1) numLedsPerStrip[index] = 1;
     if (numLedsPerStrip[index] > MAX_LEDS) numLedsPerStrip[index] = MAX_LEDS;
-    if (controllers[index]) controllers[index]->setLeds(leds[index], numLedsPerStrip[index]);
-    for (int i = numLedsPerStrip[index]; i < MAX_LEDS; i++) {
-                leds[index][i] = CRGB::Black;  // Set LED to black
-            }
+    if (controllers[index]) controllers[index]->setLeds(out[index], numLedsPerStrip[index]);
+    for (int i = numLedsPerStrip[index]; i < MAX_LEDS; i++) leds[index][i] = CRGB::Black;
 }
 
 void reinit(int index) {
-    Serial.print("Reinitializing strip ");
-    Serial.println(index + 1);
-
-    // deinit(index);  // First, deinitialize the specific strip
-    init(index);    // Then, initialize it again with the updated settings
+    init(index);
 }
 
-// Function to deallocate the memory
-void deinitializeLEDStrips() {
-    for (int i = 0; i < NUM_STRIPS; i++) {
-        if (leds[i]) {
-            delete[] leds[i];  // Deallocate memory for each strip
-            leds[i] = nullptr;  // Set pointer to null to avoid dangling pointer
-        }
-    }
-}
+void deinit(int index) {}
+void deinitializeLEDStrips() {}
 
-// Function to initialize/reinitialize the LED strips
 void initializeLEDStrips() {
-
     for (int i = 0; i < NUM_STRIPS; i++) {
-        
-        leds[i] = new CRGB[MAX_LEDS];  // Allocate new memory based on the updated numLEDsPerStrip
+        leds[i] = new CRGB[MAX_LEDS];
+        out[i] = new CRGB[MAX_LEDS];
+        fill_solid(leds[i], MAX_LEDS, CRGB::Black);
+        fill_solid(out[i], MAX_LEDS, CRGB::Black);
 
-        // Debug message to check initialization
-        Serial.print("Initializing strip ");
-        Serial.print(i + 1);
-        Serial.print(" with pin ");
-        Serial.print(ledPins[i]);
-        Serial.print(" and ");
-        Serial.print(numLedsPerStrip[i]);
-        Serial.println(" LEDs");
-
-        // Initialize each strip with specific pin and WS2812B LED protocol
+        Serial.printf("Initializing strip %d with pin %d and %d LEDs\n", i + 1, ledPins[i], numLedsPerStrip[i]);
         switch (ledPins[i]) {
-            case LED_PIN_1:
-                controllers[i] = &FastLED.addLeds<WS2812B, LED_PIN_1, RGB>(leds[i], numLedsPerStrip[i]);
-                break;
-            case LED_PIN_2:
-                controllers[i] = &FastLED.addLeds<WS2812B, LED_PIN_2, RGB>(leds[i], numLedsPerStrip[i]);
-                break;
-            case LED_PIN_3:
-                controllers[i] = &FastLED.addLeds<WS2812B, LED_PIN_3, RGB>(leds[i], numLedsPerStrip[i]);
-                break;
-            case LED_PIN_4:
-                controllers[i] = &FastLED.addLeds<WS2812B, LED_PIN_4, RGB>(leds[i], numLedsPerStrip[i]);
-                break;
-            case LED_PIN_5:
-                controllers[i] = &FastLED.addLeds<WS2812B, LED_PIN_5, RGB>(leds[i], numLedsPerStrip[i]);
-                break;
-            case LED_PIN_6:
-                controllers[i] = &FastLED.addLeds<WS2812B, LED_PIN_6, RGB>(leds[i], numLedsPerStrip[i]);
-                break;
+            case LED_PIN_1: controllers[i] = &FastLED.addLeds<WS2812B, LED_PIN_1, RGB>(out[i], numLedsPerStrip[i]); break;
+            case LED_PIN_2: controllers[i] = &FastLED.addLeds<WS2812B, LED_PIN_2, RGB>(out[i], numLedsPerStrip[i]); break;
+            case LED_PIN_3: controllers[i] = &FastLED.addLeds<WS2812B, LED_PIN_3, RGB>(out[i], numLedsPerStrip[i]); break;
+            case LED_PIN_4: controllers[i] = &FastLED.addLeds<WS2812B, LED_PIN_4, RGB>(out[i], numLedsPerStrip[i]); break;
+            case LED_PIN_5: controllers[i] = &FastLED.addLeds<WS2812B, LED_PIN_5, RGB>(out[i], numLedsPerStrip[i]); break;
+            case LED_PIN_6: controllers[i] = &FastLED.addLeds<WS2812B, LED_PIN_6, RGB>(out[i], numLedsPerStrip[i]); break;
         }
         init(i);
-
     }
 }
+
 // Speed 0-100 -> frame interval in ms
 static int frameInterval(int speed) {
     return map(constrain(speed, 0, 100), 0, 100, 100, 1);
@@ -299,107 +229,152 @@ void sinelon(int s) {
 }
 
 CRGB getColorForSection(int currentLED, int numLeds) {
-    // Define the section thresholds for 7 sections
-    int section1 = numLeds * 0.142;  // 1/7 of the strip
-    int section2 = numLeds * 0.285;  // 2/7 of the strip
-    int section3 = numLeds * 0.428;  // 3/7 of the strip
-    int section4 = numLeds * 0.571;  // 4/7 of the strip
-    int section5 = numLeds * 0.714;  // 5/7 of the strip
-    int section6 = numLeds * 0.857;  // 6/7 of the strip
+    // 7 colour bands, cold to hot
+    static const CRGB bands[7] = {CRGB::Blue, CRGB::Cyan, CRGB::Green, CRGB::Yellow, CRGB::Orange, CRGB::Red, CRGB::Magenta};
+    if (numLeds < 1) numLeds = 1;
+    int band = currentLED * 7 / numLeds;
+    return bands[constrain(band, 0, 6)];
+}
 
-    // Return the color based on the section
-    if (currentLED < section1) {
-        return CRGB::Blue;        // First section, cold (low RPM)
-    } else if (currentLED < section2) {
-        return CRGB::Cyan;        // Second section, slightly higher, still cool
-    } else if (currentLED < section3) {
-        return CRGB::Green;       // Third section, moderate RPM, neutral
-    } else if (currentLED < section4) {
-        return CRGB::Yellow;      // Fourth section, starting to warm up
-    } else if (currentLED < section5) {
-        return CRGB::Orange;      // Fifth section, getting warmer
-    } else if (currentLED < section6) {
-        return CRGB::Red;         // Sixth section, hot, high RPM
-    } else {
-        return CRGB::Magenta;     // Last section, max RPM, very hot
+// Value of a scale source as fraction of full scale, signed for G / yaw
+static float scaleFraction(int source) {
+    switch (source) {
+        case 1:  return drive.maxSpeed > 0 ? (float)vehicle.speed / drive.maxSpeed : 0;
+        case 2:  return vehicle.throttle / 100.0f;
+        case 3:  return drive.maxLateralG > 0 ? imuLateralG() / drive.maxLateralG : 0;
+        case 4:  return drive.maxYawRate > 0 ? imuYawRate() / drive.maxYawRate : 0;
+        default: {
+            int span = can_setting.maxRPM - can_setting.minRPM;
+            if (span <= 0) return 0;
+            return (float)((int)vehicle.rpm - can_setting.minRPM) / span;
+        }
     }
 }
 
-void rpmLevel(int stripIndex) {
-    int level = obd2.getRPM();  // Get the current RPM level
-    int numLeds = numLedsPerStrip[stripIndex];
-    bool bottom = stripSettings[stripIndex].bottom;
-    int center = stripSettings[stripIndex].center;
+static bool shiftLightActive() {
+    int threshold = drive.shiftRPM > 0 ? drive.shiftRPM : can_setting.maxRPM;
+    return vehicleDataFresh() && (int)vehicle.rpm >= threshold;
+}
 
-    int MIN_LEVEL = can_setting.minRPM;
-    int MAX_LEVEL = can_setting.maxRPM;
+// Bar graph driven by the selected source
+void rpmLevel(int s) {
+    int n = numLedsPerStrip[s];
+    const StripSettings& st = stripSettings[s];
 
-    // Shift light: over max RPM the whole strip blinks red
-    if (level >= MAX_LEVEL) {
+    if (st.scaleSource == 0 && shiftLightActive()) {
         bool on = (millis() / 100) & 1;
-        fill_solid(leds[stripIndex], numLeds, on ? CRGB::Red : CRGB::Black);
+        fill_solid(leds[s], n, on ? uintToCrgb(drive.shiftColor) : CRGB::Black);
         return;
     }
 
-    fill_solid(leds[stripIndex], numLeds, CRGB::Black);
+    fill_solid(leds[s], n, CRGB::Black);
+    float frac = scaleFraction(st.scaleSource);
+    bool signedSource = st.scaleSource >= 3;
 
-    int numLedsToLight = map(level, MIN_LEVEL, MAX_LEVEL, 0, bottom ? numLedsPerStrip[stripIndex] / 2 - 1 : numLedsPerStrip[stripIndex]);
-
-    if (bottom) {
-        int midPoint =  center/ 2;  // Midpoint of the front strip
-        for (int i = 0; i < numLedsToLight; i++) {
-            CRGB currentColor = getColorForSection(i, numLeds / 2);
-            leds[stripIndex][midPoint + i] = currentColor;
-            int mirroredIndex = 2 * midPoint - i - 1;
-            if (mirroredIndex >= 0) {
-                leds[stripIndex][mirroredIndex] = currentColor;
-            } else {
-                leds[stripIndex][numLedsPerStrip[stripIndex] + mirroredIndex] = currentColor;
+    if (st.bottom) {
+        // grow from the middle LED outwards
+        int mid = constrain(st.center, 0, n - 1);
+        int half = max(mid, n - 1 - mid);
+        if (signedSource) {
+            // negative = left of middle, positive = right
+            int len = constrain((int)(fabsf(frac) * half), 0, half);
+            for (int i = 0; i < len; i++) {
+                int idx = frac < 0 ? mid - i : mid + i;
+                if (idx >= 0 && idx < n) leds[s][idx] = getColorForSection(i, half);
+            }
+        } else {
+            int len = constrain((int)(frac * half), 0, half);
+            for (int i = 0; i < len; i++) {
+                CRGB c = getColorForSection(i, half);
+                if (mid + i < n) leds[s][mid + i] = c;
+                if (mid - i >= 0) leds[s][mid - i] = c;
             }
         }
     } else {
-        for (int i = 0; i < numLedsToLight; i++) {
-            leds[stripIndex][i] = getColorForSection(i, numLeds);
-        }
+        int len = constrain((int)(fabsf(frac) * n), 0, n);
+        for (int i = 0; i < len; i++) leds[s][i] = getColorForSection(i, n);
     }
+}
 
+static bool engineOn() {
+    return vehicleDataFresh() && vehicle.rpm > 300;
+}
+
+static void renderStrip(int i) {
+    const StripSettings& st = stripSettings[i];
+    bool useScale = (st.mode == 1) || (st.mode == 2 && scaleFraction(st.scaleSource) > 0.05f);
+    if (useScale) {
+        rpmLevel(i);
+        return;
+    }
+    switch (st.animationIndex) {
+        case 0:  staticColor(i); break;
+        case 1:  theaterChase(i); break;
+        case 2:  colorWave(i); break;
+        case 3:  breathingLight(i); break;
+        case 4:  rainbowCycle(i); break;
+        case 5:  snake(i); break;
+        case 6:  meteorRain(i); break;
+        case 7:  twinkle(i); break;
+        case 8:  runningLights(i); break;
+        case 9:  larsonScanner(i); break;
+        case 10: fire(i); break;
+        case 11: police(i); break;
+        case 12: confetti(i); break;
+        case 13: colorWipe(i); break;
+        case 14: sinelon(i); break;
+        default: staticColor(i); break;
+    }
+}
+
+// leds[] -> out[]: enable, brightness, reverse, colour order
+static void transformStrip(int i) {
+    const StripSettings& st = stripSettings[i];
+    int n = numLedsPerStrip[i];
+    if (!st.enabled) {
+        fill_solid(out[i], n, CRGB::Black);
+        return;
+    }
+    uint8_t scale = mapBrightness(st.brightness);
+    int order = constrain(st.colorOrder, 0, 5);
+    const uint8_t* m = colorOrderMap[order];
+    for (int k = 0; k < n; k++) {
+        CRGB src = leds[i][st.reverse ? n - 1 - k : k];
+        src.nscale8(scale);
+        CRGB& dst = out[i][k];
+        dst[0] = src[m[0]];
+        dst[1] = src[m[1]];
+        dst[2] = src[m[2]];
+    }
 }
 
 void runAnimations() {
     static unsigned long lastFrame = 0;
+    static int lastPowerLimit = -1;
     unsigned long now = millis();
     if (now - lastFrame < (unsigned long)frameInterval(can_setting.speed)) return;
     lastFrame = now;
 
-    for (int i = 0; i < NUM_STRIPS; i++) {
-        bool useRpmLevel = (stripSettings[i].mode == 1) ||
-                           (stripSettings[i].mode == 2 && obd2.getRPM() >= can_setting.minRPM);
+    if (drive.powerLimitMa != lastPowerLimit) {
+        lastPowerLimit = drive.powerLimitMa;
+        FastLED.setMaxPowerInVoltsAndMilliamps(5, drive.powerLimitMa > 0 ? drive.powerLimitMa : 100000);
+    }
 
-        if (useRpmLevel) {
-            rpmLevel(i);
+    int brightness = can_setting.brightess;
+    bool blackout = !drive.masterOn;
+    if (!blackout && !engineOn()) {
+        if (drive.engineOff == 2) blackout = true;
+        else if (drive.engineOff == 1) brightness = brightness * constrain(drive.engineOffDim, 0, 100) / 100;
+    }
+
+    for (int i = 0; i < NUM_STRIPS; i++) {
+        if (blackout) {
+            fill_solid(out[i], numLedsPerStrip[i], CRGB::Black);
             continue;
         }
-        switch (stripSettings[i].animationIndex) {
-            case 0:  staticColor(i); break;
-            case 1:  theaterChase(i); break;
-            case 2:  colorWave(i); break;
-            case 3:  breathingLight(i); break;
-            case 4:  rainbowCycle(i); break;
-            case 5:  snake(i); break;
-            case 6:  meteorRain(i); break;
-            case 7:  twinkle(i); break;
-            case 8:  runningLights(i); break;
-            case 9:  larsonScanner(i); break;
-            case 10: fire(i); break;
-            case 11: police(i); break;
-            case 12: confetti(i); break;
-            case 13: colorWipe(i); break;
-            case 14: sinelon(i); break;
-            default: break;
-        }
+        renderStrip(i);
+        transformStrip(i);
     }
-    FastLED.setBrightness(mapBrightness(can_setting.brightess));
-    for (int i = 0; i < NUM_STRIPS; i++) applyColorOrder(i, false);
+    FastLED.setBrightness(mapBrightness(brightness));
     FastLED.show();
-    for (int i = 0; i < NUM_STRIPS; i++) applyColorOrder(i, true);
 }

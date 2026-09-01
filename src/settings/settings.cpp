@@ -32,6 +32,7 @@ static void setDefaults() {
     d.powerLimitMa = 0;
     d.lateralAxis = 2;   // +Y
     d.yawAxis = 4;       // +Z
+    d.maxSpeed = 200;
     d.maxLateralG = 1.0f;
     d.maxYawRate = 60.0f;
 }

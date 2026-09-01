@@ -15,6 +15,7 @@ struct DriveSettings {
     int powerLimitMa;     // FastLED power cap at 5V, 0 = off
     int lateralAxis;      // 0 +X, 1 -X, 2 +Y, 3 -Y, 4 +Z, 5 -Z
     int yawAxis;          // same encoding, gyro axis for yaw rate
+    int maxSpeed;         // km/h full scale for speed source
     float maxLateralG;    // full scale for lateral G source
     float maxYawRate;     // deg/s full scale for yaw source
     float accOff[3];      // calibration offsets

@@ -166,8 +166,9 @@ static void buildLeds(gh::Builder& b, bool& forceSave) {
     }
     {
         gh::Row r(b);
-        b.Spinner(&drive.maxLateralG).label(F("Full scale G")).size(3).range(0.2f, 3.0f, 0.1f);
-        b.Spinner(&drive.maxYawRate).label(F("Full scale yaw")).size(3).range(10.0f, 300.0f, 10.0f);
+        b.Spinner(&drive.maxSpeed).label(F("Full scale km/h")).size(2).range(10, 400, 10);
+        b.Spinner(&drive.maxLateralG).label(F("Full scale G")).size(2).range(0.2f, 3.0f, 0.1f);
+        b.Spinner(&drive.maxYawRate).label(F("Full scale yaw")).size(2).range(10.0f, 300.0f, 10.0f);
     }
     {
         gh::Row r(b);
