@@ -6,8 +6,7 @@ int canMode = CAN_MODE_OBD2;
 static CANBus* canBus = nullptr;
 static OBD2* obd2p = nullptr;
 
-static unsigned long lastObdPoll = 0;
-const unsigned long OBD_POLL_INTERVAL = 200;
+const unsigned long DATA_STALE = 3000;  // ms without data -> values drop to 0
 
 // frames/sec counter
 static unsigned long frameCount = 0;
@@ -104,10 +103,15 @@ void vehicleTick() {
     }
     if (!canBus) return;
 
+    // no fresh data: don't keep showing the last RPM forever
+    if (vehicle.lastUpdate && now - vehicle.lastUpdate > DATA_STALE) {
+        vehicle.rpm = 0;
+        vehicle.speed = 0;
+        vehicle.throttle = 0;
+    }
+
     if (canMode == CAN_MODE_OBD2) {
-        if (now - lastObdPoll < OBD_POLL_INTERVAL) return;
-        lastObdPoll = now;
-        if (obd2p) obd2p->updateOBD2Data();
+        if (obd2p) obd2p->tick();
         return;
     }
 
@@ -121,12 +125,17 @@ void vehicleTick() {
     }
 }
 
+bool vehicleDataFresh() {
+    return vehicle.lastUpdate && millis() - vehicle.lastUpdate <= DATA_STALE;
+}
+
 String canStatusString() {
     if (!canBus || !canBus->isDriverRunning()) return F("driver off");
     String s = canBus->stateName();
     if (canMode == CAN_MODE_OBD2) {
-        unsigned long age = vehicle.lastUpdate ? (millis() - vehicle.lastUpdate) / 1000 : 0;
-        s += vehicle.lastUpdate ? " ok " + String(age) + "s ago" : " no reply";
+        if (!vehicle.lastUpdate) s += " no reply";
+        else if (vehicleDataFresh()) s += " ok";
+        else s += " stale " + String((millis() - vehicle.lastUpdate) / 1000) + "s";
     } else {
         s += " " + String(framesPerSec) + " fps";
         if (lastFrameMillis) s += " last " + String((millis() - lastFrameMillis) / 1000) + "s";

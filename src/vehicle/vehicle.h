@@ -26,6 +26,7 @@ extern int canMode;
 void vehicleSetup(CANBus& can, OBD2& obd);
 void vehicleSetMode(int mode);
 void vehicleTick();
+bool vehicleDataFresh();
 String canStatusString();
 String sniffTableString();
 
