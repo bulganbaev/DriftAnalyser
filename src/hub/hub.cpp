@@ -201,6 +201,10 @@ void setupHub() {
         }
         file.close();  // Close the file after creating it
     }
+    // defaults for a fresh settings file
+    strlcpy(savedData.wifiSsid, STA_SSID_DEFAULT, sizeof(savedData.wifiSsid));
+    strlcpy(savedData.wifiPass, STA_PASS_DEFAULT, sizeof(savedData.wifiPass));
+
     // Attempt to read the saved data
     if (fileData.read()) {
         Serial.println("Settings loaded successfully from file.");
@@ -310,9 +314,12 @@ static void buildDashboard(gh::Builder& b) {
         b.Gauge_("throttle", &throttle).label(F("Throttle")).size(3).range(0, 100, 1);
     }
     {
-        gh::Row statusRow(b);
-        b.Label_("wifi", wifiStatusString()).label(F("Wi-Fi")).size(3);
-        b.Label_("can", canStatusString()).label(F("CAN")).size(3);
+        gh::Row wifiRow(b);
+        b.Label_("wifi", wifiStatusString()).label(F("Wi-Fi")).fontSize(18);
+    }
+    {
+        gh::Row canRow(b);
+        b.Label_("can", canStatusString()).label(F("CAN")).fontSize(18);
     }
     {
         gh::Row rebootRow(b);
@@ -373,10 +380,13 @@ static void buildLeds(gh::Builder& b, bool& forceSave) {
 static void buildCan(gh::Builder& b) {
     {
         gh::Row canModeRow(b);
-        if (b.Select(&canMode).label("CAN Source").size(3).text("OBD2;BMW MS43;Sniffer").click()) {
+        if (b.Select(&canMode).label("CAN Source").text("OBD2;BMW MS43;Sniffer").click()) {
             vehicleSetMode(canMode);
         }
-        b.Label_("can", canStatusString()).label(F("CAN")).size(3);
+    }
+    {
+        gh::Row canStatusRow(b);
+        b.Label_("can", canStatusString()).label(F("CAN")).fontSize(18);
     }
     {
         gh::Row rpmRow(b);
@@ -402,15 +412,21 @@ static void buildWifi(gh::Builder& b) {
     }
     {
         gh::Row statusRow(b);
-        b.Label_("wifi", wifiStatusString()).label(F("Status")).size(3);
-        String sta = WiFi.status() == WL_CONNECTED ? WiFi.localIP().toString() + "  rssi " + String(WiFi.RSSI()) : String("-");
-        b.Label_("sta", sta).label(F("STA IP")).size(3);
+        b.Label_("wifi", wifiStatusString()).label(F("Status")).fontSize(18);
+    }
+    {
+        gh::Row staRow(b);
+        String sta = WiFi.status() == WL_CONNECTED ? WiFi.localIP().toString() + "   rssi " + String(WiFi.RSSI()) + " dBm" : String("-");
+        b.Label_("sta", sta).label(F("STA IP")).fontSize(18);
     }
     {
         gh::Row apRow(b);
-        String ap = apOn ? String(AP_SSID) + "  " + WiFi.softAPIP().toString() : String("off");
-        b.Label_("ap", ap).label(F("Access Point")).size(3);
-        b.Label(WiFi.macAddress()).label(F("MAC")).size(3);
+        String ap = apOn ? String(AP_SSID) + "   " + WiFi.softAPIP().toString() : String("off");
+        b.Label_("ap", ap).label(F("Access Point")).fontSize(18);
+    }
+    {
+        gh::Row macRow(b);
+        b.Label(WiFi.macAddress()).label(F("MAC")).fontSize(18);
     }
 }
 
