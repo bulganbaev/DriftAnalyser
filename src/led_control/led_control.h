@@ -25,8 +25,7 @@ struct StripSettings {
     int colorOrder;          // 0 RGB, 1 GRB, 2 BGR, 3 RBG, 4 GBR, 5 BRG
 };
 
-// Global variables for can_settings and wave position
-extern int wavePosition1;
+#define MAX_LEDS 1000
 
 extern CanSettings can_setting;
 extern StripSettings stripSettings[NUM_STRIPS];
@@ -50,6 +49,12 @@ void snake(int stripIndex);
 void meteorRain(int stripIndex);
 void twinkle(int stripIndex);
 void runningLights(int stripIndex);
+void larsonScanner(int stripIndex);
+void fire(int stripIndex);
+void police(int stripIndex);
+void confetti(int stripIndex);
+void colorWipe(int stripIndex);
+void sinelon(int stripIndex);
 
 // RPM-based animation
 void rpmLevel(int stripIndex);

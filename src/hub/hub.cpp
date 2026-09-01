@@ -309,12 +309,12 @@ void build(gh::Builder& b) {
         b.Select(&stripSettings[selectedStrip].colorOrder).label(buffer).size(3).text("RGB;GRB;BGR;RBG;GBR;BRG");
 
         snprintf(buffer, sizeof(buffer), "Strip %d Animation", selectedStrip);
-        b.Select(&stripSettings[selectedStrip].animationIndex).label(buffer).size(3).text("Static Color;Theater Chase;Color Wave;Breathing Light;Rainbow Cycle;Snake;Meteor Rain;Twinkle;Running Lights");
+        b.Select(&stripSettings[selectedStrip].animationIndex).label(buffer).size(3).text("Static Color;Theater Chase;Color Wave;Breathing Light;Rainbow Cycle;Snake;Meteor Rain;Twinkle;Running Lights;Larson Scanner;Fire;Police;Confetti;Color Wipe;Sinelon");
         
         // Control the number of LEDs per strip
         snprintf(buffer, sizeof(buffer), "Strip %d LEDs", selectedStrip);
        
-        b.Spinner(&numLedsPerStrip[selectedStrip]).label(buffer).size(3).range(1, 1000, 1);  // Adjust range as needed
+        b.Spinner(&numLedsPerStrip[selectedStrip]).label(buffer).size(3).range(1, MAX_LEDS, 1);  // Adjust range as needed
 
     }
 

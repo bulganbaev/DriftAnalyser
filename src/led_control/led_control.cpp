@@ -15,9 +15,16 @@ extern OBD2 obd2;
 CRGB* leds[NUM_STRIPS];
 CLEDController* controllers[NUM_STRIPS] = {};
 
-// Global variable for animation wave position
-int wavePosition1 = 0;
-int wavePosition2 = 0;
+// Per-strip animation state so strips don't share counters
+struct AnimState {
+    int pos = 0;
+    int dir = 1;
+    uint8_t phase = 0;
+    int bright = 0;
+    bool up = true;
+    uint8_t heat[MAX_LEDS];
+};
+static AnimState anim[NUM_STRIPS];
 
 // Helper function to convert `uint` color to CRGB
 CRGB uintToCrgb(uint32_t color) {
@@ -68,9 +75,9 @@ void deinit(int index) {
 
 void init(int index) {
     if (numLedsPerStrip[index] < 1) numLedsPerStrip[index] = 1;
-    if (numLedsPerStrip[index] > 1000) numLedsPerStrip[index] = 1000;
+    if (numLedsPerStrip[index] > MAX_LEDS) numLedsPerStrip[index] = MAX_LEDS;
     if (controllers[index]) controllers[index]->setLeds(leds[index], numLedsPerStrip[index]);
-    for (int i = numLedsPerStrip[index]; i < 1000; i++) {
+    for (int i = numLedsPerStrip[index]; i < MAX_LEDS; i++) {
                 leds[index][i] = CRGB::Black;  // Set LED to black
             }
 }
@@ -98,7 +105,7 @@ void initializeLEDStrips() {
 
     for (int i = 0; i < NUM_STRIPS; i++) {
         
-        leds[i] = new CRGB[1000];  // Allocate new memory based on the updated numLEDsPerStrip
+        leds[i] = new CRGB[MAX_LEDS];  // Allocate new memory based on the updated numLEDsPerStrip
 
         // Debug message to check initialization
         Serial.print("Initializing strip ");
@@ -134,147 +141,162 @@ void initializeLEDStrips() {
 
     }
 }
-// Utility function to map speed from 0-100 to a usable delay
-int mapSpeed(int speed) {
-    return map(speed, 0, 100, 100, 1);  // Higher speed means shorter delay
+// Speed 0-100 -> frame interval in ms
+static int frameInterval(int speed) {
+    return map(constrain(speed, 0, 100), 0, 100, 100, 1);
 }
 
-// Utility function to map brightness from 0-100
-int mapBrightness(int brightness) {
-    return map(brightness, 0, 100, 0, 255);  // Map to FastLED brightness range
+// Brightness 0-100 -> FastLED 0-255
+static uint8_t mapBrightness(int brightness) {
+    return map(constrain(brightness, 0, 100), 0, 100, 0, 255);
 }
 
-void staticColor(int stripIndex) {
-    CRGB color = uintToCrgb(stripSettings[stripIndex].color);
-    for (int i = 0; i < numLedsPerStrip[stripIndex]; i++) {
-        leds[stripIndex][i] = color;
+void staticColor(int s) {
+    fill_solid(leds[s], numLedsPerStrip[s], uintToCrgb(stripSettings[s].color));
+}
+
+void theaterChase(int s) {
+    int n = numLedsPerStrip[s];
+    CRGB color = uintToCrgb(stripSettings[s].color);
+    fill_solid(leds[s], n, CRGB::Black);
+    for (int i = anim[s].pos; i < n; i += 3) leds[s][i] = color;
+    anim[s].pos = (anim[s].pos + 1) % 3;
+}
+
+void snake(int s) {
+    int n = numLedsPerStrip[s];
+    CRGB color = uintToCrgb(stripSettings[s].color);
+    const int len = 20;
+    fill_solid(leds[s], n, CRGB::Black);
+    for (int i = 0; i < len; i++) leds[s][(anim[s].pos + i) % n] = color;
+    anim[s].pos = (anim[s].pos + 1) % n;
+}
+
+void colorWave(int s) {
+    int n = numLedsPerStrip[s];
+    const uint8_t waveLength = 20;
+    for (int i = 0; i < n; i++) {
+        leds[s][i] = CHSV(anim[s].phase + i * 255 / waveLength, 255, 255);
+    }
+    anim[s].phase += 5;
+}
+
+void breathingLight(int s) {
+    int n = numLedsPerStrip[s];
+    AnimState& st = anim[s];
+    CRGB color = uintToCrgb(stripSettings[s].color);
+    st.bright += st.up ? 5 : -5;
+    if (st.bright >= 255) { st.bright = 255; st.up = false; }
+    if (st.bright <= 0)   { st.bright = 0;   st.up = true; }
+    for (int i = 0; i < n; i++) {
+        leds[s][i] = color;
+        leds[s][i].nscale8(st.bright);
     }
 }
 
-void theaterChase(int stripIndex) {
-    CRGB color = uintToCrgb(stripSettings[stripIndex].color);
-
-    fill_solid(leds[stripIndex], numLedsPerStrip[stripIndex], CRGB::Black);
-
-    for (int i = 0; i < numLedsPerStrip[stripIndex]; i += 3) {
-        leds[stripIndex][(i + wavePosition1) % numLedsPerStrip[stripIndex]] = color;
+void rainbowCycle(int s) {
+    int n = numLedsPerStrip[s];
+    for (int i = 0; i < n; i++) {
+        leds[s][i] = CHSV(anim[s].phase + i * 256 / n, 255, 255);
     }
-
-    wavePosition1 = (wavePosition1 + 1) % numLedsPerStrip[stripIndex];
+    anim[s].phase += 1 + can_setting.speed / 12;
 }
 
-void snake(int stripIndex) {
-    CRGB color = uintToCrgb(stripSettings[stripIndex].color);  // Get the current color for the strip
-
-    int snakeLength = 20;  // Length of the chase "snake"
-    
-    // Clear the strip before updating
-    fill_solid(leds[stripIndex], numLedsPerStrip[stripIndex], CRGB::Black);
-
-    // Update the LEDs for the theater chase effect
-    for (int i = 0; i < snakeLength; i++) {
-        int ledIndex = (i + wavePosition2) % numLedsPerStrip[stripIndex];
-        leds[stripIndex][ledIndex] = color;  // Set the current segment of the chase
-    }
-
-    // Move the wave position to create   the chase effect
-    wavePosition2 = (wavePosition2 + 2 * snakeLength / 3) % numLedsPerStrip[stripIndex];
-
+void meteorRain(int s) {
+    int n = numLedsPerStrip[s];
+    CRGB color = uintToCrgb(stripSettings[s].color);
+    fadeToBlackBy(leds[s], n, 64);
+    anim[s].pos %= n;
+    leds[s][anim[s].pos] = color;
+    anim[s].pos = (anim[s].pos + 1) % n;
 }
 
-void colorWave(int stripIndex) {
-    static uint8_t startIndex = 0;  // Track the starting point of the wave
-    
-    // Speed and brightness adjustments
-
-    // Create a gradient color wave that moves across the strip
-    uint8_t waveLength = 20;  // Adjust the length of each color wave
-    for (int i = 0; i < numLedsPerStrip[stripIndex]; i++) {
-        uint8_t colorIndex = (startIndex + i * 255 / waveLength) % 255;  // Calculate color index for each LED
-        leds[stripIndex][i] = CHSV(colorIndex, 255, 255);  // Use HSV for smooth color transitions
-    }
-
-    startIndex += 5;  // Increment startIndex to move the wave forward
+void twinkle(int s) {
+    int n = numLedsPerStrip[s];
+    fadeToBlackBy(leds[s], n, 50);
+    leds[s][random16(n)] = uintToCrgb(stripSettings[s].color);
 }
 
-
-void breathingLight(int stripIndex) {
-    static int brightness = 0;
-    static bool increasing = true;
-    CRGB color = uintToCrgb(stripSettings[stripIndex].color);
-
-    if (increasing) {
-        brightness += 5;
-        if (brightness >= can_setting.brightess) {
-            increasing = false;
-        }
-    } else {
-        brightness -= 5;
-        if (brightness <= 0) {
-            increasing = true;
-        }
+void runningLights(int s) {
+    int n = numLedsPerStrip[s];
+    CRGB color = uintToCrgb(stripSettings[s].color);
+    for (int i = 0; i < n; i++) {
+        leds[s][i] = color;
+        leds[s][i].nscale8(sin8(anim[s].phase + i * 16));
     }
-
-    for (int i = 0; i < numLedsPerStrip[stripIndex]; i++) {
-        leds[stripIndex][i] = color;
-        leds[stripIndex][i].fadeLightBy(255 - brightness);
-    }
+    anim[s].phase++;
 }
 
-void rainbowCycle(int stripIndex) {
-    static uint8_t hue = 0;
-
-    for (int i = 0; i < numLedsPerStrip[stripIndex]; i++) {
-        leds[stripIndex][i] = CHSV(hue + (i * 256 / numLedsPerStrip[stripIndex]), 255, can_setting.brightess);
-    }
-
-    hue = (hue + map(can_setting.speed, 1, 100, 1, 10)) % 256;
+// Bouncing dot with a trail
+void larsonScanner(int s) {
+    int n = numLedsPerStrip[s];
+    AnimState& st = anim[s];
+    CRGB color = uintToCrgb(stripSettings[s].color);
+    fadeToBlackBy(leds[s], n, 40);
+    if (st.pos >= n) st.pos = n - 1;
+    if (st.pos < 0) st.pos = 0;
+    leds[s][st.pos] = color;
+    st.pos += st.dir;
+    if (st.pos >= n - 1) { st.pos = n - 1; st.dir = -1; }
+    if (st.pos <= 0)     { st.pos = 0;     st.dir = 1; }
 }
 
-void meteorRain(int stripIndex) {
-    CRGB color = uintToCrgb(stripSettings[stripIndex].color);
-    static int meteorPos = 0;  // Track the position of the meteor
-    
-    // Fade the LEDs slightly
-    for (int i = 0; i < numLedsPerStrip[stripIndex]; i++) {
-        leds[stripIndex][i].fadeToBlackBy(64);  // Fades each pixel to simulate a trail
+// Fire2012 by Mark Kriegsman
+void fire(int s) {
+    int n = numLedsPerStrip[s];
+    uint8_t* heat = anim[s].heat;
+    const uint8_t cooling = 55;
+    const uint8_t sparking = 120;
+    for (int i = 0; i < n; i++) {
+        heat[i] = qsub8(heat[i], random8(0, ((cooling * 10) / n) + 2));
     }
-
-    // Draw the meteor
-    leds[stripIndex][meteorPos] = color;
-
-    // Move the meteor forward
-    meteorPos = (meteorPos + 1) % numLedsPerStrip[stripIndex];
-}
-void twinkle(int stripIndex) {
-    CRGB color = uintToCrgb(stripSettings[stripIndex].color);
-    
-    // Randomly pick an LED to twinkle
-    int randomLed = random(numLedsPerStrip[stripIndex]);
-    
-    // Fade all LEDs slightly
-    for (int i = 0; i < numLedsPerStrip[stripIndex]; i++) {
-        leds[stripIndex][i].fadeToBlackBy(50);
+    for (int k = n - 1; k >= 2; k--) {
+        heat[k] = (heat[k - 1] + heat[k - 2] + heat[k - 2]) / 3;
     }
-    
-    // Random LED becomes bright
-    leds[stripIndex][randomLed] = color;
-}
-void runningLights(int stripIndex) {
-    CRGB color = uintToCrgb(stripSettings[stripIndex].color);
-    static int position = 0;
-
-    // Create a sine wave effect
-    for (int i = 0; i < numLedsPerStrip[stripIndex]; i++) {
-        int brightness = 128 + sin8(position + i * 16);  // Sine wave brightness effect
-        leds[stripIndex][i] = color;
-        leds[stripIndex][i].fadeToBlackBy(255 - brightness);  // Apply the sine wave to the strip
+    if (random8() < sparking) {
+        int y = random8(min(n, 7));
+        heat[y] = qadd8(heat[y], random8(160, 255));
     }
-    
-    position++;  // Move the wave forward
+    for (int j = 0; j < n; j++) leds[s][j] = HeatColor(heat[j]);
 }
 
+// Red / blue alternating halves
+void police(int s) {
+    int n = numLedsPerStrip[s];
+    int period = map(constrain(can_setting.speed, 0, 100), 0, 100, 500, 60);
+    bool phase = (millis() / period) & 1;
+    int half = n / 2;
+    fill_solid(leds[s], half, phase ? CRGB::Red : CRGB::Black);
+    fill_solid(leds[s] + half, n - half, phase ? CRGB::Black : CRGB::Blue);
+}
 
+void confetti(int s) {
+    int n = numLedsPerStrip[s];
+    fadeToBlackBy(leds[s], n, 10);
+    leds[s][random16(n)] += CHSV(anim[s].phase + random8(64), 200, 255);
+    anim[s].phase++;
+}
+
+// Fill with color from the start, then wipe back to black
+void colorWipe(int s) {
+    int n = numLedsPerStrip[s];
+    AnimState& st = anim[s];
+    CRGB color = uintToCrgb(stripSettings[s].color);
+    st.pos %= 2 * n;
+    if (st.pos < n) leds[s][st.pos] = color;
+    else            leds[s][st.pos - n] = CRGB::Black;
+    st.pos = (st.pos + 1) % (2 * n);
+}
+
+// Smooth pendulum dot
+void sinelon(int s) {
+    int n = numLedsPerStrip[s];
+    CRGB color = uintToCrgb(stripSettings[s].color);
+    fadeToBlackBy(leds[s], n, 20);
+    uint8_t bpm = map(constrain(can_setting.speed, 0, 100), 0, 100, 5, 60);
+    int p = beatsin16(bpm, 0, n - 1);
+    leds[s][p] += color;
+}
 
 CRGB getColorForSection(int currentLED, int numLeds) {
     // Define the section thresholds for 7 sections
@@ -309,10 +331,17 @@ void rpmLevel(int stripIndex) {
     bool bottom = stripSettings[stripIndex].bottom;
     int center = stripSettings[stripIndex].center;
 
-    fill_solid(leds[stripIndex], numLeds, CRGB::Black);
-
     int MIN_LEVEL = can_setting.minRPM;
     int MAX_LEVEL = can_setting.maxRPM;
+
+    // Shift light: over max RPM the whole strip blinks red
+    if (level >= MAX_LEVEL) {
+        bool on = (millis() / 100) & 1;
+        fill_solid(leds[stripIndex], numLeds, on ? CRGB::Red : CRGB::Black);
+        return;
+    }
+
+    fill_solid(leds[stripIndex], numLeds, CRGB::Black);
 
     int numLedsToLight = map(level, MIN_LEVEL, MAX_LEVEL, 0, bottom ? numLedsPerStrip[stripIndex] / 2 - 1 : numLedsPerStrip[stripIndex]);
 
@@ -337,59 +366,40 @@ void rpmLevel(int stripIndex) {
 }
 
 void runAnimations() {
-    for (int i = 0; i < NUM_STRIPS; i++) {
-        // Log the current strip number
-       
+    static unsigned long lastFrame = 0;
+    unsigned long now = millis();
+    if (now - lastFrame < (unsigned long)frameInterval(can_setting.speed)) return;
+    lastFrame = now;
 
-        // Determine if the RPM-based animation should be used
-        bool useRpmLevel = (stripSettings[i].mode == 1) || 
+    for (int i = 0; i < NUM_STRIPS; i++) {
+        bool useRpmLevel = (stripSettings[i].mode == 1) ||
                            (stripSettings[i].mode == 2 && obd2.getRPM() >= can_setting.minRPM);
 
         if (useRpmLevel) {
-            Serial.println("Using RPM-based animation");
             rpmLevel(i);
-        } else {
-            switch (stripSettings[i].animationIndex) {
-                case 0:
-                    staticColor(i);
-                    break;
-                case 1:
-                    theaterChase(i);
-                    break;
-                case 2:
-                    colorWave(i);
-                    break;
-                case 3:
-                    breathingLight(i);
-                    break;
-                case 4:
-                    rainbowCycle(i);
-                    break;
-                case 5:
-                    snake(i);
-                    break;
-                case 6:
-                    meteorRain(i);   // New meteor rain effect
-                    break;
-                case 7:
-                    twinkle(i);      // New twinkle effect
-                    break;
-                case 8:
-                    runningLights(i);  // New running lights effect
-                    break;
-                default:
-                    break;
-        
+            continue;
         }
+        switch (stripSettings[i].animationIndex) {
+            case 0:  staticColor(i); break;
+            case 1:  theaterChase(i); break;
+            case 2:  colorWave(i); break;
+            case 3:  breathingLight(i); break;
+            case 4:  rainbowCycle(i); break;
+            case 5:  snake(i); break;
+            case 6:  meteorRain(i); break;
+            case 7:  twinkle(i); break;
+            case 8:  runningLights(i); break;
+            case 9:  larsonScanner(i); break;
+            case 10: fire(i); break;
+            case 11: police(i); break;
+            case 12: confetti(i); break;
+            case 13: colorWipe(i); break;
+            case 14: sinelon(i); break;
+            default: break;
         }
     }
+    FastLED.setBrightness(mapBrightness(can_setting.brightess));
     for (int i = 0; i < NUM_STRIPS; i++) applyColorOrder(i, false);
     FastLED.show();
     for (int i = 0; i < NUM_STRIPS; i++) applyColorOrder(i, true);
-    FastLED.setBrightness(can_setting.brightess);
-    delay(mapSpeed(can_setting.speed));
 }
-
-
-
-
