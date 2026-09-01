@@ -29,8 +29,11 @@ String sysUptime() {
     return String(buf);
 }
 
+#ifndef GIT_REV
+#define GIT_REV "unknown"
+#endif
 String sysBuildInfo() {
-    return String(F(__DATE__ " " __TIME__));
+    return String(F(GIT_REV " " __DATE__ " " __TIME__));
 }
 
 static void rotateIfNeeded() {

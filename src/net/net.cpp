@@ -1,5 +1,6 @@
 #include "net.h"
 #include <WiFi.h>
+#include <ESPmDNS.h>
 #include "config/config.h"
 #include "system/system.h"
 
@@ -69,6 +70,7 @@ void netTick() {
         if (staDownSince) {
             staDownSince = 0;
             sysLog("Wi-Fi connected " + WiFi.SSID() + " " + WiFi.localIP().toString());
+            if (MDNS.begin("zvercustom")) MDNS.addService("http", "tcp", 80);
         }
         stopAP();
         return;
