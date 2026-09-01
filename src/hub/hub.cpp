@@ -3,6 +3,7 @@
 #include <FileData.h>
 #include <WiFi.h>
 #include "vehicle/vehicle.h"
+#include "imu/imu.h"
 
 // GyverHub object
 GyverHub hub;
@@ -263,6 +264,12 @@ void updateHub() {
         hub.sendUpdate("temp");
         hub.sendUpdate("wifi");
         hub.sendUpdate("can");
+        hub.sendUpdate("sta");
+        hub.sendUpdate("ap");
+        if (imu.ok && hub.menu == 4) {
+            const char* names[] = {"ax", "ay", "az", "gx", "gy", "gz", "imutemp"};
+            for (const char* n : names) hub.sendUpdate(n);
+        }
         if (canMode == CAN_MODE_SNIFFER) hub.sendUpdate("sniff");
     }
     
@@ -286,11 +293,7 @@ static void applyToAllStrips(int from) {
     }
 }
 
-void build(gh::Builder& b) {
-    char buffer[64];
-    bool forceSave = false;
-    
-    // OBD2 Data Section
+static void buildDashboard(gh::Builder& b) {
     {
         gh::Row obd2Row(b);
         String rpm = String(obd2.getRPM());
@@ -298,60 +301,43 @@ void build(gh::Builder& b) {
         b.Gauge_("rpm", &rpm).label(F("RPM")).size(3).range(0, 9000, 1);
         b.Gauge_("speed", &speed).label(F("Speed")).size(3).range(0, 300, 1);
     }
-
     {
         gh::Row obd2Row(b);
         String engineTemp = String(obd2.getEngineTemp());
         String throttle = String(obd2.getThrottlePosition());
-
         b.Gauge_("temp", &engineTemp).label(F("Temp")).size(3).range(0, 200, 1);
         b.Gauge_("throttle", &throttle).label(F("Throttle")).size(3).range(0, 100, 1);
     }
-
-    // Status
     {
         gh::Row statusRow(b);
-        String wifiStatus = wifiStatusString();
-        String canStatus = canStatusString();
-        b.Label_("wifi", wifiStatus).label(F("Wi-Fi")).size(3);
-        b.Label_("can", canStatus).label(F("CAN")).size(3);
+        b.Label_("wifi", wifiStatusString()).label(F("Wi-Fi")).size(3);
+        b.Label_("can", canStatusString()).label(F("CAN")).size(3);
     }
-
     {
-        gh::Row canModeRow(b);
-        if (b.Select(&canMode).label("CAN Source").size(3).text("OBD2;BMW MS43;Sniffer (Serial)").click()) {
-            vehicleSetMode(canMode);
-        }
+        gh::Row rebootRow(b);
         if (b.Button().label("Reboot").size(3).click()) {
             fileData.updateNow();
             delay(100);
             ESP.restart();
         }
     }
+}
 
-    if (canMode == CAN_MODE_SNIFFER) {
-        gh::Row sniffRow(b);
-        String table = sniffTableString();
-        b.Text_("sniff", table).label(F("CAN frames")).rows(16).size(6);
-    }
-
-    // LED Strip Selection Section
+static void buildLeds(gh::Builder& b, bool& forceSave) {
+    char buffer[64];
     {
         gh::Row stripSelectRow(b);
         b.Select(&selectedStrip).label("Select LED Strip").size(3).text("0;1;2;3;4;5");
 
-        
         snprintf(buffer, sizeof(buffer), "Strip %d Bottom", selectedStrip);
-        if (stripSettings[selectedStrip].mode > 0){
+        if (stripSettings[selectedStrip].mode > 0) {
             b.Switch(&stripSettings[selectedStrip].bottom).label(buffer).size(3);
-            if(stripSettings[selectedStrip].bottom){
-                b.Spinner(&stripSettings[selectedStrip].center).label("Middle").size(3).range(0,numLedsPerStrip[selectedStrip],1 );
+            if (stripSettings[selectedStrip].bottom) {
+                b.Spinner(&stripSettings[selectedStrip].center).label("Middle").size(3).range(0, numLedsPerStrip[selectedStrip], 1);
             }
         }
         b.Color(&stripSettings[selectedStrip].color).label("Color").size(3);
     }
-
-    // Configuration for the selected LED strip
     {
         gh::Row stripConfigRow(b);
         snprintf(buffer, sizeof(buffer), "Strip %d Mode", selectedStrip);
@@ -362,19 +348,49 @@ void build(gh::Builder& b) {
 
         snprintf(buffer, sizeof(buffer), "Strip %d Animation", selectedStrip);
         b.Select(&stripSettings[selectedStrip].animationIndex).label(buffer).size(3).text("Static Color;Theater Chase;Color Wave;Breathing Light;Rainbow Cycle;Snake;Meteor Rain;Twinkle;Running Lights;Larson Scanner;Fire;Police;Confetti;Color Wipe;Sinelon");
-        
-        // Control the number of LEDs per strip
+
         snprintf(buffer, sizeof(buffer), "Strip %d LEDs", selectedStrip);
-       
-        b.Spinner(&numLedsPerStrip[selectedStrip]).label(buffer).size(3).range(1, MAX_LEDS, 1);  // Adjust range as needed
+        b.Spinner(&numLedsPerStrip[selectedStrip]).label(buffer).size(3).range(1, MAX_LEDS, 1);
 
         if (b.Button().label("Apply to all strips").size(3).click()) {
             applyToAllStrips(selectedStrip);
             forceSave = true;
         }
     }
+    {
+        gh::Row rpmRow(b);
+        b.Spinner(&can_setting.minRPM).label("Scale Min RPM").size(3).range(0, 8000, 100);
+        b.Spinner(&can_setting.maxRPM).label("Scale Max RPM").size(3).range(0, 8000, 100);
+    }
+    {
+        gh::Row animRow(b);
+        b.Spinner(&can_setting.speed).label("Animation Speed").size(3).range(0, 100, 1);
+        b.Spinner(&can_setting.brightess).label("Animation Brightness").size(3).range(0, 100, 1);
+    }
+}
 
-    // Wi-Fi Settings
+static void buildCan(gh::Builder& b) {
+    {
+        gh::Row canModeRow(b);
+        if (b.Select(&canMode).label("CAN Source").size(3).text("OBD2;BMW MS43;Sniffer").click()) {
+            vehicleSetMode(canMode);
+        }
+        b.Label_("can", canStatusString()).label(F("CAN")).size(3);
+    }
+    {
+        gh::Row rpmRow(b);
+        b.Label_("rpm", String(obd2.getRPM())).label(F("RPM")).size(2);
+        b.Label_("speed", String(obd2.getSpeed())).label(F("Speed")).size(2);
+        b.Label_("temp", String(obd2.getEngineTemp())).label(F("Temp")).size(2);
+        b.Label_("throttle", String(obd2.getThrottlePosition())).label(F("Throttle")).size(2);
+    }
+    if (canMode == CAN_MODE_SNIFFER) {
+        gh::Row sniffRow(b);
+        b.Text_("sniff", sniffTableString()).label(F("CAN frames")).rows(20).size(6);
+    }
+}
+
+static void buildWifi(gh::Builder& b) {
     {
         gh::Row wifiRow(b);
         b.Input(&wifiSsid).label("Wi-Fi SSID").size(3).maxLen(32);
@@ -383,24 +399,64 @@ void build(gh::Builder& b) {
             wifiReconnect();
         }
     }
-
-    // CAN Settings
     {
-        gh::Row canRow(b);
-        b.Spinner(&can_setting.minRPM).label("CAN Min RPM").size(3).range(0, 8000, 100);
-        b.Spinner(&can_setting.maxRPM).label("CAN Max RPM").size(3).range(0, 8000, 100);
+        gh::Row statusRow(b);
+        b.Label_("wifi", wifiStatusString()).label(F("Status")).size(3);
+        String sta = WiFi.status() == WL_CONNECTED ? WiFi.localIP().toString() + "  rssi " + String(WiFi.RSSI()) : String("-");
+        b.Label_("sta", sta).label(F("STA IP")).size(3);
     }
-
     {
-        gh::Row canRow(b);
-        b.Spinner(&can_setting.speed).label("Animation Speed").size(3).range(0, 100, 1);
-        b.Spinner(&can_setting.brightess).label("Animation Brightness").size(3).range(0, 100, 1);
+        gh::Row apRow(b);
+        String ap = apOn ? String(AP_SSID) + "  " + WiFi.softAPIP().toString() : String("off");
+        b.Label_("ap", ap).label(F("Access Point")).size(3);
+        b.Label(WiFi.macAddress()).label(F("MAC")).size(3);
+    }
+}
+
+static String fmt(float v, int digits = 2) {
+    return String(v, digits);
+}
+
+static void buildImu(gh::Builder& b) {
+    if (!imu.ok) {
+        gh::Row r(b);
+        b.Label(F("MPU-6050 not found")).label(F("IMU")).size(6);
+        return;
+    }
+    {
+        gh::Row accRow(b);
+        b.Label_("ax", fmt(imu.ax)).label(F("Accel X, g")).size(2);
+        b.Label_("ay", fmt(imu.ay)).label(F("Accel Y, g")).size(2);
+        b.Label_("az", fmt(imu.az)).label(F("Accel Z, g")).size(2);
+    }
+    {
+        gh::Row gyrRow(b);
+        b.Label_("gx", fmt(imu.gx, 1)).label(F("Gyro X, deg/s")).size(2);
+        b.Label_("gy", fmt(imu.gy, 1)).label(F("Gyro Y, deg/s")).size(2);
+        b.Label_("gz", fmt(imu.gz, 1)).label(F("Gyro Z, deg/s")).size(2);
+    }
+    {
+        gh::Row tRow(b);
+        b.Label_("imutemp", fmt(imu.temp, 1)).label(F("IMU temp, C")).size(3);
+    }
+}
+
+void build(gh::Builder& b) {
+    bool forceSave = false;
+
+    b.Menu(F("Dashboard;LEDs;CAN;Wi-Fi;IMU"));
+
+    switch (b.menu()) {
+        case 0: buildDashboard(b); break;
+        case 1: buildLeds(b, forceSave); break;
+        case 2: buildCan(b); break;
+        case 3: buildWifi(b); break;
+        case 4: buildImu(b); break;
     }
 
     // If something changed, trigger the update
     if (b.changed() || forceSave) {
-        
-        reinit(selectedStrip); 
+        reinit(selectedStrip);
         savedData.can_setting = can_setting;
         for (int i = 0; i < NUM_STRIPS; i++) {
             savedData.stripSettings[i] = stripSettings[i];
@@ -414,7 +470,6 @@ void build(gh::Builder& b) {
         strlcpy(savedData.wifiSsid, wifiSsid.c_str(), sizeof(savedData.wifiSsid));
         strlcpy(savedData.wifiPass, wifiPass.c_str(), sizeof(savedData.wifiPass));
         savedData.canMode = canMode;
-        // Save the data to file
         Serial.println("Data changed, saving to file...");
         fileData.update();
         hub.sendRefresh();

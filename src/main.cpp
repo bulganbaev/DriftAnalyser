@@ -4,6 +4,7 @@
 #include "can_bus/can_bus.h"
 #include "hub/hub.h"
 #include "vehicle/vehicle.h"
+#include "imu/imu.h"
 
 CANBus canBus;
 OBD2 obd2;
@@ -30,12 +31,14 @@ void setup() {
 
     setupHub();
     vehicleSetMode(canMode);
+    imuSetup();
 
 }
 
 void loop() {
     updateHub();
     vehicleTick();
+    imuTick();
     // Run LED animations or other tasks
     runAnimations();
     

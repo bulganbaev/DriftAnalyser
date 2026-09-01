@@ -19,6 +19,10 @@
 #define GPS_TX_PIN 1  // TXD0 (UART0 default)
 #define GPS_PPS_PIN 48  // PPS (Pulse Per Second) on GPIO48
 
+// MPU-6050 I2C
+#define IMU_SDA_PIN 8
+#define IMU_SCL_PIN 9
+
 //TJA1050 pins
 #define CAN_RX_PIN 16
 #define CAN_TX_PIN 35
