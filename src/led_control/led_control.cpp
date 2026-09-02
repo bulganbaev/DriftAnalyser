@@ -397,37 +397,45 @@ void runAnimations() {
     FastLED.show();
 }
 
-// Flash writes (settings, log, OTA) must not overlap RMT output: the writer pauses us first.
-static volatile bool pauseReq = false;
-static volatile bool inFrame = false;
+// Flash writes (settings, log, OTA) must not overlap RMT output. The LED task holds
+// frameMutex for the whole frame; a writer takes it (blocking until the frame ends) and
+// keeps it until resume, so no race window between check and show().
+static SemaphoreHandle_t frameMutex = nullptr;
+static volatile bool pausedFlag = false;
+
+static void ensureMutex() {
+    if (!frameMutex) frameMutex = xSemaphoreCreateMutex();
+}
 
 void ledsPause() {
-    pauseReq = true;
-    while (inFrame) vTaskDelay(1);
+    ensureMutex();
+    if (pausedFlag) return;
+    xSemaphoreTake(frameMutex, portMAX_DELAY);
+    pausedFlag = true;
 }
 
 void ledsResume() {
-    pauseReq = false;
+    if (!pausedFlag) return;
+    pausedFlag = false;
+    xSemaphoreGive(frameMutex);
 }
 
 bool ledsPaused() {
-    return pauseReq;
+    return pausedFlag;
 }
 
 static void ledTask(void*) {
+    ensureMutex();
     for (;;) {
-        if (pauseReq) {
-            vTaskDelay(5);
-            continue;
-        }
-        inFrame = true;
+        xSemaphoreTake(frameMutex, portMAX_DELAY);
         runAnimations();
-        inFrame = false;
+        xSemaphoreGive(frameMutex);
         vTaskDelay(1);
     }
 }
 
 void startLedTask() {
+    ensureMutex();
     // same core as loop(): show() sleeps on the RMT semaphore, so the hub gets that time
     xTaskCreatePinnedToCore(ledTask, "leds", 6144, nullptr, 1, nullptr, 1);
 }
