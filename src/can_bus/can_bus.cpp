@@ -56,6 +56,18 @@ String CANBus::stateName() const {
     }
 }
 
+String CANBus::diagString() const {
+    if (!connected) return F("driver off");
+    twai_status_info_t st;
+    if (twai_get_status_info(&st) != ESP_OK) return F("status err");
+    char buf[128];
+    snprintf(buf, sizeof(buf), "%s %s rx=%lu miss=%lu buserr=%lu arb=%lu tec=%lu rec=%lu",
+             stateName().c_str(), listenOnly ? "LO" : "N",
+             (unsigned long)st.msgs_to_rx, (unsigned long)st.rx_missed_count, (unsigned long)st.bus_error_count,
+             (unsigned long)st.arb_lost_count, (unsigned long)st.tx_error_counter, (unsigned long)st.rx_error_counter);
+    return String(buf);
+}
+
 // Modified isConnected() to check for received messages or errors
 bool CANBus::isConnected() const {
     if (!connected) {

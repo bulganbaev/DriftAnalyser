@@ -15,6 +15,7 @@ public:
     bool isDriverRunning() const { return connected; }
     bool isListenOnly() const { return listenOnly; }
     String stateName() const;
+    String diagString() const;   // state + error counters
 
     // Public method to check if the CAN bus is connected and active
     bool isConnected() const;

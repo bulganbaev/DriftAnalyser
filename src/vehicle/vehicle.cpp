@@ -92,6 +92,11 @@ static void sniffFrame(const twai_message_t& f) {
 
 void vehicleTick() {
     unsigned long now = millis();
+    static unsigned long lastDiag = 0;
+    if (canBus && canMode != CAN_MODE_OBD2 && now - lastDiag >= 5000) {
+        lastDiag = now;
+        Serial.println("CAN " + canBus->diagString() + " fps=" + String(framesPerSec));
+    }
     if (now - lastRateTick >= 1000) {
         lastRateTick = now;
         framesPerSec = frameCount;
@@ -139,6 +144,8 @@ String canStatusString() {
     } else {
         s += " " + String(framesPerSec) + " fps";
         if (lastFrameMillis) s += " last " + String((millis() - lastFrameMillis) / 1000) + "s";
+        twai_status_info_t st;
+        if (twai_get_status_info(&st) == ESP_OK) s += " err=" + String((unsigned long)st.bus_error_count) + " rec=" + String((unsigned long)st.rx_error_counter);
     }
     return s;
 }
