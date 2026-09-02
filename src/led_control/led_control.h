@@ -23,9 +23,6 @@ struct StripSettings {
     int center;
     int numLeds;
     int colorOrder;          // 0 RGB, 1 GRB, 2 BGR, 3 RBG, 4 GBR, 5 BRG
-    bool enabled;            // strip output on/off
-    int scaleSource;         // 0 RPM, 1 speed, 2 throttle, 3 lateral G, 4 yaw rate
-    bool reverse;            // flip direction
 };
 
 #define MAX_LEDS 1000
@@ -37,12 +34,10 @@ extern int numLedsPerStrip[6];
 
 // Function to initialize the LED strips
 void initializeLEDStrips();
-void init(int index);          // apply numLedsPerStrip[index] to FastLED, blank the tail
-void startLedTask();           // render + show in their own FreeRTOS task
-void requestLedReinit();       // ask the LED task to re-apply LED counts between frames
-void ledsPause();              // stop output, returns after the current frame is done
-void ledsResume();
-bool ledsPaused();
+void reinit(int index);
+void deinit(int index);
+void init(int index);
+void deinitializeLEDStrips();
 
 // Different animation types for LED strips
 void staticColor(int stripIndex);
@@ -60,7 +55,6 @@ void police(int stripIndex);
 void confetti(int stripIndex);
 void colorWipe(int stripIndex);
 void sinelon(int stripIndex);
-void gForce(int stripIndex);
 
 // RPM-based animation
 void rpmLevel(int stripIndex);

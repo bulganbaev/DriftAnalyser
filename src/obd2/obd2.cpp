@@ -2,65 +2,89 @@
 #include "vehicle/vehicle.h"
 #include <Arduino.h>
 
-static const uint8_t PIDS[] = {0x0C, 0x0D, 0x11, 0x05};  // rpm, speed, throttle, coolant
-const unsigned long OBD_GAP = 50;       // ms between requests
-const unsigned long OBD_TIMEOUT = 200;  // ms to wait for a reply
-
 uint16_t OBD2::getRPM() const { return vehicle.rpm; }
 uint8_t OBD2::getThrottlePosition() const { return vehicle.throttle; }
 uint8_t OBD2::getSpeed() const { return vehicle.speed; }
 int8_t OBD2::getEngineTemp() const { return vehicle.temp; }
 
 void OBD2::begin(CANBus &can) {
-    canBus = &can;
+    this->canBus = &can;
 }
 
-void OBD2::sendRequest(uint8_t pid) {
-    twai_message_t tx = {};
-    tx.identifier = 0x7DF;  // functional request to all ECUs
-    tx.data_length_code = 8;
-    tx.data[0] = 0x02;
-    tx.data[1] = 0x01;  // mode 01: current data
-    tx.data[2] = pid;
-    canBus->sendFrame(tx);
-}
+bool OBD2::requestPID(uint8_t pid, twai_message_t &rx_frame) {
+    // Create a request frame for the given PID
+    twai_message_t tx_frame;
+    tx_frame.flags = 0;  // Standard frame
+    tx_frame.identifier = 0x7DF;  // OBD2 request ID for all ECUs
+    tx_frame.data_length_code = 8;  // Data length
+    tx_frame.data[0] = 0x02;  // Number of additional data bytes
+    tx_frame.data[1] = 0x01;  // Service ID: Show current data
+    tx_frame.data[2] = pid;   // PID to request
+    tx_frame.data[3] = 0x00;
+    tx_frame.data[4] = 0x00;
+    tx_frame.data[5] = 0x00;
+    tx_frame.data[6] = 0x00;
+    tx_frame.data[7] = 0x00;
 
-bool OBD2::handleFrame(const twai_message_t &f, uint8_t pid) {
-    if (f.identifier < 0x7E8 || f.identifier > 0x7EF) return false;
-    if (f.data[1] != 0x41 || f.data[2] != pid) return false;
-    switch (pid) {
-        case 0x0C: vehicle.rpm = ((f.data[3] << 8) | f.data[4]) / 4; break;
-        case 0x0D: vehicle.speed = f.data[3]; break;
-        case 0x11: vehicle.throttle = (uint16_t)f.data[3] * 100 / 255; break;
-        case 0x05: vehicle.temp = (int)f.data[3] - 40; break;
+    // Send the request frame using CANBus
+    canBus->sendFrame(tx_frame);
+
+    // Wait for the response frame
+    if (canBus->readFrame(rx_frame)) {
+        // Verify the response is from the ECU and matches the requested PID
+        return (rx_frame.identifier == 0x7E8) && (rx_frame.data[2] == pid);
     }
-    vehicle.lastUpdate = millis();
-    return true;
+    return false;
 }
 
-void OBD2::tick() {
-    if (!canBus || !canBus->isDriverRunning() || canBus->isListenOnly()) return;
-    unsigned long now = millis();
+bool OBD2::readRPM(uint16_t &rpm) {
+    twai_message_t rx_frame;
+    if (requestPID(0x0C, rx_frame)) {  // 0x0C is the PID for RPM
+        rpm = ((rx_frame.data[3] << 8) | rx_frame.data[4]) / 4;
+        vehicle.rpm = rpm;
+        vehicle.lastUpdate = millis();
+        return true;
+    }
+    return false;
+}
 
-    if (waiting) {
-        twai_message_t f;
-        int budget = 16;
-        while (budget-- > 0 && canBus->readFrame(f, 0)) {
-            if (handleFrame(f, PIDS[pidIndex])) {
-                waiting = false;
-                pidIndex = (pidIndex + 1) % sizeof(PIDS);
-                return;
-            }
-        }
-        if (now - sentAt >= OBD_TIMEOUT) {
-            waiting = false;
-            pidIndex = (pidIndex + 1) % sizeof(PIDS);
-        }
-        return;
+bool OBD2::readThrottlePosition(uint8_t &throttle) {
+    twai_message_t rx_frame;
+    if (requestPID(0x11, rx_frame)) {  // 0x11 is the PID for throttle position
+        throttle = rx_frame.data[3];  // Throttle position is in the third byte
+        vehicle.throttle = throttle;
+        vehicle.lastUpdate = millis();
+        return true;
+    }
+    return false;
+}
+
+bool OBD2::readSpeed(uint8_t &speed) {
+    twai_message_t rx_frame;
+    if (requestPID(0x0D, rx_frame)) {  // 0x0D is the PID for vehicle speed
+        speed = rx_frame.data[3];  // Speed is in the third byte
+        vehicle.speed = speed;
+        vehicle.lastUpdate = millis();
+        return true;
+    }
+    return false;
+}
+
+bool OBD2::readEngineTemp(int8_t &temp) {
+    twai_message_t rx_frame;
+    if (requestPID(0x05, rx_frame)) {  // 0x05 is the PID for engine coolant temperature
+        temp = rx_frame.data[3] - 40;  // Temperature is in the third byte, offset by -40
+        vehicle.temp = temp;
+        vehicle.lastUpdate = millis();
+        return true;
+    }
+    return false;
+}
+
+void OBD2::updateOBD2Data() {
+    readThrottlePosition(throttlePosition);
+    readRPM(rpm);
+    readSpeed(speed);
+    readEngineTemp(engineTemp);
     }
 
-    if (now - lastSend < OBD_GAP) return;
-    sendRequest(PIDS[pidIndex]);
-    lastSend = sentAt = now;
-    waiting = true;
-}

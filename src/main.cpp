@@ -1,13 +1,10 @@
 #include <Arduino.h>
-#include "settings/settings.h"
 #include "led_control/led_control.h"
 #include "obd2/obd2.h"
 #include "can_bus/can_bus.h"
 #include "hub/hub.h"
-#include "net/net.h"
 #include "vehicle/vehicle.h"
 #include "imu/imu.h"
-#include "system/system.h"
 
 CANBus canBus;
 OBD2 obd2;
@@ -15,29 +12,35 @@ OBD2 obd2;
 void setup() {
     Serial.begin(115200);
     delay(2000);
-    Serial.println("System initializing...");
+    // Log the start of the system
+    Serial.println("System initializing...\n");
 
-    settingsBegin();
-    sysBegin();
+    // Initialize LED strips or other setup tasks
     initializeLEDStrips();
+    Serial.println("LED strips initialized\n");
 
+    // Configure CAN bus timing and initialize
     twai_timing_config_t timingConfig = TWAI_TIMING_CONFIG_500KBITS();
-    canBus.begin(CAN_RX_PIN, CAN_TX_PIN, CAN_STB_PIN, timingConfig, canMode != CAN_MODE_OBD2);
+    canBus.begin(CAN_RX_PIN, CAN_TX_PIN, CAN_STB_PIN, timingConfig);
+    Serial.println("CAN bus initialized\n");
+
+    // Initialize the OBD2 communication
     obd2.begin(canBus);
     vehicleSetup(canBus, obd2);
+    Serial.println("OBD2 initialized\n");
 
-    netBegin();
     setupHub();
+    vehicleSetMode(canMode);
     imuSetup();
-    startLedTask();
-    sysLog(F("ready"));
+
 }
 
 void loop() {
-    netTick();
-    settingsTick();
     updateHub();
     vehicleTick();
     imuTick();
-    delay(1);
+    // Run LED animations or other tasks
+    runAnimations();
+    
+
 }

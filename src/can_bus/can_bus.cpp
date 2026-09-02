@@ -31,35 +31,7 @@ void CANBus::install() {
         return;
     }
     connected = true;
-    Serial.printf("TWAI started (%s, %s)\n", listenOnly ? "listen only" : "normal", bitrateName(bitrateIdx));
-}
-
-const char* CANBus::bitrateName(int idx) {
-    static const char* names[BR_COUNT] = {"500k", "250k", "125k", "100k", "1M"};
-    return (idx >= 0 && idx < BR_COUNT) ? names[idx] : "?";
-}
-
-twai_timing_config_t CANBus::timingFor(int idx) {
-    switch (idx) {
-        case BR_250K: { twai_timing_config_t t = TWAI_TIMING_CONFIG_250KBITS(); return t; }
-        case BR_125K: { twai_timing_config_t t = TWAI_TIMING_CONFIG_125KBITS(); return t; }
-        case BR_100K: { twai_timing_config_t t = TWAI_TIMING_CONFIG_100KBITS(); return t; }
-        case BR_1M:   { twai_timing_config_t t = TWAI_TIMING_CONFIG_1MBITS(); return t; }
-        default:      { twai_timing_config_t t = TWAI_TIMING_CONFIG_500KBITS(); return t; }
-    }
-}
-
-unsigned long CANBus::busErrors() const {
-    if (!connected) return 0;
-    twai_status_info_t st;
-    if (twai_get_status_info(&st) != ESP_OK) return 0;
-    return st.bus_error_count;
-}
-
-void CANBus::restart(bool listenOnly, int bitrate) {
-    bitrateIdx = constrain(bitrate, 0, BR_COUNT - 1);
-    timing = timingFor(bitrateIdx);
-    restart(listenOnly);
+    Serial.println(listenOnly ? "TWAI started (listen only)" : "TWAI started (normal)");
 }
 
 void CANBus::restart(bool listenOnly) {
@@ -82,18 +54,6 @@ String CANBus::stateName() const {
         case TWAI_STATE_RECOVERING: return F("recovering");
         default:                    return F("stopped");
     }
-}
-
-String CANBus::diagString() const {
-    if (!connected) return F("driver off");
-    twai_status_info_t st;
-    if (twai_get_status_info(&st) != ESP_OK) return F("status err");
-    char buf[128];
-    snprintf(buf, sizeof(buf), "%s %s %s rx=%lu miss=%lu buserr=%lu arb=%lu tec=%lu rec=%lu",
-             stateName().c_str(), listenOnly ? "LO" : "N", bitrateName(bitrateIdx),
-             (unsigned long)st.msgs_to_rx, (unsigned long)st.rx_missed_count, (unsigned long)st.bus_error_count,
-             (unsigned long)st.arb_lost_count, (unsigned long)st.tx_error_counter, (unsigned long)st.rx_error_counter);
-    return String(buf);
 }
 
 // Modified isConnected() to check for received messages or errors
