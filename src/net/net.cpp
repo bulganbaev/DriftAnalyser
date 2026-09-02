@@ -79,6 +79,24 @@ static void onWifiEvent(WiFiEvent_t event, WiFiEventInfo_t info) {
     sysLog("Wi-Fi STA disconnected, reason " + String(r) + " " + why);
 }
 
+// One scan at boot: start with a network that is actually in range
+static void pickVisibleFirst() {
+    int n = WiFi.scanNetworks(false, false, false, 200);
+    if (n <= 0) { candidate = -1 - 1; return; }
+    auto visible = [&](const String& ssid) {
+        for (int i = 0; i < n; i++) if (WiFi.SSID(i) == ssid) return true;
+        return false;
+    };
+    if (wifiSsid.length() && visible(wifiSsid)) { candidate = -1 - 1; }
+    else {
+        candidate = -1 - 1;
+        for (int i = 0; i < knownCount; i++) {
+            if (knownNets[i].ssid[0] && visible(knownNets[i].ssid)) { candidate = i - 1; break; }
+        }
+    }
+    WiFi.scanDelete();
+}
+
 void netBegin() {
     WiFi.onEvent(onWifiEvent);
     WiFi.persistent(false);  // creds live in settings.dat, don't write NVS on every boot
@@ -91,7 +109,7 @@ void netBegin() {
     }
     WiFi.mode(WIFI_STA);
     staDownSince = millis();
-    candidate = -1 - 1;  // so the first pick lands on saved creds
+    pickVisibleFirst();
     startSTA();
 }
 
