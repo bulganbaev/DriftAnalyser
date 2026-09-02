@@ -38,7 +38,18 @@ static void startSTA() {
     lastStaAttempt = millis();
 }
 
+static void onWifiEvent(WiFiEvent_t event, WiFiEventInfo_t info) {
+    static unsigned long lastLog = 0;
+    if (event != ARDUINO_EVENT_WIFI_STA_DISCONNECTED) return;
+    if (millis() - lastLog < 10000) return;  // one line per attempt burst
+    lastLog = millis();
+    uint8_t r = info.wifi_sta_disconnected.reason;
+    const char* why = r == 201 ? "no AP found" : r == 15 ? "wrong password (handshake timeout)" : r == 202 ? "auth fail" : r == 2 ? "auth expire" : r == 8 ? "assoc leave" : "";
+    sysLog("Wi-Fi STA disconnected, reason " + String(r) + " " + why);
+}
+
 void netBegin() {
+    WiFi.onEvent(onWifiEvent);
     WiFi.persistent(false);  // creds live in settings.dat, don't write NVS on every boot
     WiFi.setAutoReconnect(false);
     WiFi.setSleep(false);    // modem sleep adds 100-300 ms to every HTTP request
