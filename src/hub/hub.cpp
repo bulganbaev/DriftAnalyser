@@ -158,7 +158,7 @@ static void buildLeds(gh::Builder& b, bool& forceSave) {
     }
     if (selectedStrip == 5) {
         gh::Row r(b);
-        b.Select(&drive.strip6Out).label(F("Strip 6 output connector")).size(6).text("LED6 (GPIO42);SPST_1 (GPIO39);SPST_2 (GPIO38)");
+        b.Select(&drive.strip6Out).label(F("Strip 6 output connector (reboot to apply)")).size(6).text("LED6 (GPIO42);SPST_1 (GPIO39);SPST_2 (GPIO38)");
     }
     if (st.mode > 0) {
         gh::Row r(b);

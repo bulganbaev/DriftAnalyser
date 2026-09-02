@@ -12,18 +12,10 @@ int numLedsPerStrip[NUM_STRIPS] = {276, 194, 94, 94, 94, 94};
 
 extern OBD2 obd2;
 
-// Animations render into leds[], the transformed copy in out[] is what FastLED sends.
-// Two extra outputs (SPST_1 / SPST_2 connectors) can carry strip 6 if the LED6 channel is dead.
-#define NUM_OUTPUTS (NUM_STRIPS + 2)
+// Animations render into leds[], the transformed copy in out[] is what FastLED sends
 CRGB* leds[NUM_STRIPS];
-static CRGB* out[NUM_OUTPUTS];
-CLEDController* controllers[NUM_OUTPUTS] = {};
-
-// output index that strip 6 currently drives
-static int strip6Output() {
-    int sel = constrain(drive.strip6Out, 0, 2);
-    return sel == 0 ? 5 : NUM_STRIPS + sel - 1;
-}
+static CRGB* out[NUM_STRIPS];
+CLEDController* controllers[NUM_STRIPS] = {};
 
 // Per-strip animation state so strips don't share counters
 struct AnimState {
@@ -48,40 +40,33 @@ static const uint8_t colorOrderMap[6][3] = {
 void init(int index) {
     if (numLedsPerStrip[index] < 1) numLedsPerStrip[index] = 1;
     if (numLedsPerStrip[index] > MAX_LEDS) numLedsPerStrip[index] = MAX_LEDS;
-    for (int i = numLedsPerStrip[index]; i < MAX_LEDS; i++) leds[index][i] = CRGB::Black;
-    if (index == 5) {
-        // strip 6: route to the chosen connector, park the other two with a single black LED
-        int sel = strip6Output();
-        for (int o = 5; o < NUM_OUTPUTS; o++) {
-            if (!controllers[o]) continue;
-            fill_solid(out[o], MAX_LEDS, CRGB::Black);
-            controllers[o]->setLeds(out[o], o == sel ? numLedsPerStrip[5] : 1);
-        }
-        return;
-    }
     if (controllers[index]) controllers[index]->setLeds(out[index], numLedsPerStrip[index]);
+    for (int i = numLedsPerStrip[index]; i < MAX_LEDS; i++) leds[index][i] = CRGB::Black;
 }
 
 void initializeLEDStrips() {
     FastLED.setDither(0);  // temporal dither shows as flicker at low frame rates
-    for (int o = 0; o < NUM_OUTPUTS; o++) {
-        out[o] = new CRGB[MAX_LEDS];
-        fill_solid(out[o], MAX_LEDS, CRGB::Black);
-    }
-    controllers[NUM_STRIPS] = &FastLED.addLeds<WS2812B, SPST1_PIN, RGB>(out[NUM_STRIPS], 1);
-    controllers[NUM_STRIPS + 1] = &FastLED.addLeds<WS2812B, SPST2_PIN, RGB>(out[NUM_STRIPS + 1], 1);
+    // strip 6 connector is chosen at boot (LED6 / SPST_1 / SPST_2), a change needs a reboot
+    int strip6Sel = constrain(drive.strip6Out, 0, 2);
     for (int i = 0; i < NUM_STRIPS; i++) {
         leds[i] = new CRGB[MAX_LEDS];
+        out[i] = new CRGB[MAX_LEDS];
         fill_solid(leds[i], MAX_LEDS, CRGB::Black);
+        fill_solid(out[i], MAX_LEDS, CRGB::Black);
 
-        Serial.printf("Initializing strip %d with pin %d and %d LEDs\n", i + 1, ledPins[i], numLedsPerStrip[i]);
+        int pin = (i == 5 && strip6Sel == 1) ? SPST1_PIN : (i == 5 && strip6Sel == 2) ? SPST2_PIN : ledPins[i];
+        Serial.printf("Initializing strip %d with pin %d and %d LEDs\n", i + 1, pin, numLedsPerStrip[i]);
         switch (ledPins[i]) {
             case LED_PIN_1: controllers[i] = &FastLED.addLeds<WS2812B, LED_PIN_1, RGB>(out[i], numLedsPerStrip[i]); break;
             case LED_PIN_2: controllers[i] = &FastLED.addLeds<WS2812B, LED_PIN_2, RGB>(out[i], numLedsPerStrip[i]); break;
             case LED_PIN_3: controllers[i] = &FastLED.addLeds<WS2812B, LED_PIN_3, RGB>(out[i], numLedsPerStrip[i]); break;
             case LED_PIN_4: controllers[i] = &FastLED.addLeds<WS2812B, LED_PIN_4, RGB>(out[i], numLedsPerStrip[i]); break;
             case LED_PIN_5: controllers[i] = &FastLED.addLeds<WS2812B, LED_PIN_5, RGB>(out[i], numLedsPerStrip[i]); break;
-            case LED_PIN_6: controllers[i] = &FastLED.addLeds<WS2812B, LED_PIN_6, RGB>(out[i], numLedsPerStrip[i]); break;
+            case LED_PIN_6:
+                if (strip6Sel == 1)      controllers[i] = &FastLED.addLeds<WS2812B, SPST1_PIN, RGB>(out[i], numLedsPerStrip[i]);
+                else if (strip6Sel == 2) controllers[i] = &FastLED.addLeds<WS2812B, SPST2_PIN, RGB>(out[i], numLedsPerStrip[i]);
+                else                     controllers[i] = &FastLED.addLeds<WS2812B, LED_PIN_6, RGB>(out[i], numLedsPerStrip[i]);
+                break;
         }
         init(i);
     }
@@ -360,7 +345,7 @@ static void renderStrip(int i) {
 static void transformStrip(int i) {
     const StripSettings& st = stripSettings[i];
     int n = numLedsPerStrip[i];
-    CRGB* dstBuf = out[i == 5 ? strip6Output() : i];
+    CRGB* dstBuf = out[i];
     if (!st.enabled) {
         fill_solid(dstBuf, n, CRGB::Black);
         return;
@@ -410,7 +395,7 @@ void runAnimations() {
 
     for (int i = 0; i < NUM_STRIPS; i++) {
         if (blackout) {
-            fill_solid(out[i == 5 ? strip6Output() : i], numLedsPerStrip[i], CRGB::Black);
+            fill_solid(out[i], numLedsPerStrip[i], CRGB::Black);
             continue;
         }
         renderStrip(i);
