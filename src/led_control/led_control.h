@@ -40,6 +40,9 @@ void initializeLEDStrips();
 void init(int index);          // apply numLedsPerStrip[index] to FastLED, blank the tail
 void startLedTask();           // render + show in their own FreeRTOS task
 void requestLedReinit();       // ask the LED task to re-apply LED counts between frames
+void ledsPause();              // stop output, returns after the current frame is done
+void ledsResume();
+bool ledsPaused();
 
 // Different animation types for LED strips
 void staticColor(int stripIndex);

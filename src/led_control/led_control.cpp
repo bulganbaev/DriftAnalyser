@@ -45,6 +45,7 @@ void init(int index) {
 }
 
 void initializeLEDStrips() {
+    FastLED.setDither(0);  // temporal dither shows as flicker at low frame rates
     for (int i = 0; i < NUM_STRIPS; i++) {
         leds[i] = new CRGB[MAX_LEDS];
         out[i] = new CRGB[MAX_LEDS];
@@ -396,9 +397,32 @@ void runAnimations() {
     FastLED.show();
 }
 
+// Flash writes (settings, log, OTA) must not overlap RMT output: the writer pauses us first.
+static volatile bool pauseReq = false;
+static volatile bool inFrame = false;
+
+void ledsPause() {
+    pauseReq = true;
+    while (inFrame) vTaskDelay(1);
+}
+
+void ledsResume() {
+    pauseReq = false;
+}
+
+bool ledsPaused() {
+    return pauseReq;
+}
+
 static void ledTask(void*) {
     for (;;) {
+        if (pauseReq) {
+            vTaskDelay(5);
+            continue;
+        }
+        inFrame = true;
         runAnimations();
+        inFrame = false;
         vTaskDelay(1);
     }
 }

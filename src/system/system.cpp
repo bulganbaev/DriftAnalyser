@@ -1,6 +1,7 @@
 #include "system.h"
 #include <LittleFS.h>
 #include <esp_system.h>
+#include "led_control/led_control.h"
 
 static const char* LOG_PATH = "/log.txt";
 static const char* LOG_OLD = "/log.old";
@@ -49,13 +50,17 @@ static void rotateIfNeeded() {
 
 void sysLog(const String& msg) {
     Serial.println(msg);
+    bool wasPaused = ledsPaused();
+    ledsPause();
     rotateIfNeeded();
     File f = LittleFS.open(LOG_PATH, "a");
-    if (!f) return;
-    f.print(sysUptime());
-    f.print(' ');
-    f.println(msg);
-    f.close();
+    if (f) {
+        f.print(sysUptime());
+        f.print(' ');
+        f.println(msg);
+        f.close();
+    }
+    if (!wasPaused) ledsResume();
 }
 
 void sysBegin() {
@@ -80,7 +85,9 @@ String sysLogTail(int maxBytes) {
 }
 
 void sysClearLog() {
+    ledsPause();
     LittleFS.remove(LOG_PATH);
     LittleFS.remove(LOG_OLD);
+    ledsResume();
     sysLog(F("log cleared"));
 }

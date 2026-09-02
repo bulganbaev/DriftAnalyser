@@ -10,6 +10,16 @@ DriveSettings& drive = savedData.drive;
 
 // key doubles as layout version: bump when SavedData changes
 static FileData fileData(&LittleFS, "/settings.dat", 'B', &savedData, sizeof(savedData));
+static bool writePending = false;
+static unsigned long writeRequestedAt = 0;
+const unsigned long WRITE_DELAY = 1500;  // coalesce bursts of changes
+
+static void writeNow() {
+    writePending = false;
+    ledsPause();
+    fileData.updateNow();
+    ledsResume();
+}
 
 static void setDefaults() {
     memset(&savedData, 0, sizeof(savedData));
@@ -86,16 +96,17 @@ void settingsBegin() {
 
 void settingsSave() {
     pullLive();
-    fileData.update();
+    writePending = true;
+    writeRequestedAt = millis();
 }
 
 void settingsSaveNow() {
     pullLive();
-    fileData.updateNow();
+    writeNow();
 }
 
 void settingsTick() {
-    fileData.tick();
+    if (writePending && millis() - writeRequestedAt >= WRITE_DELAY) writeNow();
 }
 
 void settingsPresetSave(int i) {

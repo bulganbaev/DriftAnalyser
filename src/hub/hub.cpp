@@ -13,6 +13,8 @@ static int selectedStrip = 0;
 static int selectedPreset = 0;
 static unsigned long lastUpdate = 0;
 const unsigned long updateInterval = 1000;
+static unsigned long uploadPausedAt = 0;
+const unsigned long UPLOAD_PAUSE_MAX = 90000;  // resume LEDs if an upload never finishes
 
 static const char* SCALE_SOURCES = "RPM;Speed;Throttle;Lateral G;Yaw rate";
 static const char* AXES = "+X;-X;+Y;-Y;+Z;-Z";
@@ -21,6 +23,14 @@ static const char* ANIMATIONS = "Static Color;Theater Chase;Color Wave;Breathing
 void setupHub() {
     hub.config(F("MyDevices"), F("ZverCUSTOM"), F("💡"));
     hub.onBuild(build);
+    hub.onRequest([](gh::Request& r) {
+        // OTA and file uploads write flash: keep RMT output away from it
+        if (r.cmd == gh::CMD::Upload || r.cmd == gh::CMD::Ota) {
+            ledsPause();
+            uploadPausedAt = millis();
+        }
+        return true;
+    });
     hub.onReboot([](gh::Reboot r) {
         settingsSaveNow();
         sysLog(r == gh::Reboot::Ota ? F("reboot: OTA update") : r == gh::Reboot::OtaUrl ? F("reboot: OTA url") : F("reboot: hub"));
@@ -36,6 +46,10 @@ void setupHub() {
 void updateHub() {
     hub.tick();
     unsigned long now = millis();
+    if (uploadPausedAt && now - uploadPausedAt > UPLOAD_PAUSE_MAX) {
+        uploadPausedAt = 0;
+        ledsResume();
+    }
     if (now - lastUpdate < updateInterval) return;
     lastUpdate = now;
 
