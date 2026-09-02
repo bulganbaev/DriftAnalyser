@@ -22,10 +22,15 @@ struct VehicleData {
 
 extern VehicleData vehicle;
 extern int canMode;
+extern int canBitrateSel;   // 0 = auto, else CanBitrate + 1 (not persisted)
+
+void vehicleSetBitrate(int sel);
+String canBitrateString();
 
 void vehicleSetup(CANBus& can, OBD2& obd);
 void vehicleSetMode(int mode);
 void vehicleTick();
+bool vehicleDataFresh();
 String canStatusString();
 String sniffTableString();
 
