@@ -64,9 +64,10 @@ void initializeLEDStrips() {
     }
 }
 
-// Speed 0-100 -> frame interval in ms
+// Speed 0-100 -> frame interval in ms. Floor at ~60 fps so Wi-Fi and the hub get loop time:
+// pushing ~850 LEDs already takes ~25 ms per frame.
 static int frameInterval(int speed) {
-    return map(constrain(speed, 0, 100), 0, 100, 100, 1);
+    return map(constrain(speed, 0, 100), 0, 100, 150, 16);
 }
 
 // Brightness 0-100 -> FastLED 0-255
@@ -353,12 +354,23 @@ static void transformStrip(int i) {
     }
 }
 
+static volatile bool reinitPending = false;
+
+void requestLedReinit() {
+    reinitPending = true;
+}
+
 void runAnimations() {
     static unsigned long lastFrame = 0;
     static int lastPowerLimit = -1;
     unsigned long now = millis();
     if (now - lastFrame < (unsigned long)frameInterval(can_setting.speed)) return;
     lastFrame = now;
+
+    if (reinitPending) {
+        reinitPending = false;
+        for (int i = 0; i < NUM_STRIPS; i++) init(i);
+    }
 
     if (drive.powerLimitMa != lastPowerLimit) {
         lastPowerLimit = drive.powerLimitMa;
@@ -382,4 +394,16 @@ void runAnimations() {
     }
     FastLED.setBrightness(mapBrightness(brightness));
     FastLED.show();
+}
+
+static void ledTask(void*) {
+    for (;;) {
+        runAnimations();
+        vTaskDelay(1);
+    }
+}
+
+void startLedTask() {
+    // same core as loop(): show() sleeps on the RMT semaphore, so the hub gets that time
+    xTaskCreatePinnedToCore(ledTask, "leds", 6144, nullptr, 1, nullptr, 1);
 }

@@ -351,7 +351,7 @@ void build(gh::Builder& b) {
     }
 
     if (b.changed() || forceSave) {
-        for (int i = 0; i < NUM_STRIPS; i++) init(i);
+        requestLedReinit();
         settingsSave();
         hub.sendRefresh();
     }

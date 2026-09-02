@@ -29,6 +29,7 @@ void setup() {
     netBegin();
     setupHub();
     imuSetup();
+    startLedTask();
     sysLog(F("ready"));
 }
 
@@ -38,5 +39,5 @@ void loop() {
     updateHub();
     vehicleTick();
     imuTick();
-    runAnimations();
+    delay(1);
 }

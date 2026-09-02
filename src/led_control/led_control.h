@@ -37,7 +37,9 @@ extern int numLedsPerStrip[6];
 
 // Function to initialize the LED strips
 void initializeLEDStrips();
-void init(int index);    // apply numLedsPerStrip[index] to FastLED, blank the tail
+void init(int index);          // apply numLedsPerStrip[index] to FastLED, blank the tail
+void startLedTask();           // render + show in their own FreeRTOS task
+void requestLedReinit();       // ask the LED task to re-apply LED counts between frames
 
 // Different animation types for LED strips
 void staticColor(int stripIndex);

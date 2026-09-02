@@ -41,6 +41,7 @@ static void startSTA() {
 void netBegin() {
     WiFi.persistent(false);  // creds live in settings.dat, don't write NVS on every boot
     WiFi.setAutoReconnect(false);
+    WiFi.setSleep(false);    // modem sleep adds 100-300 ms to every HTTP request
     WiFi.setHostname("zvercustom");
     if (!wifiSsid.length()) {
         startAP();

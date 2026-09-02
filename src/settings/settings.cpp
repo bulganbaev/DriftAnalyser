@@ -118,8 +118,8 @@ bool settingsPresetLoad(int i) {
     for (int s = 0; s < NUM_STRIPS; s++) {
         stripSettings[s] = p.strips[s];
         numLedsPerStrip[s] = p.numLeds[s];
-        init(s);
     }
+    requestLedReinit();
     can_setting = p.can;
     settingsSave();
     return true;
