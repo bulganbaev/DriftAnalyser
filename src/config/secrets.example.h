@@ -1,8 +1,7 @@
 #ifndef SECRETS_H
 #define SECRETS_H
 
-// copy to secrets.h and fill in
-#define STA_SSID_DEFAULT "your-wifi"
-#define STA_PASS_DEFAULT "your-password"
+// copy to secrets.h and fill in; first entry is the default, all are tried in turn
+#define DEFAULT_NETWORKS { {"your-wifi", "your-password"} }
 
 #endif

@@ -6,6 +6,29 @@
 
 String wifiSsid, wifiPass;
 
+static const KnownNet knownNets[] = DEFAULT_NETWORKS;
+static const int knownCount = sizeof(knownNets) / sizeof(knownNets[0]);
+static int candidate = -1;   // -1 = saved creds, else index into knownNets
+
+const char* netDefaultSsid() { return knownNets[0].ssid; }
+const char* netDefaultPass() { return knownNets[0].pass; }
+
+// saved creds first, then every configured default network, round robin
+static void pickNext(String& ssid, String& pass) {
+    for (int step = 0; step <= knownCount; step++) {
+        candidate++;
+        if (candidate >= knownCount) candidate = -1;
+        if (candidate < 0) {
+            if (wifiSsid.length()) { ssid = wifiSsid; pass = wifiPass; return; }
+            continue;
+        }
+        if (!knownNets[candidate].ssid[0]) continue;
+        if (wifiSsid == knownNets[candidate].ssid && wifiPass == knownNets[candidate].pass) continue;  // same as saved
+        ssid = knownNets[candidate].ssid; pass = knownNets[candidate].pass; return;
+    }
+    ssid = wifiSsid; pass = wifiPass;
+}
+
 static bool apOn = false;
 static unsigned long staDownSince = 0;   // 0 = connected
 static unsigned long lastStaAttempt = 0;
@@ -32,10 +55,18 @@ static void stopAP() {
 }
 
 static void startSTA() {
+    String ssid, pass;
+    pickNext(ssid, pass);
     Serial.print("Connecting to Wi-Fi: ");
-    Serial.println(wifiSsid);
-    WiFi.begin(wifiSsid.c_str(), wifiPass.c_str());
+    Serial.println(ssid);
+    WiFi.begin(ssid.c_str(), pass.c_str());
     lastStaAttempt = millis();
+}
+
+static bool anyNetworkConfigured() {
+    if (wifiSsid.length()) return true;
+    for (int i = 0; i < knownCount; i++) if (knownNets[i].ssid[0]) return true;
+    return false;
 }
 
 static void onWifiEvent(WiFiEvent_t event, WiFiEventInfo_t info) {
@@ -54,17 +85,19 @@ void netBegin() {
     WiFi.setAutoReconnect(false);
     WiFi.setSleep(false);    // modem sleep adds 100-300 ms to every HTTP request
     WiFi.setHostname("zvercustom");
-    if (!wifiSsid.length()) {
+    if (!anyNetworkConfigured()) {
         startAP();
         return;
     }
     WiFi.mode(WIFI_STA);
     staDownSince = millis();
+    candidate = -1 - 1;  // so the first pick lands on saved creds
     startSTA();
 }
 
 void netReconnect() {
-    if (!wifiSsid.length()) {
+    candidate = -1 - 1;
+    if (!anyNetworkConfigured()) {
         WiFi.disconnect();
         startAP();
         return;
@@ -75,7 +108,7 @@ void netReconnect() {
 }
 
 void netTick() {
-    if (!wifiSsid.length()) return;
+    if (!anyNetworkConfigured()) return;
     unsigned long now = millis();
 
     if (WiFi.status() == WL_CONNECTED) {
@@ -101,7 +134,7 @@ bool netApOn() { return apOn; }
 String netStatusString() {
     if (WiFi.status() == WL_CONNECTED) return "STA " + WiFi.SSID() + " " + WiFi.localIP().toString();
     if (apOn) return "AP " + WiFi.softAPIP().toString();
-    return wifiSsid.length() ? "connecting " + wifiSsid : "idle";
+    return anyNetworkConfigured() ? "connecting" : "idle";
 }
 
 String netStaString() {

@@ -11,11 +11,8 @@
 #if __has_include("secrets.h")
 #include "secrets.h"
 #endif
-#ifndef STA_SSID_DEFAULT
-#define STA_SSID_DEFAULT ""
-#endif
-#ifndef STA_PASS_DEFAULT
-#define STA_PASS_DEFAULT ""
+#ifndef DEFAULT_NETWORKS
+#define DEFAULT_NETWORKS { {"", ""} }
 #endif
 
 

@@ -7,6 +7,10 @@
 extern String wifiSsid;
 extern String wifiPass;
 
+struct KnownNet { const char* ssid; const char* pass; };
+const char* netDefaultSsid();
+const char* netDefaultPass();
+
 void netBegin();
 void netTick();
 void netReconnect();

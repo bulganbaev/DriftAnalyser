@@ -31,8 +31,8 @@ static void setDefaults() {
         savedData.stripSettings[i].color = 0xFF0000;
         savedData.stripSettings[i].brightness = 100;
     }
-    strlcpy(savedData.wifiSsid, STA_SSID_DEFAULT, sizeof(savedData.wifiSsid));
-    strlcpy(savedData.wifiPass, STA_PASS_DEFAULT, sizeof(savedData.wifiPass));
+    strlcpy(savedData.wifiSsid, netDefaultSsid(), sizeof(savedData.wifiSsid));
+    strlcpy(savedData.wifiPass, netDefaultPass(), sizeof(savedData.wifiPass));
     savedData.canMode = 0;
     DriveSettings& d = savedData.drive;
     d.masterOn = true;
