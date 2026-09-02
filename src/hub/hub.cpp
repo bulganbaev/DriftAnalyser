@@ -42,6 +42,7 @@ void updateHub() {
     static const char* always[] = {"rpm", "speed", "throttle", "temp", "wifi", "can", "sta", "ap", "latg", "yaw"};
     for (const char* n : always) hub.sendUpdate(n);
     if (canMode == CAN_MODE_SNIFFER) hub.sendUpdate("sniff");
+    if (hub.menu == 2) hub.sendUpdate("br");
     if (hub.menu == 5) { hub.sendUpdate("uptime"); hub.sendUpdate("heap"); }
     if (imu.ok && hub.menu == 4) {
         static const char* names[] = {"ax", "ay", "az", "gx", "gy", "gz", "imutemp"};
@@ -211,6 +212,13 @@ static void buildCan(gh::Builder& b) {
         if (b.Select(&canMode).label("CAN Source").text("OBD2;BMW MS43;Sniffer").click()) {
             vehicleSetMode(canMode);
         }
+    }
+    {
+        gh::Row r(b);
+        if (b.Select(&canBitrateSel).label("Bitrate").size(3).text("Auto;500k;250k;125k;100k;1M").click()) {
+            vehicleSetBitrate(canBitrateSel);
+        }
+        b.Label_("br", canBitrateString()).label(F("Current")).size(3);
     }
     {
         gh::Row r(b);

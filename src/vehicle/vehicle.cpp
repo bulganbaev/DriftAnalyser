@@ -3,6 +3,14 @@
 
 VehicleData vehicle;
 int canMode = CAN_MODE_OBD2;
+int canBitrateSel = 0;
+
+// auto bitrate scan (listen-only modes only)
+static bool brLocked = false;
+static unsigned long brWindowStart = 0;
+static unsigned long brWindowFrames = 0;
+static unsigned long brWindowErrStart = 0;
+const unsigned long BR_WINDOW = 2500;
 
 static CANBus* canBus = nullptr;
 static OBD2* obd2p = nullptr;
@@ -36,10 +44,57 @@ void vehicleSetup(CANBus& can, OBD2& obd) {
     obd2p = &obd;
 }
 
+void vehicleSetBitrate(int sel) {
+    canBitrateSel = constrain(sel, 0, BR_COUNT);
+    brLocked = false;
+    brWindowStart = millis();
+    brWindowFrames = 0;
+    if (!canBus) return;
+    int idx = canBitrateSel ? canBitrateSel - 1 : BR_500K;
+    canBus->restart(canMode != CAN_MODE_OBD2, idx);
+    brWindowErrStart = canBus->busErrors();
+}
+
+String canBitrateString() {
+    if (!canBus) return "?";
+    String s = CANBus::bitrateName(canBus->bitrate());
+    if (canBitrateSel == 0) s += brLocked ? " (auto, locked)" : " (auto, scanning)";
+    return s;
+}
+
+static void bitrateScanTick(unsigned long now) {
+    if (canBitrateSel != 0 || canMode == CAN_MODE_OBD2 || !canBus) return;
+    if (now - brWindowStart < BR_WINDOW) return;
+    unsigned long errs = canBus->busErrors() - brWindowErrStart;
+    if (brWindowFrames > 0) {
+        if (!brLocked) {
+            brLocked = true;
+            sysLog(String("CAN bitrate detected: ") + CANBus::bitrateName(canBus->bitrate()));
+        }
+    } else if (brLocked) {
+        // frames stopped: keep the rate unless the bus is clearly wrong
+        if (errs > 100) { brLocked = false; sysLog(F("CAN bitrate lost, rescanning")); }
+    } else {
+        int next = (canBus->bitrate() + 1) % BR_COUNT;
+        canBus->restart(true, next);
+        Serial.printf("CAN auto: %lu errors, trying %s\n", errs, CANBus::bitrateName(next));
+    }
+    brWindowStart = now;
+    brWindowFrames = 0;
+    brWindowErrStart = canBus->busErrors();
+}
+
 void vehicleSetMode(int mode) {
     canMode = mode;
     sniffUsed = 0;
-    if (canBus) canBus->restart(mode != CAN_MODE_OBD2);
+    brLocked = false;
+    brWindowStart = millis();
+    brWindowFrames = 0;
+    if (canBus) {
+        int idx = canBitrateSel ? canBitrateSel - 1 : BR_500K;
+        canBus->restart(mode != CAN_MODE_OBD2, idx);
+        brWindowErrStart = canBus->busErrors();
+    }
     sysLog(String("CAN mode: ") + (mode == CAN_MODE_OBD2 ? "OBD2" : mode == CAN_MODE_BMW ? "BMW MS43" : "Sniffer"));
 }
 
@@ -119,11 +174,13 @@ void vehicleTick() {
         if (obd2p) obd2p->tick();
         return;
     }
+    bitrateScanTick(now);
 
     twai_message_t f;
     int budget = 64;  // frames per tick, keep the loop responsive
     while (budget-- > 0 && canBus->readFrame(f, 0)) {
         frameCount++;
+        brWindowFrames++;
         lastFrameMillis = now;
         if (canMode == CAN_MODE_BMW) decodeBmw(f);
         else sniffFrame(f);
