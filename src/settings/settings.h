@@ -20,6 +20,7 @@ struct DriveSettings {
     float maxYawRate;     // deg/s full scale for yaw source
     float accOff[3];      // calibration offsets
     float gyrOff[3];
+    int strip6Out;        // 0 LED6 connector, 1 SPST_1, 2 SPST_2
 };
 
 struct Preset {

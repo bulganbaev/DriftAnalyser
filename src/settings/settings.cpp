@@ -46,6 +46,7 @@ static void setDefaults() {
     d.maxSpeed = 200;
     d.maxLateralG = 1.0f;
     d.maxYawRate = 60.0f;
+    d.strip6Out = 0;
 }
 
 static void pushLive() {
