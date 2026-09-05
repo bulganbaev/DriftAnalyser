@@ -48,3 +48,21 @@ def test_buck_feedback_sets_5v4():
     bot = float(model.by_ref("R4").value.rstrip("k")) * 1000
     vout = 0.8 * (1 + top / bot)
     assert 5.3 <= vout <= 5.5, vout
+
+def test_usb_wiring():
+    n = model.nets()
+    assert ("J2", "A4") in n["VBUS_USB"] and ("J2", "B4") in n["VBUS_USB"]
+    assert ("J2", "A5") in n["USB_CC1"] and ("J2", "B5") in n["USB_CC2"]
+    assert {("J2", "A6"), ("J2", "B6")} <= set(n["USB_DP"])
+    assert {("J2", "A7"), ("J2", "B7")} <= set(n["USB_DN"])
+
+def test_sd_pullups():
+    n = model.nets()
+    for net in ("SD_CMD", "SD_D0", "SD_D1", "SD_D2", "SD_D3", "SD_CD"):
+        refs = [r for r, _ in n[net]]
+        assert any(r.startswith("R") for r in refs), net
+
+def test_imu_address_0x6a():
+    imu = model.by_ref("U5")
+    assert imu.pins["1"] == "GND"       # SDO/SA0 low -> 0x6A
+    assert imu.pins["12"] == "3V3"      # CS high -> I2C mode

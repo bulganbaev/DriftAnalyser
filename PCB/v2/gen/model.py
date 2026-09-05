@@ -132,3 +132,88 @@ _add(
          {"1": "GND", "2": "PWR_LED_A"}, "power"),
     R("R10", "1k", "5V", "PWR_LED_A", "power", "0603"),
 )
+
+# ---------------- mcu sheet ----------------
+# ESP32-S3-WROOM-1 symbol pin numbers verified against RF_Module.kicad_sym (KiCad 10.0.6):
+# they match the datasheet-derived table from Task 3 exactly (1 GND, 2 3V3, 3 EN, 4 IO4 ...
+# 36 RXD0, 37 TXD0, 40/41 GND), so the GPIO map below needed no changes.
+_add(
+    Part("U1", "ESP32-S3-WROOM-1-N16R2", "RF_Module:ESP32-S3-WROOM-1", "RF_Module:ESP32-S3-WROOM-1",
+         {"1": "GND", "2": "3V3", "3": "EN",
+          "4": "LED1_IN", "5": "LED2_IN", "6": "LED3_IN", "7": "LED4_IN", "8": "LED5_IN", "9": "LED6_IN",
+          "10": "IMU_INT1", "11": "CAN_TX", "12": "I2C_SDA", "13": "USB_DN", "14": "USB_DP",
+          "15": "NC", "16": "NC", "17": "I2C_SCL", "18": "LED_PWR_EN", "19": "STATUS_LED",
+          "20": "K_RX", "21": "K_TX", "22": "CAN_STB", "23": "CAN_RX", "24": "SD_D3", "25": "SD_CD",
+          "26": "NC", "27": "BOOT", "28": "UART2_TX", "29": "UART2_RX", "30": "NC",
+          "31": "SD_CMD", "32": "SD_CLK", "33": "SD_D0", "34": "SD_D1", "35": "SD_D2",
+          "36": "UART0_RX", "37": "UART0_TX", "38": "LED_ISENSE", "39": "VBAT_SENSE",
+          "40": "GND", "41": "GND"},
+         "mcu", lcsc="C2913205", mpn="ESP32-S3-WROOM-1-N16R2", mfr="Espressif"),
+    C("C16", "22uF 10V", "3V3", "GND", "mcu", "0805"),
+    C("C17", "100nF", "3V3", "GND", "mcu", "0603"),
+    R("R11", "10k", "3V3", "EN", "mcu", "0603"),
+    C("C18", "1uF", "EN", "GND", "mcu", "0603"),
+    # Switch:SW_Push pins 1/2 confirmed. Button_Switch_SMD:SW_SPST_PTS645 doesn't exist in this
+    # KiCad; closest match is SW_SPST_PTS645Sx43SMTR92 (pads 1/2, each duplicated).
+    Part("SW1", "EN", "Switch:SW_Push", "Button_Switch_SMD:SW_SPST_PTS645Sx43SMTR92",
+         {"1": "EN", "2": "GND"}, "mcu"),
+    R("R12", "10k", "3V3", "BOOT", "mcu", "0603"),
+    Part("SW2", "BOOT", "Switch:SW_Push", "Button_Switch_SMD:SW_SPST_PTS645Sx43SMTR92",
+         {"1": "BOOT", "2": "GND"}, "mcu"),
+    Part("D6", "GREEN", "Device:LED", "LED_SMD:LED_0603_1608Metric",
+         {"1": "GND", "2": "STATUS_LED_A"}, "mcu"),
+    R("R13", "1k", "STATUS_LED", "STATUS_LED_A", "mcu", "0603"),
+
+    # USB-C. Connector:USB_C_Receptacle_USB2.0_16P confirmed: pins A1..B12 plus shield pin "SH"
+    # (not "S1" as in the draft brief).
+    Part("J2", "USB-C 16P", "Connector:USB_C_Receptacle_USB2.0_16P",
+         "Connector_USB:USB_C_Receptacle_HRO_TYPE-C-31-M-12",
+         {"A1": "GND", "A4": "VBUS_USB", "A5": "USB_CC1", "A6": "USB_DP", "A7": "USB_DN", "A8": "NC",
+          "A9": "VBUS_USB", "A12": "GND", "B1": "GND", "B4": "VBUS_USB", "B5": "USB_CC2", "B6": "USB_DP",
+          "B7": "USB_DN", "B8": "NC", "B9": "VBUS_USB", "B12": "GND", "SH": "GND"},
+         "mcu", lcsc="C2765186", mpn="TYPE-C 16PIN 2MD(073)", mfr="SHOU HAN"),
+    R("R14", "5.1k", "USB_CC1", "GND", "mcu", "0603"),
+    R("R15", "5.1k", "USB_CC2", "GND", "mcu", "0603"),
+    Part("U6", "USBLC6-2SC6", "Power_Protection:USBLC6-2SC6", "Package_TO_SOT_SMD:SOT-23-6",
+         {"1": "USB_DN", "2": "GND", "3": "USB_DP", "4": "USB_DP", "5": "VBUS_USB", "6": "USB_DN"},
+         "mcu", mpn="USBLC6-2SC6", mfr="STMicroelectronics"),
+
+    # headers
+    Part("J3", "UART0", "Connector_Generic:Conn_01x04", "Connector_PinHeader_2.54mm:PinHeader_1x04_P2.54mm_Vertical",
+         {"1": "3V3", "2": "GND", "3": "UART0_TX", "4": "UART0_RX"}, "mcu"),
+    Part("J4", "EXT", "Connector_Generic:Conn_01x06", "Connector_PinHeader_2.54mm:PinHeader_1x06_P2.54mm_Vertical",
+         {"1": "3V3", "2": "GND", "3": "UART2_TX", "4": "UART2_RX", "5": "I2C_SDA", "6": "I2C_SCL"}, "mcu"),
+
+    # microSD, SDMMC 4-bit. "Connector:Micro_SD_Card_Det" doesn't exist in this KiCad; closest
+    # match with two card-detect pins (needed to put SD_CD on one and GND on the other) is
+    # Micro_SD_Card_Det_Hirose_DM3AT, which extends Micro_SD_Card_Det2 (pins 1-10 + shield "SH"),
+    # and its ki_fp_filters ("microSD*") matches the chosen Hirose DM3BT footprint family.
+    # Pin order confirmed: 1 DAT2, 2 DAT3/CD, 3 CMD, 4 VDD, 5 CLK, 6 VSS, 7 DAT0, 8 DAT1,
+    # 9 DET_B, 10 DET_A, SH SHIELD.
+    Part("J5", "microSD", "Connector:Micro_SD_Card_Det_Hirose_DM3AT",
+         "Connector_Card:microSD_HC_Hirose_DM3BT-DSF-PEJS",
+         {"1": "SD_D2", "2": "SD_D3", "3": "SD_CMD", "4": "3V3", "5": "SD_CLK", "6": "GND", "7": "SD_D0",
+          "8": "SD_D1", "9": "SD_CD", "10": "GND", "SH": "GND"},
+         "mcu"),
+    R("R16", "10k", "3V3", "SD_CMD", "mcu", "0603"),
+    R("R17", "10k", "3V3", "SD_D0", "mcu", "0603"),
+    R("R18", "10k", "3V3", "SD_D1", "mcu", "0603"),
+    R("R19", "10k", "3V3", "SD_D2", "mcu", "0603"),
+    R("R20", "10k", "3V3", "SD_D3", "mcu", "0603"),
+    R("R21", "10k", "3V3", "SD_CD", "mcu", "0603"),
+    C("C19", "10uF", "3V3", "GND", "mcu", "0805"),
+
+    # IMU. No Sensor_Motion:LSM6DS3TR-C symbol exists in this KiCad (only generic LSM6DS3/LSM6DSL),
+    # so U5 stays a custom symbol (da2:LSM6DS3TR-C, drawn in Task 8). Pin map per LSM6DS3TR-C
+    # LGA-14 datasheet DS11224 table 2 (to be reconfirmed in Task 8 when the symbol is drawn):
+    # 1 SDO/SA0, 2 SDx, 3 SCx, 4 INT1, 5 VDDIO, 6 GND, 7 GND, 8 VDD, 9 INT2, 10 NC, 11 NC,
+    # 12 CS, 13 SCL, 14 SDA.
+    Part("U5", "LSM6DS3TR-C", "da2:LSM6DS3TR-C", "Package_LGA:LGA-14_3x2.5mm_P0.5mm_LayoutBorder3x4y",
+         {"1": "GND", "2": "NC", "3": "NC", "4": "IMU_INT1", "5": "3V3", "6": "GND", "7": "GND",
+          "8": "3V3", "9": "NC", "10": "NC", "11": "NC", "12": "3V3", "13": "I2C_SCL", "14": "I2C_SDA"},
+         "mcu", mpn="LSM6DS3TR-C", mfr="STMicroelectronics"),
+    C("C20", "100nF", "3V3", "GND", "mcu", "0603"),
+    C("C21", "100nF", "3V3", "GND", "mcu", "0603"),
+    R("R22", "4.7k", "3V3", "I2C_SDA", "mcu", "0603"),
+    R("R23", "4.7k", "3V3", "I2C_SCL", "mcu", "0603"),
+)
