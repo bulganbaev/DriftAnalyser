@@ -208,9 +208,10 @@ _add(
     # so U5 stays a custom symbol (da2:LSM6DS3TR-C, drawn in Task 8). Pin map per LSM6DS3TR-C
     # LGA-14 datasheet DS11224 table 2 (to be reconfirmed in Task 8 when the symbol is drawn):
     # 1 SDO/SA0, 2 SDx, 3 SCx, 4 INT1, 5 VDDIO, 6 GND, 7 GND, 8 VDD, 9 INT2, 10 NC, 11 NC,
-    # 12 CS, 13 SCL, 14 SDA.
+    # 12 CS, 13 SCL, 14 SDA. SDx/SCx (2,3) are unused in I2C mode but must not float -
+    # datasheet table 2 says connect them to VDDIO or GND; we tie them to GND.
     Part("U5", "LSM6DS3TR-C", "da2:LSM6DS3TR-C", "Package_LGA:LGA-14_3x2.5mm_P0.5mm_LayoutBorder3x4y",
-         {"1": "GND", "2": "NC", "3": "NC", "4": "IMU_INT1", "5": "3V3", "6": "GND", "7": "GND",
+         {"1": "GND", "2": "GND", "3": "GND", "4": "IMU_INT1", "5": "3V3", "6": "GND", "7": "GND",
           "8": "3V3", "9": "NC", "10": "NC", "11": "NC", "12": "3V3", "13": "I2C_SCL", "14": "I2C_SDA"},
          "mcu", mpn="LSM6DS3TR-C", mfr="STMicroelectronics"),
     C("C20", "100nF", "3V3", "GND", "mcu", "0603"),
