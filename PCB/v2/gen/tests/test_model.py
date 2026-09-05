@@ -66,3 +66,12 @@ def test_imu_address_0x6a():
     imu = model.by_ref("U5")
     assert imu.pins["1"] == "GND"       # SDO/SA0 low -> 0x6A
     assert imu.pins["12"] == "3V3"      # CS high -> I2C mode
+
+def test_led_chain():
+    n = model.nets()
+    for i in range(1, 7):
+        assert (f"J{10+i}", "1") in n["12V_LED"]
+        assert (f"J{10+i}", "3") in n["GND"]
+        assert (f"J{10+i}", "2") in n[f"LED{i}_DATA"]
+        assert (f"R{30+i}", "2") in n[f"LED{i}_DATA"] and (f"R{30+i}", "1") in n[f"LED{i}_OUT"]
+        assert (f"D{10+i}", "1") in n[f"LED{i}_DATA"] and (f"D{10+i}", "2") in n["GND"]

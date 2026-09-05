@@ -217,3 +217,37 @@ _add(
     R("R22", "4.7k", "3V3", "I2C_SDA", "mcu", "0603"),
     R("R23", "4.7k", "3V3", "I2C_SCL", "mcu", "0603"),
 )
+
+# ---------------- leds sheet ----------------
+# No "74HCT245" symbol exists anywhere in KiCad 10.0.6 (74xx.kicad_sym only has 74HC245,
+# which extends 74LS245, and 74LS245 itself - no HCT variant). The 245-family pinout is
+# identical across LS/HC/HCT/AHCT parts (1 DIR, 2-9 A0-A7, 10 GND, 11-18 B7-B0, 19 ~OE/CE,
+# 20 VCC - confirmed by reading 74LS245's pin block, which 74HC245 extends), so the KiCad
+# symbol "74xx:74HC245" is used for the schematic shape/pin numbers while Value/mpn keep
+# the real ordered part, 74HCT245PW (Nexperia) - same substitution pattern as U3/U4 above.
+_add(
+    Part("U7", "74HCT245PW", "74xx:74HC245", "Package_SO:TSSOP-20_4.4x6.5mm_P0.65mm",
+         {"1": "5V",                       # DIR high: A -> B
+          "2": "LED1_IN", "3": "LED2_IN", "4": "LED3_IN", "5": "LED4_IN", "6": "LED5_IN", "7": "LED6_IN",
+          "8": "GND", "9": "GND",          # A6, A7 unused inputs tied low
+          "10": "GND",
+          "11": "NC", "12": "NC",          # B7, B6
+          "13": "LED6_OUT", "14": "LED5_OUT", "15": "LED4_OUT", "16": "LED3_OUT", "17": "LED2_OUT", "18": "LED1_OUT",
+          "19": "GND",                     # ~OE low: outputs enabled
+          "20": "5V"},
+         "leds", mpn="74HCT245PW", mfr="Nexperia"),
+    C("C22", "100nF", "5V", "GND", "leds", "0603"),
+)
+for _i in range(1, 7):
+    _add(
+        R(f"R{30+_i}", "220", f"LED{_i}_OUT", f"LED{_i}_DATA", "leds", "0603"),
+        # Diode:PESD5V0S1BA doesn't exist in this KiCad (grep -c on Diode.kicad_sym = 0).
+        # Substituted with the generic bidirectional Device:D_TVS (pins A1/A2, no polarity)
+        # on the same SOD-323 footprint - fine for ESD clamping a data line to GND.
+        Part(f"D{10+_i}", "PESD5V0S1BA", "Device:D_TVS", "Diode_SMD:D_SOD-323",
+             {"1": f"LED{_i}_DATA", "2": "GND"}, "leds", mpn="PESD5V0S1BA", mfr="Nexperia"),
+        Part(f"J{10+_i}", f"LED{_i}", "Connector_Generic:Conn_01x03",
+             "Connector_JST:JST_VH_B3P-VH_1x03_P3.96mm_Vertical",
+             {"1": "12V_LED", "2": f"LED{_i}_DATA", "3": "GND"}, "leds", mpn="B3P-VH(LF)(SN)", mfr="JST"),
+    )
+
