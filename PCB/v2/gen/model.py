@@ -115,15 +115,16 @@ _add(
          {"1": "5V", "2": "VBUS_USB"}, "power", mpn="SS34", mfr="MDD"),
     C("C13", "22uF 10V", "5V", "GND", "power", "0805"),
 
-    # 3V3 LDO: AP7361C-33E, symbol "Regulator_Linear:AP7361C-33E" exists (extends the
-    # generic SPX2920M3-3.3_SOT223 template with NO pin override, so it inherits that
-    # template's pin *numbers* 1/2/3 but its generic pin *names* (VI/GND/VO) do not match
-    # this chip - see report). Real AP7361C SOT-223 pinout per Diodes datasheet DS37274
-    # Rev 5-2 (page 2, Pin Assignments / Pin Descriptions): pin1 OUT, pin2 GND, pin3 IN.
-    # Footprint SOT-223-3_TabPin2 -> tab shares pin2 = GND, matching the datasheet's
-    # middle-lead-is-GND SOT223 pinout.
-    Part("U4", "AP7361C-33E", "Regulator_Linear:AP7361C-33E", "Package_TO_SOT_SMD:SOT-223-3_TabPin2",
-         {"1": "3V3", "2": "GND", "3": "5V"}, "power", mpn="AP7361C-33E-13", mfr="Diodes Incorporated"),
+    # 3V3 LDO: AP7361C-33E. SOT223 pinout per Diodes datasheet DS37274 Rev 5-2 (Oct 2020),
+    # page 1 "Pin Assignments" (SOT223, top view) and page 2 "Pin Descriptions" table:
+    # pin1 IN, pin2 GND, pin3 OUT. (Task 4 read that table off the SOT223R column and got
+    # 1 OUT / 3 IN - corrected in Task 8 after re-reading the rendered datasheet page;
+    # SOT223R, the mirrored variant, is 1 GND / 2 OUT / 3 IN and is NOT the -33E part.)
+    # KiCad's Regulator_Linear:AP7361C-33E (extends SPX2920M3-3.3_SOT223) has 1 VI, 2 GND,
+    # 3 VO, which agrees; da2:AP7361C-33E is the same pinout with the datasheet's own names.
+    # Footprint SOT-223-3_TabPin2 -> tab shares pin2 = GND, matching the datasheet.
+    Part("U4", "AP7361C-33E", "da2:AP7361C-33E", "Package_TO_SOT_SMD:SOT-223-3_TabPin2",
+         {"1": "5V", "2": "GND", "3": "3V3"}, "power", mpn="AP7361C-33E-13", mfr="Diodes Incorporated"),
     C("C14", "10uF", "5V", "GND", "power", "0805"),
     C("C15", "10uF", "3V3", "GND", "power", "0805"),
 
