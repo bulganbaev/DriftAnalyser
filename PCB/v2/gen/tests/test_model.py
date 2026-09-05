@@ -29,3 +29,22 @@ def test_gpio_map_matches_spec():
               "15": "NC", "26": "NC", "16": "NC"}
     for pin, net in expect.items():
         assert mcu.pins[pin] == net, (pin, mcu.pins[pin], net)
+
+def test_power_topology():
+    n = model.nets()
+    assert ("J1", "1") in n["VBAT"] and ("J1", "2") in n["GND"]          # XT60
+    assert ("U2", "2") in n["LED_PWR_EN"] and ("U2", "4") in n["IS_RAW"]  # BTS7002 IN, IS
+    # BTS7002-1EPP OUT pins per Infineon datasheet Table 2: 8-10,12-14 (pin 11 is n.c., not bonded)
+    assert all(("U2", str(p)) in n["12V_LED"] for p in (8, 9, 10, 12, 13, 14))
+    assert model.by_ref("U2").pins["11"] == "NC"
+    assert ("U2", "15") in n["VBAT"]                                      # exposed pad = VS
+    assert ("D3", "1") in n["5V"] and ("D4", "1") in n["5V"]              # OR diodes cathodes
+    assert ("D3", "2") in n["5V_BUCK"] and ("D4", "2") in n["VBUS_USB"]
+    for net in ("VBAT", "GND", "5V", "3V3", "12V_LED"):
+        assert net in n
+
+def test_buck_feedback_sets_5v4():
+    top = float(model.by_ref("R3").value.rstrip("k")) * 1000
+    bot = float(model.by_ref("R4").value.rstrip("k")) * 1000
+    vout = 0.8 * (1 + top / bot)
+    assert 5.3 <= vout <= 5.5, vout
