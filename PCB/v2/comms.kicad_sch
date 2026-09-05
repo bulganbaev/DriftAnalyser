@@ -1587,7 +1587,7 @@
     (on_board yes)
     (in_pos_files yes)
     (dnp no)
-    (uuid "083b460c-277a-439e-976d-96edb7f07297")
+    (uuid "1f0d8690-72be-5204-9096-0861ce461fc9")
     (property "Reference" "J6"
       (at 23.425 23.59 0)
       (effects
@@ -1659,16 +1659,16 @@
       )
     )
     (pin "1"
-      (uuid "be09a49e-50df-4423-9a9a-119eb1d4c5e9")
+      (uuid "c8e94fdd-ee3b-5839-be7d-f0b1d1c396ec")
     )
     (pin "2"
-      (uuid "840554db-6113-40d9-91d5-11cb20ccc8ae")
+      (uuid "0f569486-9a89-50fc-b59a-2fc9e76e553d")
     )
     (pin "3"
-      (uuid "cbebae2e-46b1-486a-ab7c-5c5f4edad284")
+      (uuid "b97ab43f-50b9-5fb6-a9f9-9fc878d28815")
     )
     (pin "4"
-      (uuid "ec6704df-c968-442a-aa97-2c4fbf8aebae")
+      (uuid "57ef7e71-fb1b-5ab1-8660-da804e77b1e5")
     )
     (instances
       (project "driftanalyser-v2"
@@ -1688,7 +1688,7 @@
       (width 0)
       (type default)
     )
-    (uuid "5432c7b2-3c92-4976-b326-cd403ea2bdf3")
+    (uuid "3ecac633-f2dc-587d-a666-05fac8f3b710")
   )
   (global_label "CANH"
     (shape passive)
@@ -1700,7 +1700,7 @@
       )
       (justify right)
     )
-    (uuid "4feffb5c-4227-4d5f-b184-32837258487f")
+    (uuid "d0e207dc-0e10-5913-90b9-bb6354ac6595")
     (property "Intersheetrefs" "${INTERSHEET_REFS}"
       (at 22.86 12.7 0)
       (hide yes)
@@ -1720,7 +1720,7 @@
       (width 0)
       (type default)
     )
-    (uuid "d36ece11-85fb-41c1-80e5-0a6e19024940")
+    (uuid "6d987371-f404-5bd7-a836-0d505c54c321")
   )
   (global_label "CANL"
     (shape passive)
@@ -1732,7 +1732,7 @@
       )
       (justify right)
     )
-    (uuid "e80dc54e-fbdb-4be3-9fd0-9090ad9ecf83")
+    (uuid "1cd8d0b8-c8d6-5995-9569-10339e3b3643")
     (property "Intersheetrefs" "${INTERSHEET_REFS}"
       (at 22.86 15.24 0)
       (hide yes)
@@ -1752,7 +1752,7 @@
       (width 0)
       (type default)
     )
-    (uuid "891a3212-2a05-4bdb-aa31-252293c0064f")
+    (uuid "8c4e7396-ba4c-5601-84c1-06aa631cebc0")
   )
   (global_label "K_LINE"
     (shape passive)
@@ -1764,7 +1764,7 @@
       )
       (justify right)
     )
-    (uuid "c8427060-dc72-42a6-977e-809647447916")
+    (uuid "2d2473f3-44ab-5b11-b484-4ba2f92186a6")
     (property "Intersheetrefs" "${INTERSHEET_REFS}"
       (at 22.86 17.78 0)
       (hide yes)
@@ -1784,7 +1784,7 @@
       (width 0)
       (type default)
     )
-    (uuid "4742c9d7-d7bb-4102-b86c-83fc84ab3186")
+    (uuid "9df08fd1-8788-5044-b0f7-ed23acd5b409")
   )
   (global_label "GND"
     (shape passive)
@@ -1796,7 +1796,7 @@
       )
       (justify right)
     )
-    (uuid "81b83182-38a8-4a56-9f6c-8b29aab19a7a")
+    (uuid "d9585ace-f3a6-5b22-bd05-8053609308bc")
     (property "Intersheetrefs" "${INTERSHEET_REFS}"
       (at 22.86 20.32 0)
       (hide yes)
@@ -1817,7 +1817,7 @@
     (on_board yes)
     (in_pos_files yes)
     (dnp no)
-    (uuid "d6340579-615a-40c0-bd57-f29239eb7386")
+    (uuid "6f1d6a70-a315-5d20-b908-644f1d6cd232")
     (property "Reference" "U8"
       (at 69.545 57.41 0)
       (effects
@@ -1889,28 +1889,28 @@
       )
     )
     (pin "1"
-      (uuid "26166dc5-4066-4369-b4e1-f7d30a9d4912")
+      (uuid "f0866383-7be8-57c6-8309-347f83b9257d")
     )
     (pin "2"
-      (uuid "712fee6c-6342-431f-a35d-1149d4eb42cd")
+      (uuid "d751a2ef-bf72-5170-b473-a2d4f329952a")
     )
     (pin "3"
-      (uuid "e288ad2d-4e5d-4f58-9c31-f761ee6bcec7")
+      (uuid "3d0b360f-f905-54fa-88a9-b31aa85e81c8")
     )
     (pin "4"
-      (uuid "17fd3658-1dd5-4f64-ae9f-8b2e2adcb75e")
+      (uuid "a0eb27be-07f6-5e2b-8165-e9667e7fd86f")
     )
     (pin "5"
-      (uuid "8a102a3b-677e-4e28-97d3-ca8793a6c39b")
+      (uuid "01135084-8aee-50b8-bfe4-b439d7e5d0b9")
     )
     (pin "6"
-      (uuid "b0862d1d-618c-400c-ae8b-835466c63412")
+      (uuid "6ab5b8ba-91c8-5e9b-b97f-62eaec2a51f2")
     )
     (pin "7"
-      (uuid "ffce01aa-d79f-4c99-bee2-a6ebc54fccb2")
+      (uuid "1ca94873-3fb0-59a8-ace6-aae51f04ff07")
     )
     (pin "8"
-      (uuid "b43355d8-dcef-42df-886a-a5021ca21db5")
+      (uuid "964b1e7f-93e9-5014-a468-200265d017ca")
     )
     (instances
       (project "driftanalyser-v2"
@@ -1930,7 +1930,7 @@
       (width 0)
       (type default)
     )
-    (uuid "ca205dc0-687d-4cc4-8c6f-83f457c6d82f")
+    (uuid "08e45949-9d7d-5755-9a26-83d6d71cde22")
   )
   (global_label "CAN_TX"
     (shape passive)
@@ -1942,7 +1942,7 @@
       )
       (justify right)
     )
-    (uuid "7e76ae3b-eeac-4136-9821-66286c5f6853")
+    (uuid "4173d9df-c613-5e0f-87f8-abc9482ff4fe")
     (property "Intersheetrefs" "${INTERSHEET_REFS}"
       (at 53.34 27.94 0)
       (hide yes)
@@ -1962,7 +1962,7 @@
       (width 0)
       (type default)
     )
-    (uuid "8c60699a-6612-4e86-9587-b1b589006b92")
+    (uuid "9ebb34c6-6728-527a-9404-c88e4602c6ca")
   )
   (global_label "GND"
     (shape passive)
@@ -1974,7 +1974,7 @@
       )
       (justify right)
     )
-    (uuid "e874fa16-ede9-4b11-b4d3-5074fb908807")
+    (uuid "94f9ddf8-0194-52b5-b6ab-656c6a82244d")
     (property "Intersheetrefs" "${INTERSHEET_REFS}"
       (at 71.12 48.26 0)
       (hide yes)
@@ -1994,7 +1994,7 @@
       (width 0)
       (type default)
     )
-    (uuid "0ae56092-c4e9-4d75-89d2-8839de87fffb")
+    (uuid "7bfc7981-f6a0-5362-8bda-f7c488497547")
   )
   (global_label "5V"
     (shape passive)
@@ -2006,7 +2006,7 @@
       )
       (justify left)
     )
-    (uuid "465c6489-083b-477c-82f9-670b73b54a34")
+    (uuid "2342a769-0037-5d89-9b3d-6f4bb66d6f5b")
     (property "Intersheetrefs" "${INTERSHEET_REFS}"
       (at 71.12 17.78 0)
       (hide yes)
@@ -2026,7 +2026,7 @@
       (width 0)
       (type default)
     )
-    (uuid "1259315c-b0c6-4f23-b5d0-b013d60238f8")
+    (uuid "f9bd12da-c849-5f9d-815a-4db231e2b63d")
   )
   (global_label "CAN_RX"
     (shape passive)
@@ -2038,7 +2038,7 @@
       )
       (justify right)
     )
-    (uuid "027d4240-2bbd-4ae2-a8e6-457f586f1390")
+    (uuid "ee9147a5-d142-59e0-819c-e3c5f05e5237")
     (property "Intersheetrefs" "${INTERSHEET_REFS}"
       (at 53.34 30.48 0)
       (hide yes)
@@ -2058,7 +2058,7 @@
       (width 0)
       (type default)
     )
-    (uuid "33bf9a76-96ee-4df9-ad1c-197523d362db")
+    (uuid "d0092755-c290-53a0-9487-5a139e61e45b")
   )
   (global_label "3V3"
     (shape passive)
@@ -2070,7 +2070,7 @@
       )
       (justify right)
     )
-    (uuid "223da303-a09c-4905-b3d9-3fde66734bc2")
+    (uuid "7c47e76d-aa7a-5b0f-9e82-a3c619ebbdca")
     (property "Intersheetrefs" "${INTERSHEET_REFS}"
       (at 53.34 35.56 0)
       (hide yes)
@@ -2090,7 +2090,7 @@
       (width 0)
       (type default)
     )
-    (uuid "25bcc9f1-da37-458e-b149-67e448a11ec0")
+    (uuid "0140f4a0-0ae0-52af-aea6-15612f6f1be6")
   )
   (global_label "CANL"
     (shape passive)
@@ -2102,7 +2102,7 @@
       )
       (justify left)
     )
-    (uuid "494f6335-b848-4804-93c7-f32c3e77a6eb")
+    (uuid "400278e0-8d53-579b-85bf-2a5013763615")
     (property "Intersheetrefs" "${INTERSHEET_REFS}"
       (at 88.9 35.56 0)
       (hide yes)
@@ -2122,7 +2122,7 @@
       (width 0)
       (type default)
     )
-    (uuid "7c16ada2-868e-4749-ba72-e653d4f5f2b7")
+    (uuid "fa2d3fa3-815e-5416-9bf5-c35179e654cb")
   )
   (global_label "CANH"
     (shape passive)
@@ -2134,7 +2134,7 @@
       )
       (justify left)
     )
-    (uuid "469722f6-ba16-4265-b417-5cf048e186bb")
+    (uuid "44c0ddcd-3da4-5740-8227-76c9d33cde23")
     (property "Intersheetrefs" "${INTERSHEET_REFS}"
       (at 88.9 30.48 0)
       (hide yes)
@@ -2154,7 +2154,7 @@
       (width 0)
       (type default)
     )
-    (uuid "91a6c995-ab6e-4af7-884a-c487f56291cd")
+    (uuid "630ab3fd-d70d-5622-a541-cea717c39890")
   )
   (global_label "CAN_STB"
     (shape passive)
@@ -2166,7 +2166,7 @@
       )
       (justify right)
     )
-    (uuid "d08c9ab7-f0bb-4df5-a859-c5c0c028997f")
+    (uuid "e9790862-a1ea-5bea-9981-f830f2b39a7d")
     (property "Intersheetrefs" "${INTERSHEET_REFS}"
       (at 53.34 38.1 0)
       (hide yes)
@@ -2187,7 +2187,7 @@
     (on_board yes)
     (in_pos_files yes)
     (dnp no)
-    (uuid "d9ac349b-fcba-4d6b-b81c-cda1d3ed66f6")
+    (uuid "3bd9962d-45c1-5e15-8fd8-7872d9d0f645")
     (property "Reference" "R41"
       (at 106.68 50.18 0)
       (effects
@@ -2259,10 +2259,10 @@
       )
     )
     (pin "1"
-      (uuid "e54c4797-d44a-4890-8e17-a63b68aa7cf3")
+      (uuid "cfe54333-5119-54fb-8f3b-4f93a1a305a6")
     )
     (pin "2"
-      (uuid "b176867e-64b4-4e90-99ce-2d2478864bc8")
+      (uuid "3cce415d-bfb7-5cc3-a9b0-e4949d053b27")
     )
     (instances
       (project "driftanalyser-v2"
@@ -2282,7 +2282,7 @@
       (width 0)
       (type default)
     )
-    (uuid "8f36d504-a91a-4a45-9532-73992905f8fe")
+    (uuid "1fabec8a-e6ca-5520-87d2-e4ca4248bd54")
   )
   (global_label "3V3"
     (shape passive)
@@ -2294,7 +2294,7 @@
       )
       (justify left)
     )
-    (uuid "3e248e7c-a087-4f0e-b887-8adfa7288a96")
+    (uuid "94bee295-1823-538d-a6e7-aa3627d3bb14")
     (property "Intersheetrefs" "${INTERSHEET_REFS}"
       (at 106.68 19.05 0)
       (hide yes)
@@ -2314,7 +2314,7 @@
       (width 0)
       (type default)
     )
-    (uuid "07a9258d-5431-45ad-870c-e0d2f1088cfa")
+    (uuid "63956f78-2e42-59e9-bf09-dcff293f4748")
   )
   (global_label "CAN_STB"
     (shape passive)
@@ -2326,7 +2326,7 @@
       )
       (justify right)
     )
-    (uuid "2d86f2ea-2c10-4802-af27-8605275fe05f")
+    (uuid "163798e4-84bc-5590-b5c9-db2c8579f870")
     (property "Intersheetrefs" "${INTERSHEET_REFS}"
       (at 106.68 36.83 0)
       (hide yes)
@@ -2347,7 +2347,7 @@
     (on_board yes)
     (in_pos_files yes)
     (dnp no)
-    (uuid "0e6a599d-fa75-4378-bd55-eab09d2bba4b")
+    (uuid "9dcefe51-6224-552c-aa2f-d5713a743077")
     (property "Reference" "C23"
       (at 119.38 45.98 0)
       (effects
@@ -2419,10 +2419,10 @@
       )
     )
     (pin "1"
-      (uuid "2c810de4-4497-4e3d-a9c4-587be7c0722c")
+      (uuid "fc176222-6c84-595f-97bf-56ec7c064a38")
     )
     (pin "2"
-      (uuid "51f6e884-e4b0-45b9-9c4c-7b4178cf6663")
+      (uuid "b3b60bfa-ca49-5694-a6a6-cd46612d8a91")
     )
     (instances
       (project "driftanalyser-v2"
@@ -2442,7 +2442,7 @@
       (width 0)
       (type default)
     )
-    (uuid "b6d7a46e-318a-4b0c-8367-97629d873a3e")
+    (uuid "c294ef1f-a95a-52da-8b27-e724dec8bf64")
   )
   (global_label "5V"
     (shape passive)
@@ -2454,7 +2454,7 @@
       )
       (justify left)
     )
-    (uuid "2682b6e1-e7bc-4a30-9ede-fa4980eb1bd2")
+    (uuid "7e3e9295-5c43-587d-9955-7c0496ec5c7f")
     (property "Intersheetrefs" "${INTERSHEET_REFS}"
       (at 119.38 19.05 0)
       (hide yes)
@@ -2474,7 +2474,7 @@
       (width 0)
       (type default)
     )
-    (uuid "87cee40f-56d2-4df2-b39a-6546a9c14ace")
+    (uuid "e2184894-868b-5961-800e-4d771af06038")
   )
   (global_label "GND"
     (shape passive)
@@ -2486,7 +2486,7 @@
       )
       (justify right)
     )
-    (uuid "189d50a6-a4ba-411e-af66-a9ee6459f23c")
+    (uuid "04d1b399-479f-5d82-8b38-4b4c6a247a62")
     (property "Intersheetrefs" "${INTERSHEET_REFS}"
       (at 119.38 36.83 0)
       (hide yes)
@@ -2507,7 +2507,7 @@
     (on_board yes)
     (in_pos_files yes)
     (dnp no)
-    (uuid "b1b1aac4-4388-4a21-ab54-bc56d60438a4")
+    (uuid "d73c9d63-4189-55d1-9e0b-6acc9ea8f30c")
     (property "Reference" "C24"
       (at 132.08 45.98 0)
       (effects
@@ -2579,10 +2579,10 @@
       )
     )
     (pin "1"
-      (uuid "1d3c3c18-5edb-4466-ac2e-95e66afe49f3")
+      (uuid "db979139-c964-5fff-b770-df045562e73a")
     )
     (pin "2"
-      (uuid "2ed4505e-1239-4976-894a-d5b462857d30")
+      (uuid "864eaf72-24a6-51e3-92e5-92f0e9bdc95b")
     )
     (instances
       (project "driftanalyser-v2"
@@ -2602,7 +2602,7 @@
       (width 0)
       (type default)
     )
-    (uuid "cfc87d3a-2be1-4fa5-b47e-1b389d06d60e")
+    (uuid "9490c786-65b1-5bb3-b669-cbb138150a08")
   )
   (global_label "3V3"
     (shape passive)
@@ -2614,7 +2614,7 @@
       )
       (justify left)
     )
-    (uuid "0b9815b5-92ce-4291-8ca2-95cb224dd594")
+    (uuid "98178917-4540-5a99-9694-7ac00c116c49")
     (property "Intersheetrefs" "${INTERSHEET_REFS}"
       (at 132.08 19.05 0)
       (hide yes)
@@ -2634,7 +2634,7 @@
       (width 0)
       (type default)
     )
-    (uuid "0d782b47-8987-450b-b188-d741a68d4f4e")
+    (uuid "41483880-b46f-596b-a496-587b2d844b63")
   )
   (global_label "GND"
     (shape passive)
@@ -2646,7 +2646,7 @@
       )
       (justify right)
     )
-    (uuid "063c89d7-776b-4765-ae10-b33a31ca4237")
+    (uuid "3db5f11d-48d7-5017-bae4-10706600ba84")
     (property "Intersheetrefs" "${INTERSHEET_REFS}"
       (at 132.08 36.83 0)
       (hide yes)
@@ -2667,7 +2667,7 @@
     (on_board yes)
     (in_pos_files yes)
     (dnp no)
-    (uuid "03546ddb-b1a1-4a3a-89ba-89fc0176137f")
+    (uuid "928d867f-8949-50bb-8773-804d93f33a09")
     (property "Reference" "R40"
       (at 142.24 53.77 0)
       (effects
@@ -2739,10 +2739,10 @@
       )
     )
     (pin "1"
-      (uuid "58496a6a-01a7-4562-a7e1-4e2a0591ae83")
+      (uuid "afbdb971-6080-5adb-b8fc-28653db16d39")
     )
     (pin "2"
-      (uuid "a1796cd3-7ec7-48f2-88c9-da1739f776f4")
+      (uuid "79fc9d6b-18a6-522d-a346-3cbcf4c8abda")
     )
     (instances
       (project "driftanalyser-v2"
@@ -2762,7 +2762,7 @@
       (width 0)
       (type default)
     )
-    (uuid "728d5b6a-c892-4053-80c9-251f345a53a3")
+    (uuid "59cecca4-7a98-54c5-8244-c524df98def2")
   )
   (global_label "CANH"
     (shape passive)
@@ -2774,7 +2774,7 @@
       )
       (justify left)
     )
-    (uuid "8707fd00-89c5-4b35-b375-d8099734db45")
+    (uuid "579d4a07-b61e-5356-a942-1f84627b575f")
     (property "Intersheetrefs" "${INTERSHEET_REFS}"
       (at 142.24 21.59 0)
       (hide yes)
@@ -2794,7 +2794,7 @@
       (width 0)
       (type default)
     )
-    (uuid "a0048002-d3b5-4319-a315-79bf3781bf63")
+    (uuid "cd323e0c-8247-5dbe-b809-5cf0ea99f769")
   )
   (global_label "CAN_TERM"
     (shape passive)
@@ -2806,7 +2806,7 @@
       )
       (justify right)
     )
-    (uuid "5c5118a3-197e-4624-bfe0-507ab6735272")
+    (uuid "ec8ca53d-2bd1-5cc5-9e34-ce7d0ea1856c")
     (property "Intersheetrefs" "${INTERSHEET_REFS}"
       (at 142.24 39.37 0)
       (hide yes)
@@ -2827,7 +2827,7 @@
     (on_board yes)
     (in_pos_files yes)
     (dnp no)
-    (uuid "8375d4cc-fde2-4427-9aa9-2e508376a552")
+    (uuid "5722219d-89e3-5bb5-958c-1be896819b11")
     (property "Reference" "JP1"
       (at 164.615 18.51 0)
       (effects
@@ -2899,10 +2899,10 @@
       )
     )
     (pin "1"
-      (uuid "1ebe1b78-2abb-487d-b946-b7857baf0e40")
+      (uuid "e4c4c778-1e20-5132-9083-6b99644ed8f7")
     )
     (pin "2"
-      (uuid "c63a37a8-0d6a-4d95-8c30-76446b4e2aa2")
+      (uuid "b8b5ecb9-a600-5427-9bc4-e40e4f5a4020")
     )
     (instances
       (project "driftanalyser-v2"
@@ -2922,7 +2922,7 @@
       (width 0)
       (type default)
     )
-    (uuid "cd835e97-8638-4ab1-abb2-67058a14402c")
+    (uuid "9805d408-c42a-51df-a1a6-fc950431a6b1")
   )
   (global_label "CAN_TERM"
     (shape passive)
@@ -2934,7 +2934,7 @@
       )
       (justify right)
     )
-    (uuid "27e97e60-02ac-4ad9-a502-b87722574903")
+    (uuid "75e240ff-e9cd-5f88-abfe-ac8ef6ca28f1")
     (property "Intersheetrefs" "${INTERSHEET_REFS}"
       (at 165.1 12.7 0)
       (hide yes)
@@ -2954,7 +2954,7 @@
       (width 0)
       (type default)
     )
-    (uuid "4fae3aee-2f31-4f2b-8304-e9fb2448412e")
+    (uuid "101cc8e4-61d4-59d1-a64a-4218ec9a4b02")
   )
   (global_label "CANL"
     (shape passive)
@@ -2966,7 +2966,7 @@
       )
       (justify right)
     )
-    (uuid "dff394aa-9d4d-43c2-9081-8a4b7e5554e0")
+    (uuid "2c19c2a4-7c93-53fc-ab79-2b883024e49f")
     (property "Intersheetrefs" "${INTERSHEET_REFS}"
       (at 165.1 15.24 0)
       (hide yes)
@@ -2987,7 +2987,7 @@
     (on_board yes)
     (in_pos_files yes)
     (dnp no)
-    (uuid "759da6c9-ffa9-4c4c-a256-c0b5617ab7be")
+    (uuid "64140704-9a91-516a-865d-c1a037917956")
     (property "Reference" "D20"
       (at 205.74 30.74 0)
       (effects
@@ -3059,13 +3059,13 @@
       )
     )
     (pin "1"
-      (uuid "5dc5fd25-a0b5-4784-80d9-b658294e0ae2")
+      (uuid "186ab558-2235-5df4-b275-2205ab9e4aa7")
     )
     (pin "2"
-      (uuid "c1069637-5d05-4005-8a21-aa61d02db5b8")
+      (uuid "7fa336ee-7613-54fb-9338-8b8aa8b9dfd6")
     )
     (pin "3"
-      (uuid "b0c39fee-5564-499b-878d-d088d9b47ebb")
+      (uuid "0000ed50-b1e9-5e22-bd55-7f310313dc14")
     )
     (instances
       (project "driftanalyser-v2"
@@ -3085,7 +3085,7 @@
       (width 0)
       (type default)
     )
-    (uuid "3f5c1b60-6951-4ee5-a244-f4681798fc8e")
+    (uuid "ddaa6594-0941-50f1-8667-eb997291013a")
   )
   (global_label "CANH"
     (shape passive)
@@ -3097,7 +3097,7 @@
       )
       (justify right)
     )
-    (uuid "ab7548af-c6cb-42fa-9403-265190868f81")
+    (uuid "2b4c228c-e5f8-5db8-b013-2845b8358757")
     (property "Intersheetrefs" "${INTERSHEET_REFS}"
       (at 191.77 12.7 0)
       (hide yes)
@@ -3117,7 +3117,7 @@
       (width 0)
       (type default)
     )
-    (uuid "569d12be-1fa1-4ade-b495-0af040406bca")
+    (uuid "c768a2d3-7f72-5bc1-94ca-dd25e5840435")
   )
   (global_label "CANL"
     (shape passive)
@@ -3129,7 +3129,7 @@
       )
       (justify left)
     )
-    (uuid "f630f57c-0c40-4780-a76f-c717b9e68fe6")
+    (uuid "8a18db44-bb52-5afe-9a73-ba1332db21e4")
     (property "Intersheetrefs" "${INTERSHEET_REFS}"
       (at 219.71 12.7 0)
       (hide yes)
@@ -3149,7 +3149,7 @@
       (width 0)
       (type default)
     )
-    (uuid "19ae92f9-59e3-438a-bea5-d7e7b5fb5b20")
+    (uuid "6b2780ba-9c94-5d70-8b4c-ff0c8801538e")
   )
   (global_label "GND"
     (shape passive)
@@ -3161,7 +3161,7 @@
       )
       (justify right)
     )
-    (uuid "b74fe780-634b-435e-b668-21e13eb0bf36")
+    (uuid "0f37cf9a-689f-546d-9409-6f7dbccee568")
     (property "Intersheetrefs" "${INTERSHEET_REFS}"
       (at 205.74 21.59 0)
       (hide yes)
@@ -3182,7 +3182,7 @@
     (on_board yes)
     (in_pos_files yes)
     (dnp no)
-    (uuid "623906c2-faf9-42b8-84da-28a619f162ed")
+    (uuid "f93b918d-d1c5-56ed-8e68-935c644f249d")
     (property "Reference" "U9"
       (at 36.61 118.37 0)
       (effects
@@ -3254,28 +3254,28 @@
       )
     )
     (pin "4"
-      (uuid "9f9d7001-e235-4a0a-ad8c-0278626d708b")
+      (uuid "ea75c2e5-b721-5dee-931d-1263a785a5fb")
     )
     (pin "1"
-      (uuid "d32502ee-1756-46e8-b278-bd91b0b41d33")
+      (uuid "7689bce0-39fc-5e25-8b93-41113d021ab5")
     )
     (pin "2"
-      (uuid "6ba82443-a585-450b-9e02-c59779134602")
+      (uuid "76081261-2c22-5951-9992-d3a7610345b3")
     )
     (pin "7"
-      (uuid "489aad4f-991f-4cf9-b4c6-1370a891eb35")
+      (uuid "84389ef6-ffdf-5f07-9b9b-088652259dc4")
     )
     (pin "5"
-      (uuid "48b60dba-c15f-48d8-ba12-af172f31e560")
+      (uuid "d30b8338-8156-52ce-ad6b-ef909c032251")
     )
     (pin "6"
-      (uuid "f8eca419-87da-4d55-b061-d0c55784ae0b")
+      (uuid "ca88f922-d279-569d-b60c-f5d8c3dd96a7")
     )
     (pin "3"
-      (uuid "d9057760-992a-4877-bb40-3f4972c2e2ef")
+      (uuid "ec4fa273-2c7e-59d6-a5bb-c0f691fd0359")
     )
     (pin "8"
-      (uuid "060893b6-391b-4ab6-9ae3-77f158a54487")
+      (uuid "960bb7f6-f799-57ef-9fa7-207c23715d15")
     )
     (instances
       (project "driftanalyser-v2"
@@ -3295,7 +3295,7 @@
       (width 0)
       (type default)
     )
-    (uuid "18c59444-d2e9-4952-a7ab-e4802f286218")
+    (uuid "c32ace03-cf14-52e8-96de-a1809323ccef")
   )
   (global_label "K_TX"
     (shape passive)
@@ -3307,7 +3307,7 @@
       )
       (justify right)
     )
-    (uuid "dd8208d7-070e-41da-8ef4-0a3664fffbbb")
+    (uuid "c434742a-0b69-51a2-997a-b3a25d5ee898")
     (property "Intersheetrefs" "${INTERSHEET_REFS}"
       (at 20.32 88.9 0)
       (hide yes)
@@ -3327,7 +3327,7 @@
       (width 0)
       (type default)
     )
-    (uuid "0843e7b2-964c-4163-9955-acac6438b008")
+    (uuid "61e1d312-d0c6-5a84-b434-57af37704cf4")
   )
   (global_label "K_RX"
     (shape passive)
@@ -3339,7 +3339,7 @@
       )
       (justify right)
     )
-    (uuid "3a348d6d-8646-4295-9b0f-8744c727a24f")
+    (uuid "00499017-00e3-5e0b-abca-7e6d5027f536")
     (property "Intersheetrefs" "${INTERSHEET_REFS}"
       (at 20.32 91.44 0)
       (hide yes)
@@ -3359,7 +3359,7 @@
       (width 0)
       (type default)
     )
-    (uuid "e1d9b449-85f2-49f9-b4f6-da2e75efe931")
+    (uuid "bdb959e0-59a4-5584-b5ae-cfcaf3685a3b")
   )
   (global_label "3V3"
     (shape passive)
@@ -3371,7 +3371,7 @@
       )
       (justify right)
     )
-    (uuid "1006efea-4aa4-46c4-9a30-0abe9a84e59b")
+    (uuid "1fa5bba2-a38b-576c-90c2-e768d52ee6b5")
     (property "Intersheetrefs" "${INTERSHEET_REFS}"
       (at 20.32 93.98 0)
       (hide yes)
@@ -3391,7 +3391,7 @@
       (width 0)
       (type default)
     )
-    (uuid "49530c65-ffb7-49b5-80b0-ff0a93380e82")
+    (uuid "0841f021-8d43-540e-978b-6bcabb423ab0")
   )
   (global_label "VBAT"
     (shape passive)
@@ -3403,7 +3403,7 @@
       )
       (justify left)
     )
-    (uuid "ebcd2547-b264-419a-901f-e08f1fd9cd98")
+    (uuid "0f069346-e8b8-5f9b-8e72-b5d3d2044127")
     (property "Intersheetrefs" "${INTERSHEET_REFS}"
       (at 35.56 78.74 0)
       (hide yes)
@@ -3423,7 +3423,7 @@
       (width 0)
       (type default)
     )
-    (uuid "4e223bb6-82ea-41e5-9d2d-8e2f862c6f84")
+    (uuid "ed62fbc3-9a62-53bf-9a49-ed2111d8bc39")
   )
   (global_label "GND"
     (shape passive)
@@ -3435,7 +3435,7 @@
       )
       (justify right)
     )
-    (uuid "c75c1377-25f6-4e54-93da-e52c197e9650")
+    (uuid "83485ec1-25f8-5690-94c3-dfcf14e351c6")
     (property "Intersheetrefs" "${INTERSHEET_REFS}"
       (at 35.56 109.22 0)
       (hide yes)
@@ -3455,7 +3455,7 @@
       (width 0)
       (type default)
     )
-    (uuid "8789d1ec-61b5-4ece-b3d5-087e19fd0cca")
+    (uuid "5a808107-84c8-562b-80b5-47e2c17b58b0")
   )
   (global_label "K_LINE"
     (shape passive)
@@ -3467,7 +3467,7 @@
       )
       (justify left)
     )
-    (uuid "0a0bba9e-49ae-44e4-872a-7f2b49216c9f")
+    (uuid "2ac8d1bf-9179-5400-bfdc-a33a8e0ba01d")
     (property "Intersheetrefs" "${INTERSHEET_REFS}"
       (at 50.8 91.44 0)
       (hide yes)
@@ -3480,11 +3480,11 @@
   )
   (no_connect
     (at 45.72 96.52)
-    (uuid "2f457805-2c9b-4c5c-87f9-038d1222a8db")
+    (uuid "d0dd04aa-0b59-56be-98cb-a3c1c265af83")
   )
   (no_connect
     (at 45.72 99.06)
-    (uuid "e6a547b1-8a14-4b78-9c59-8c1646ec4a72")
+    (uuid "97d4d36c-aa78-56d0-835c-0ed7c67df793")
   )
   (symbol
     (lib_id "Device:C")
@@ -3496,7 +3496,7 @@
     (on_board yes)
     (in_pos_files yes)
     (dnp no)
-    (uuid "3bc93808-6867-4744-92e5-c55a5a674187")
+    (uuid "6dd9c911-0b6c-59f6-a373-9bd33c4ee3db")
     (property "Reference" "C25"
       (at 71.12 106.94 0)
       (effects
@@ -3568,10 +3568,10 @@
       )
     )
     (pin "1"
-      (uuid "63d964e7-5ec1-4d8e-88e0-99b1ea467b85")
+      (uuid "daa36dc1-8b5c-5915-b2b6-6852fb0d9764")
     )
     (pin "2"
-      (uuid "d3db7c92-88a0-4788-9308-80545aef7155")
+      (uuid "59531dd4-714b-5bcd-abe0-f3bcc466043a")
     )
     (instances
       (project "driftanalyser-v2"
@@ -3591,7 +3591,7 @@
       (width 0)
       (type default)
     )
-    (uuid "f5654060-5f29-4e16-ae82-df31a9cc6e75")
+    (uuid "d6194d91-004a-5701-918e-201ad5119fb4")
   )
   (global_label "VBAT"
     (shape passive)
@@ -3603,7 +3603,7 @@
       )
       (justify left)
     )
-    (uuid "54a934ec-641d-4635-959c-78c0edbab03d")
+    (uuid "d1b227aa-db00-55fd-9e52-b2acc207c79f")
     (property "Intersheetrefs" "${INTERSHEET_REFS}"
       (at 71.12 80.01 0)
       (hide yes)
@@ -3623,7 +3623,7 @@
       (width 0)
       (type default)
     )
-    (uuid "5e5eb42a-55b6-4def-b69e-003f33674aa4")
+    (uuid "e5316799-dda6-5db2-a369-dbf6b5fe29c7")
   )
   (global_label "GND"
     (shape passive)
@@ -3635,7 +3635,7 @@
       )
       (justify right)
     )
-    (uuid "17202982-85c4-468c-8c12-7191989c82c7")
+    (uuid "5aeaf01f-13ec-5a38-a51b-4f9780e7d59f")
     (property "Intersheetrefs" "${INTERSHEET_REFS}"
       (at 71.12 97.79 0)
       (hide yes)
@@ -3656,7 +3656,7 @@
     (on_board yes)
     (in_pos_files yes)
     (dnp no)
-    (uuid "ec6333d1-7627-4ce4-8a04-e35b5439e939")
+    (uuid "417878cd-79bc-5dc5-bffa-a92984a7d749")
     (property "Reference" "R42"
       (at 86.36 110.09 0)
       (effects
@@ -3728,10 +3728,10 @@
       )
     )
     (pin "1"
-      (uuid "121655c2-3fc8-4272-924e-4dc65ec4c68d")
+      (uuid "e0cb5ca5-80a8-54a3-af90-f6cb201bafdc")
     )
     (pin "2"
-      (uuid "1b7eb41d-8920-4493-96af-15cae7a140f0")
+      (uuid "50a89385-dad3-5df7-88de-58068893d43c")
     )
     (instances
       (project "driftanalyser-v2"
@@ -3751,7 +3751,7 @@
       (width 0)
       (type default)
     )
-    (uuid "c9a92af1-acfb-41a1-90d3-734904f77bd9")
+    (uuid "35f0a253-50b7-5424-b60f-4613ef04370f")
   )
   (global_label "K_PU"
     (shape passive)
@@ -3763,7 +3763,7 @@
       )
       (justify left)
     )
-    (uuid "eb5bd49d-101a-4e55-baaf-27df25a21d72")
+    (uuid "71b2529b-7da8-5c52-a5be-5f170b149a3d")
     (property "Intersheetrefs" "${INTERSHEET_REFS}"
       (at 86.36 80.01 0)
       (hide yes)
@@ -3783,7 +3783,7 @@
       (width 0)
       (type default)
     )
-    (uuid "870bd329-f0c2-4cd9-8bc1-889c3452faf5")
+    (uuid "453663a4-814a-58bd-ab81-2a6fd8931b13")
   )
   (global_label "K_LINE"
     (shape passive)
@@ -3795,7 +3795,7 @@
       )
       (justify right)
     )
-    (uuid "8b69240b-ce06-4462-b41c-c2166fcdcef1")
+    (uuid "11f1b3e4-b001-580c-9699-e0f5d284ffee")
     (property "Intersheetrefs" "${INTERSHEET_REFS}"
       (at 86.36 97.79 0)
       (hide yes)
@@ -3816,7 +3816,7 @@
     (on_board yes)
     (in_pos_files yes)
     (dnp no)
-    (uuid "bae37fac-8cef-4378-95c1-0fb7fd11e351")
+    (uuid "20eba1e6-9ace-53b9-ad22-d1fa41d480a1")
     (property "Reference" "JP2"
       (at 108.295 76.93 0)
       (effects
@@ -3888,10 +3888,10 @@
       )
     )
     (pin "1"
-      (uuid "b9351850-553a-478e-b5f0-d0fec327de0f")
+      (uuid "723ca64b-1dbc-590d-becd-7df549090d21")
     )
     (pin "2"
-      (uuid "6066ec29-02aa-482a-bfd9-5cb97ea9a146")
+      (uuid "7ed01d02-3560-5998-bb93-1cbaf371aeda")
     )
     (instances
       (project "driftanalyser-v2"
@@ -3911,7 +3911,7 @@
       (width 0)
       (type default)
     )
-    (uuid "25c9b652-1495-4f48-bd47-b3e7ada2a109")
+    (uuid "fd06b24c-b273-5bde-92dc-2088e6d761e5")
   )
   (global_label "VBAT"
     (shape passive)
@@ -3923,7 +3923,7 @@
       )
       (justify right)
     )
-    (uuid "6650492f-8d50-48e3-b924-9cc91629db53")
+    (uuid "51830419-f464-5020-a447-b6b8c02714fb")
     (property "Intersheetrefs" "${INTERSHEET_REFS}"
       (at 106.68 71.12 0)
       (hide yes)
@@ -3943,7 +3943,7 @@
       (width 0)
       (type default)
     )
-    (uuid "d6674660-0dcb-4087-9a13-344cca93475f")
+    (uuid "a5a09c5d-a356-55c6-9fa3-090a1940516a")
   )
   (global_label "K_PU"
     (shape passive)
@@ -3955,7 +3955,7 @@
       )
       (justify right)
     )
-    (uuid "323567cc-62b8-4f0b-ad9f-f2b2ab16ba8c")
+    (uuid "125bfb83-2f88-5fe4-a053-cc664ec23069")
     (property "Intersheetrefs" "${INTERSHEET_REFS}"
       (at 106.68 73.66 0)
       (hide yes)
@@ -3976,7 +3976,7 @@
     (on_board yes)
     (in_pos_files yes)
     (dnp no)
-    (uuid "5aa70a6e-012c-4707-a7cc-b97fbc474e3a")
+    (uuid "cd5b29d6-77d0-5fb7-97b9-d657d40498d2")
     (property "Reference" "D21"
       (at 143.205 74.39 0)
       (effects
@@ -4048,10 +4048,10 @@
       )
     )
     (pin "1"
-      (uuid "85355bab-573d-466a-b224-197f7e83f4d5")
+      (uuid "35b6b5a9-577e-586f-8332-e4b60018ef82")
     )
     (pin "2"
-      (uuid "9d7575e6-6864-4a73-b5d6-4abff2e5cccd")
+      (uuid "7485d4e4-5e8b-5f19-ad7d-8ce6d20b4e13")
     )
     (instances
       (project "driftanalyser-v2"
@@ -4071,7 +4071,7 @@
       (width 0)
       (type default)
     )
-    (uuid "b90de82b-3194-4015-b17d-2685b9ed907a")
+    (uuid "c3587322-8f9f-52b4-b2f9-e112269ec1f6")
   )
   (global_label "K_LINE"
     (shape passive)
@@ -4083,7 +4083,7 @@
       )
       (justify right)
     )
-    (uuid "0d70c0f8-bdb3-4ca4-9de4-f1be1a4b1d04")
+    (uuid "a463252b-6566-5964-b8f8-86dd1622da5b")
     (property "Intersheetrefs" "${INTERSHEET_REFS}"
       (at 135.89 71.12 0)
       (hide yes)
@@ -4103,7 +4103,7 @@
       (width 0)
       (type default)
     )
-    (uuid "fa7de2e3-fd09-490b-932b-b24d7cb056ff")
+    (uuid "a885cf70-9b73-55d4-b1fe-55d071450abb")
   )
   (global_label "GND"
     (shape passive)
@@ -4115,7 +4115,7 @@
       )
       (justify left)
     )
-    (uuid "5161de53-0383-4b7d-bb88-a9a00aaa56d1")
+    (uuid "efa38d2f-a6a3-5eb1-8982-ee7c44b4ef84")
     (property "Intersheetrefs" "${INTERSHEET_REFS}"
       (at 153.67 71.12 0)
       (hide yes)

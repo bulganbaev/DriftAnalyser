@@ -45,8 +45,14 @@ DOC_UUID = {s: f"0d6f1c2a-0000-4000-8000-00000000002{i}" for i, s in enumerate(S
 FLAG_NETS = ("VBAT", "GND", "5V", "VBUS_USB", "5V_BUCK")
 
 
-def _u():
-    return Str(str(uuid.uuid4()))
+# Every uuid is derived from a stable key instead of uuid4(), so re-running the writer
+# produces byte-identical files and the schematic <-> board symbol links survive a
+# regeneration.
+_UUID_NS = uuid.UUID("0d6f1c2a-0000-4000-8000-0000000000ff")
+
+
+def _u(key):
+    return Str(str(uuid.uuid5(_UUID_NS, key)))
 
 
 def _effects(size=TEXT_H, hide=False, justify=None):
@@ -194,7 +200,7 @@ def _place_part(part, x, y, sheet):
            ["on_board", Sym("no" if hidden else "yes")],
            ["in_pos_files", Sym("no" if hidden else "yes")],
            ["dnp", Sym("yes" if part.dnp else "no")],
-           ["uuid", _u()],
+           ["uuid", _u(f"{sheet}/{part.ref}")],
            _prop("Reference", part.ref, x + mid, y + hi_y - 5.0, hide=hidden),
            _prop("Value", part.value, x + mid, y + hi_y - 1.5, hide=hidden),
            _prop("Footprint", part.footprint, x, y, hide=True),
@@ -204,25 +210,27 @@ def _place_part(part, x, y, sheet):
            _prop("MPN", part.mpn, x, y, hide=True),
            _prop("Manufacturer", part.mfr, x, y, hide=True)]
     for num, _net, _ex, _ey, _away in _pin_geometry(part):
-        sym.append(["pin", Str(num), ["uuid", _u()]])
+        sym.append(["pin", Str(num), ["uuid", _u(f"{sheet}/{part.ref}/pin{num}")]])
     sym.append(["instances",
                 ["project", Str(env.PROJECT_NAME),
                  ["path", Str(f"/{ROOT_UUID}/{SHEET_UUID[sheet]}"),
                   ["reference", Str(part.ref)], ["unit", 1]]]])
     nodes.append(sym)
 
-    for _num, net, ex, ey, away in _pin_geometry(part):
+    for num, net, ex, ey, away in _pin_geometry(part):
+        key = f"{sheet}/{part.ref}/{num}"
         px, py = round(x + ex, 4), round(y + ey, 4)
         if net == "NC":
-            nodes.append(["no_connect", ["at", px, py], ["uuid", _u()]])
+            nodes.append(["no_connect", ["at", px, py], ["uuid", _u(key + "/nc")]])
             continue
         wx, wy = round(px + away[0] * STUB, 4), round(py + away[1] * STUB, 4)
         nodes.append(["wire", ["pts", ["xy", px, py], ["xy", wx, wy]],
-                      ["stroke", ["width", 0], ["type", Sym("default")]], ["uuid", _u()]])
+                      ["stroke", ["width", 0], ["type", Sym("default")]],
+                      ["uuid", _u(key + "/wire")]])
         ang = LABEL_ANGLE[away]
         nodes.append(["global_label", Str(net), ["shape", Sym("passive")],
                       ["at", wx, wy, ang], ["fields_autoplaced", Sym("yes")],
-                      _effects(justify=LABEL_JUSTIFY[ang]), ["uuid", _u()],
+                      _effects(justify=LABEL_JUSTIFY[ang]), ["uuid", _u(key + "/label")],
                       ["property", Str("Intersheetrefs"), Str("${INTERSHEET_REFS}"),
                        ["at", wx, wy, 0], ["hide", Sym("yes")], _effects()]])
     return nodes
