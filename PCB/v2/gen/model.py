@@ -53,67 +53,87 @@ def parts_on(sheet):
 _add(
     Part("J1", "XT60PW-M", "Connector_Generic:Conn_01x02",
          "Connector_AMASS:AMASS_XT60PW-M_1x02_P7.20mm_Horizontal",
-         {"1": "VBAT", "2": "GND"}, "power", mpn="XT60PW-M", mfr="AMASS"),
+         {"1": "VBAT", "2": "GND"}, "power", lcsc="C98732", mpn="XT60PW-M", mfr="AMASS"),
     # D_Zener: pin1 = K (cathode), pin2 = A (anode) -> cathode on VBAT clamps to GND on overvoltage
+    # Littelfuse's own "SMDJ18A" isn't listed on LCSC/JLCPCB; substituted DOWO 5.0SMDJ18A
+    # (C284071), same SMC(DO-214AB) package, same 18V standoff - see README BOM sources.
     Part("D1", "SMDJ18A", "Device:D_Zener", "Diode_SMD:D_SMC",
-         {"1": "VBAT", "2": "GND"}, "power", mpn="SMDJ18A", mfr="Littelfuse"),
+         {"1": "VBAT", "2": "GND"}, "power", lcsc="C284071", mpn="5.0SMDJ18A", mfr="DOWO"),
     Part("C1", "100uF 35V", "Device:C_Polarized", "Capacitor_SMD:CP_Elec_8x10.5",
-         {"1": "VBAT", "2": "GND"}, "power"),
+         {"1": "VBAT", "2": "GND"}, "power", lcsc="C2983550", mpn="GVZ1H107M0810CNVC", mfr="HRK"),
     Part("C2", "100uF 35V", "Device:C_Polarized", "Capacitor_SMD:CP_Elec_8x10.5",
-         {"1": "VBAT", "2": "GND"}, "power"),
-    C("C3", "10uF 50V", "VBAT", "GND", "power", "1210"),
-    C("C4", "10uF 50V", "VBAT", "GND", "power", "1210"),
-    C("C5", "10uF 50V", "12V_LED", "GND", "power", "1210"),
-    C("C6", "10uF 50V", "12V_LED", "GND", "power", "1210"),
+         {"1": "VBAT", "2": "GND"}, "power", lcsc="C2983550", mpn="GVZ1H107M0810CNVC", mfr="HRK"),
+    C("C3", "10uF 50V", "VBAT", "GND", "power", "1210", lcsc="C2918502", mpn="CS3225X7R106K500NRL", mfr="SAMWHA"),
+    C("C4", "10uF 50V", "VBAT", "GND", "power", "1210", lcsc="C2918502", mpn="CS3225X7R106K500NRL", mfr="SAMWHA"),
+    C("C5", "10uF 50V", "12V_LED", "GND", "power", "1210", lcsc="C2918502", mpn="CS3225X7R106K500NRL", mfr="SAMWHA"),
+    C("C6", "10uF 50V", "12V_LED", "GND", "power", "1210", lcsc="C2918502", mpn="CS3225X7R106K500NRL", mfr="SAMWHA"),
 
     # strip power switch: BTS7002-1EPP (Infineon PROFET+2 12V, PG-TSDSO-14).
     # Pinout confirmed from Infineon datasheet Rev 1.11 (2024-07-29), Table 2 / Figure 4:
     # 1 GND, 2 IN, 3 DEN, 4 IS, 5-7 n.c., 8-10 OUT, 11 n.c., 12-14 OUT, EP (exposed pad) = VS.
     # Note: pin 11 is n.c. (not an OUT pin) - the brief's "8..14 all OUT" assumption was wrong.
+    # BTS7002-1EPP: not listed on lcsc.com storefront (its siblings BTS7004-1EPP/BTS7006-1EPP
+    # are); jlcpcb.com/partdetail confirms C534824 as a real, catalogued Extended part for this
+    # exact MPN but does not render a numeric stock count via static fetch - see README /
+    # task-10 report CONCERNS. Using the real part number; controller to confirm live stock
+    # before order, or approve the AOD4185x2 dual-MOSFET fallback from the task brief.
     Part("U2", "BTS7002-1EPP", "da2:BTS7002-1EPP", "da2:PG-TSDSO-14",
          {"1": "GND", "2": "LED_PWR_EN", "3": "DEN", "4": "IS_RAW", "5": "NC", "6": "NC", "7": "NC",
           "8": "12V_LED", "9": "12V_LED", "10": "12V_LED", "11": "NC", "12": "12V_LED",
           "13": "12V_LED", "14": "12V_LED", "15": "VBAT"},
-         "power", mpn="BTS7002-1EPP", mfr="Infineon"),
-    R("R1", "10k", "LED_PWR_EN", "GND", "power", "0603"),        # switch off until firmware says otherwise
-    R("R2", "10k", "DEN", "3V3", "power", "0603"),               # diagnosis always enabled
-    R("R5", "470", "IS_RAW", "GND", "power", "0603"),            # IS sense: 30 A -> 0.62 V (kILIS 22700)
-    R("R6", "1k", "IS_RAW", "LED_ISENSE", "power", "0603"),
-    C("C7", "100nF", "LED_ISENSE", "GND", "power", "0603"),
+         "power", lcsc="C534824", mpn="BTS7002-1EPP", mfr="Infineon"),
+    R("R1", "10k", "LED_PWR_EN", "GND", "power", "0603", lcsc="C25804", mpn="0603WAF1002T5E", mfr="UNI-ROYAL"),        # switch off until firmware says otherwise
+    R("R2", "10k", "DEN", "3V3", "power", "0603", lcsc="C25804", mpn="0603WAF1002T5E", mfr="UNI-ROYAL"),               # diagnosis always enabled
+    R("R5", "470", "IS_RAW", "GND", "power", "0603", lcsc="C23179", mpn="0603WAF4700T5E", mfr="UNI-ROYAL"),            # IS sense: 30 A -> 0.62 V (kILIS 22700)
+    R("R6", "1k", "IS_RAW", "LED_ISENSE", "power", "0603", lcsc="C21190", mpn="0603WAF1001T5E", mfr="UNI-ROYAL"),
+    C("C7", "100nF", "LED_ISENSE", "GND", "power", "0603", lcsc="C14663", mpn="CC0603KRX7R9BB104", mfr="YAGEO"),
     # BAT54W (Nexperia): single Schottky, SOT323/SC-70, pin1 = A, pin2 = n.c., pin3 = K.
     # Confirmed against Diode.kicad_sym (pin1 A / pin2 NC / pin3 K, footprint SOT-323_SC-70)
     # and Nexperia BAT54W_SER datasheet Table 2. Clamp: anode on LED_ISENSE, cathode on 3V3.
+    # Nexperia's own BAT54W,115 (C8657) is out of stock at LCSC; substituted JSCJ's BAT54W
+    # (C77328), same SOT-323 package, described on its LCSC page as "1 Independent" (single
+    # diode) - matches this pinout better than Nexperia's own dual-diode BAT54W/AW/CW/SW family.
     Part("D2", "BAT54W", "Diode:BAT54W", "Package_TO_SOT_SMD:SOT-323_SC-70",
-         {"1": "LED_ISENSE", "2": "NC", "3": "3V3"}, "power", mpn="BAT54W", mfr="Nexperia"),
+         {"1": "LED_ISENSE", "2": "NC", "3": "3V3"}, "power", lcsc="C77328", mpn="BAT54W", mfr="JSCJ"),
 
     # battery voltage sense: 18 V -> 3.16 V
-    R("R7", "47k", "VBAT", "VBAT_SENSE", "power", "0603"),
-    R("R8", "10k", "VBAT_SENSE", "GND", "power", "0603"),
-    C("C8", "100nF", "VBAT_SENSE", "GND", "power", "0603"),
+    R("R7", "47k", "VBAT", "VBAT_SENSE", "power", "0603", lcsc="C25819", mpn="0603WAF4702T5E", mfr="UNI-ROYAL"),
+    R("R8", "10k", "VBAT_SENSE", "GND", "power", "0603", lcsc="C25804", mpn="0603WAF1002T5E", mfr="UNI-ROYAL"),
+    C("C8", "100nF", "VBAT_SENSE", "GND", "power", "0603", lcsc="C14663", mpn="CC0603KRX7R9BB104", mfr="YAGEO"),
 
     # logic buck 12 V -> 5.4 V. Symbol is "AP63200WU" in Regulator_Switching.kicad_sym
     # (the "-7" is a Diodes Inc. tape-and-reel suffix, not part of the symbol name).
     # Pins confirmed from the symbol: 1 FB, 2 EN, 3 IN(VIN), 4 GND, 5 SW, 6 BST.
+    # AP63200WU-7 (C2071868, Diodes Inc) is confirmed OUT OF STOCK on lcsc.com (explicit
+    # "Out of Stock" / "Notify Me" badge, checked live twice). No adjustable-output TSOT-23-6
+    # buck with a matching FB/EN/IN/GND/SW/BST pinout was found in stock (candidates
+    # DIO54270TST6/TP6841S6 exist but their pin order isn't confirmed against this symbol, and
+    # AP63203WU-7/AP63205WU-7 are fixed 3.3V/5V - can't hit the needed 5.4V). Kept the real,
+    # correct part number pending a controller decision: wait for restock, or approve swapping
+    # to TPS54302 + redrawing U3 per the task brief. See README / task-10 report CONCERNS.
     Part("U3", "AP63200WU-7", "Regulator_Switching:AP63200WU",
          "Package_TO_SOT_SMD:TSOT-23-6",
          {"1": "BUCK_FB", "2": "BUCK_EN", "3": "VBAT", "4": "GND", "5": "BUCK_SW", "6": "BUCK_BST"},
-         "power", mpn="AP63200WU-7", mfr="Diodes Incorporated"),
-    C("C9", "10uF 50V", "VBAT", "GND", "power", "1210"),
-    C("C10", "100nF", "BUCK_SW", "BUCK_BST", "power", "0603"),
+         "power", lcsc="C2071868", mpn="AP63200WU-7", mfr="Diodes Incorporated"),
+    C("C9", "10uF 50V", "VBAT", "GND", "power", "1210", lcsc="C2918502", mpn="CS3225X7R106K500NRL", mfr="SAMWHA"),
+    C("C10", "100nF", "BUCK_SW", "BUCK_BST", "power", "0603", lcsc="C14663", mpn="CC0603KRX7R9BB104", mfr="YAGEO"),
+    # Bourns SRN6045TA-6R8M (C2041457) has only 1 unit in stock at LCSC. Substituted YJYCOIN
+    # YNR6045-6R8M (C341066): same 6.8uH / SMD 6x6mm / 3A shielded spec, footprint-compatible
+    # with the Bourns SRN6045TA family (same "6045" case), 8265 in stock.
     Part("L1", "6.8uH", "Device:L", "Inductor_SMD:L_Bourns_SRN6045TA",
-         {"1": "BUCK_SW", "2": "5V_BUCK"}, "power"),
-    C("C11", "22uF 10V", "5V_BUCK", "GND", "power", "0805"),
-    C("C12", "22uF 10V", "5V_BUCK", "GND", "power", "0805"),
-    R("R3", "57.6k", "5V_BUCK", "BUCK_FB", "power", "0603"),
-    R("R4", "10k", "BUCK_FB", "GND", "power", "0603"),
-    R("R9", "100k", "VBAT", "BUCK_EN", "power", "0603"),
+         {"1": "BUCK_SW", "2": "5V_BUCK"}, "power", lcsc="C341066", mpn="YNR6045-6R8M", mfr="YJYCOIN"),
+    C("C11", "22uF 10V", "5V_BUCK", "GND", "power", "0805", lcsc="C45783", mpn="CL21A226MAQNNNE", mfr="Samsung Electro-Mechanics"),
+    C("C12", "22uF 10V", "5V_BUCK", "GND", "power", "0805", lcsc="C45783", mpn="CL21A226MAQNNNE", mfr="Samsung Electro-Mechanics"),
+    R("R3", "57.6k", "5V_BUCK", "BUCK_FB", "power", "0603", lcsc="C2933240", mpn="FRC0603F5762TS", mfr="FOJAN"),
+    R("R4", "10k", "BUCK_FB", "GND", "power", "0603", lcsc="C25804", mpn="0603WAF1002T5E", mfr="UNI-ROYAL"),
+    R("R9", "100k", "VBAT", "BUCK_EN", "power", "0603", lcsc="C25803", mpn="0603WAF1003T5E", mfr="UNI-ROYAL"),
 
     # OR-ing into 5V
     Part("D3", "SS34", "Device:D_Schottky", "Diode_SMD:D_SMA",
-         {"1": "5V", "2": "5V_BUCK"}, "power", mpn="SS34", mfr="MDD"),
+         {"1": "5V", "2": "5V_BUCK"}, "power", lcsc="C8678", mpn="SS34", mfr="MDD"),
     Part("D4", "SS34", "Device:D_Schottky", "Diode_SMD:D_SMA",
-         {"1": "5V", "2": "VBUS_USB"}, "power", mpn="SS34", mfr="MDD"),
-    C("C13", "22uF 10V", "5V", "GND", "power", "0805"),
+         {"1": "5V", "2": "VBUS_USB"}, "power", lcsc="C8678", mpn="SS34", mfr="MDD"),
+    C("C13", "22uF 10V", "5V", "GND", "power", "0805", lcsc="C45783", mpn="CL21A226MAQNNNE", mfr="Samsung Electro-Mechanics"),
 
     # 3V3 LDO: AP7361C-33E. SOT223 pinout per Diodes datasheet DS37274 Rev 5-2 (Oct 2020),
     # page 1 "Pin Assignments" (SOT223, top view) and page 2 "Pin Descriptions" table:
@@ -124,14 +144,14 @@ _add(
     # 3 VO, which agrees; da2:AP7361C-33E is the same pinout with the datasheet's own names.
     # Footprint SOT-223-3_TabPin2 -> tab shares pin2 = GND, matching the datasheet.
     Part("U4", "AP7361C-33E", "da2:AP7361C-33E", "Package_TO_SOT_SMD:SOT-223-3_TabPin2",
-         {"1": "5V", "2": "GND", "3": "3V3"}, "power", mpn="AP7361C-33E-13", mfr="Diodes Incorporated"),
-    C("C14", "10uF", "5V", "GND", "power", "0805"),
-    C("C15", "10uF", "3V3", "GND", "power", "0805"),
+         {"1": "5V", "2": "GND", "3": "3V3"}, "power", lcsc="C500795", mpn="AP7361C-33E-13", mfr="Diodes Incorporated"),
+    C("C14", "10uF", "5V", "GND", "power", "0805", lcsc="C15850", mpn="CL21A106KAYNNNE", mfr="Samsung Electro-Mechanics"),
+    C("C15", "10uF", "3V3", "GND", "power", "0805", lcsc="C15850", mpn="CL21A106KAYNNNE", mfr="Samsung Electro-Mechanics"),
 
     # power LED
     Part("D5", "BLUE", "Device:LED", "LED_SMD:LED_0603_1608Metric",
-         {"1": "GND", "2": "PWR_LED_A"}, "power"),
-    R("R10", "1k", "5V", "PWR_LED_A", "power", "0603"),
+         {"1": "GND", "2": "PWR_LED_A"}, "power", lcsc="C965807", mpn="XL-1608UBC-04", mfr="XINGLIGHT"),
+    R("R10", "1k", "5V", "PWR_LED_A", "power", "0603", lcsc="C21190", mpn="0603WAF1001T5E", mfr="UNI-ROYAL"),
 )
 
 # ---------------- mcu sheet ----------------
@@ -150,20 +170,20 @@ _add(
           "36": "UART0_RX", "37": "UART0_TX", "38": "LED_ISENSE", "39": "VBAT_SENSE",
           "40": "GND", "41": "GND"},
          "mcu", lcsc="C2913205", mpn="ESP32-S3-WROOM-1-N16R2", mfr="Espressif"),
-    C("C16", "22uF 10V", "3V3", "GND", "mcu", "0805"),
-    C("C17", "100nF", "3V3", "GND", "mcu", "0603"),
-    R("R11", "10k", "3V3", "EN", "mcu", "0603"),
-    C("C18", "1uF", "EN", "GND", "mcu", "0603"),
+    C("C16", "22uF 10V", "3V3", "GND", "mcu", "0805", lcsc="C45783", mpn="CL21A226MAQNNNE", mfr="Samsung Electro-Mechanics"),
+    C("C17", "100nF", "3V3", "GND", "mcu", "0603", lcsc="C14663", mpn="CC0603KRX7R9BB104", mfr="YAGEO"),
+    R("R11", "10k", "3V3", "EN", "mcu", "0603", lcsc="C25804", mpn="0603WAF1002T5E", mfr="UNI-ROYAL"),
+    C("C18", "1uF", "EN", "GND", "mcu", "0603", lcsc="C15849", mpn="CL10A105KB8NNNC", mfr="Samsung Electro-Mechanics"),
     # Switch:SW_Push pins 1/2 confirmed. Button_Switch_SMD:SW_SPST_PTS645 doesn't exist in this
     # KiCad; closest match is SW_SPST_PTS645Sx43SMTR92 (pads 1/2, each duplicated).
     Part("SW1", "EN", "Switch:SW_Push", "Button_Switch_SMD:SW_SPST_PTS645Sx43SMTR92",
-         {"1": "EN", "2": "GND"}, "mcu"),
-    R("R12", "10k", "3V3", "BOOT", "mcu", "0603"),
+         {"1": "EN", "2": "GND"}, "mcu", lcsc="C221880", mpn="PTS645SM43SMTR92LFS", mfr="C&K"),
+    R("R12", "10k", "3V3", "BOOT", "mcu", "0603", lcsc="C25804", mpn="0603WAF1002T5E", mfr="UNI-ROYAL"),
     Part("SW2", "BOOT", "Switch:SW_Push", "Button_Switch_SMD:SW_SPST_PTS645Sx43SMTR92",
-         {"1": "BOOT", "2": "GND"}, "mcu"),
+         {"1": "BOOT", "2": "GND"}, "mcu", lcsc="C221880", mpn="PTS645SM43SMTR92LFS", mfr="C&K"),
     Part("D6", "GREEN", "Device:LED", "LED_SMD:LED_0603_1608Metric",
-         {"1": "GND", "2": "STATUS_LED_A"}, "mcu"),
-    R("R13", "1k", "STATUS_LED", "STATUS_LED_A", "mcu", "0603"),
+         {"1": "GND", "2": "STATUS_LED_A"}, "mcu", lcsc="C22371299", mpn="PSC-1608U49GC-G4", mfr="HONGLITRONIC"),
+    R("R13", "1k", "STATUS_LED", "STATUS_LED_A", "mcu", "0603", lcsc="C21190", mpn="0603WAF1001T5E", mfr="UNI-ROYAL"),
 
     # USB-C. Connector:USB_C_Receptacle_USB2.0_16P confirmed: pins A1..B12 plus shield pin "SH"
     # (not "S1" as in the draft brief).
@@ -173,17 +193,19 @@ _add(
           "A9": "VBUS_USB", "A12": "GND", "B1": "GND", "B4": "VBUS_USB", "B5": "USB_CC2", "B6": "USB_DP",
           "B7": "USB_DN", "B8": "NC", "B9": "VBUS_USB", "B12": "GND", "SH": "GND"},
          "mcu", lcsc="C2765186", mpn="TYPE-C 16PIN 2MD(073)", mfr="SHOU HAN"),
-    R("R14", "5.1k", "USB_CC1", "GND", "mcu", "0603"),
-    R("R15", "5.1k", "USB_CC2", "GND", "mcu", "0603"),
+    R("R14", "5.1k", "USB_CC1", "GND", "mcu", "0603", lcsc="C23186", mpn="0603WAF5101T5E", mfr="UNI-ROYAL"),
+    R("R15", "5.1k", "USB_CC2", "GND", "mcu", "0603", lcsc="C23186", mpn="0603WAF5101T5E", mfr="UNI-ROYAL"),
     Part("U6", "USBLC6-2SC6", "Power_Protection:USBLC6-2SC6", "Package_TO_SOT_SMD:SOT-23-6",
          {"1": "USB_DN", "2": "GND", "3": "USB_DP", "4": "USB_DP", "5": "VBUS_USB", "6": "USB_DN"},
-         "mcu", mpn="USBLC6-2SC6", mfr="STMicroelectronics"),
+         "mcu", lcsc="C7519", mpn="USBLC6-2SC6", mfr="STMicroelectronics"),
 
-    # headers
+    # headers - XFCN PZ254V-11-0xP single-row male THT headers
     Part("J3", "UART0", "Connector_Generic:Conn_01x04", "Connector_PinHeader_2.54mm:PinHeader_1x04_P2.54mm_Vertical",
-         {"1": "3V3", "2": "GND", "3": "UART0_TX", "4": "UART0_RX"}, "mcu"),
+         {"1": "3V3", "2": "GND", "3": "UART0_TX", "4": "UART0_RX"}, "mcu",
+         lcsc="C2691448", mpn="PZ254V-11-04P", mfr="XFCN"),
     Part("J4", "EXT", "Connector_Generic:Conn_01x06", "Connector_PinHeader_2.54mm:PinHeader_1x06_P2.54mm_Vertical",
-         {"1": "3V3", "2": "GND", "3": "UART2_TX", "4": "UART2_RX", "5": "I2C_SDA", "6": "I2C_SCL"}, "mcu"),
+         {"1": "3V3", "2": "GND", "3": "UART2_TX", "4": "UART2_RX", "5": "I2C_SDA", "6": "I2C_SCL"}, "mcu",
+         lcsc="C492405", mpn="PZ254V-11-06P", mfr="XFCN"),
 
     # microSD, SDMMC 4-bit. "Connector:Micro_SD_Card_Det" doesn't exist in this KiCad; closest
     # match with two card-detect pins (needed to put SD_CD on one and GND on the other) is
@@ -191,18 +213,21 @@ _add(
     # and its ki_fp_filters ("microSD*") matches the chosen Hirose DM3BT footprint family.
     # Pin order confirmed: 1 DAT2, 2 DAT3/CD, 3 CMD, 4 VDD, 5 CLK, 6 VSS, 7 DAT0, 8 DAT1,
     # 9 DET_B, 10 DET_A, SH SHIELD.
+    # The real Hirose DM3BT-DSF-PEJS is on LCSC as C597972 (1271 in stock) - the exact part
+    # this footprint was named for, better than the old board's generic SHOU HAN "TF PUSH"
+    # clone (C393941, 8 contacts only, no separate detect pins).
     Part("J5", "microSD", "Connector:Micro_SD_Card_Det_Hirose_DM3AT",
          "Connector_Card:microSD_HC_Hirose_DM3BT-DSF-PEJS",
          {"1": "SD_D2", "2": "SD_D3", "3": "SD_CMD", "4": "3V3", "5": "SD_CLK", "6": "GND", "7": "SD_D0",
           "8": "SD_D1", "9": "SD_CD", "10": "GND", "SH": "GND"},
-         "mcu"),
-    R("R16", "10k", "3V3", "SD_CMD", "mcu", "0603"),
-    R("R17", "10k", "3V3", "SD_D0", "mcu", "0603"),
-    R("R18", "10k", "3V3", "SD_D1", "mcu", "0603"),
-    R("R19", "10k", "3V3", "SD_D2", "mcu", "0603"),
-    R("R20", "10k", "3V3", "SD_D3", "mcu", "0603"),
-    R("R21", "10k", "3V3", "SD_CD", "mcu", "0603"),
-    C("C19", "10uF", "3V3", "GND", "mcu", "0805"),
+         "mcu", lcsc="C597972", mpn="DM3BT-DSF-PEJS", mfr="Hirose"),
+    R("R16", "10k", "3V3", "SD_CMD", "mcu", "0603", lcsc="C25804", mpn="0603WAF1002T5E", mfr="UNI-ROYAL"),
+    R("R17", "10k", "3V3", "SD_D0", "mcu", "0603", lcsc="C25804", mpn="0603WAF1002T5E", mfr="UNI-ROYAL"),
+    R("R18", "10k", "3V3", "SD_D1", "mcu", "0603", lcsc="C25804", mpn="0603WAF1002T5E", mfr="UNI-ROYAL"),
+    R("R19", "10k", "3V3", "SD_D2", "mcu", "0603", lcsc="C25804", mpn="0603WAF1002T5E", mfr="UNI-ROYAL"),
+    R("R20", "10k", "3V3", "SD_D3", "mcu", "0603", lcsc="C25804", mpn="0603WAF1002T5E", mfr="UNI-ROYAL"),
+    R("R21", "10k", "3V3", "SD_CD", "mcu", "0603", lcsc="C25804", mpn="0603WAF1002T5E", mfr="UNI-ROYAL"),
+    C("C19", "10uF", "3V3", "GND", "mcu", "0805", lcsc="C15850", mpn="CL21A106KAYNNNE", mfr="Samsung Electro-Mechanics"),
 
     # IMU. No Sensor_Motion:LSM6DS3TR-C symbol exists in this KiCad (only generic LSM6DS3/LSM6DSL),
     # so U5 stays a custom symbol (da2:LSM6DS3TR-C, drawn in Task 8). Pin map per LSM6DS3TR-C
@@ -213,11 +238,11 @@ _add(
     Part("U5", "LSM6DS3TR-C", "da2:LSM6DS3TR-C", "Package_LGA:LGA-14_3x2.5mm_P0.5mm_LayoutBorder3x4y",
          {"1": "GND", "2": "GND", "3": "GND", "4": "IMU_INT1", "5": "3V3", "6": "GND", "7": "GND",
           "8": "3V3", "9": "NC", "10": "NC", "11": "NC", "12": "3V3", "13": "I2C_SCL", "14": "I2C_SDA"},
-         "mcu", mpn="LSM6DS3TR-C", mfr="STMicroelectronics"),
-    C("C20", "100nF", "3V3", "GND", "mcu", "0603"),
-    C("C21", "100nF", "3V3", "GND", "mcu", "0603"),
-    R("R22", "4.7k", "3V3", "I2C_SDA", "mcu", "0603"),
-    R("R23", "4.7k", "3V3", "I2C_SCL", "mcu", "0603"),
+         "mcu", lcsc="C967633", mpn="LSM6DS3TR-C", mfr="STMicroelectronics"),
+    C("C20", "100nF", "3V3", "GND", "mcu", "0603", lcsc="C14663", mpn="CC0603KRX7R9BB104", mfr="YAGEO"),
+    C("C21", "100nF", "3V3", "GND", "mcu", "0603", lcsc="C14663", mpn="CC0603KRX7R9BB104", mfr="YAGEO"),
+    R("R22", "4.7k", "3V3", "I2C_SDA", "mcu", "0603", lcsc="C23162", mpn="0603WAF4701T5E", mfr="UNI-ROYAL"),
+    R("R23", "4.7k", "3V3", "I2C_SCL", "mcu", "0603", lcsc="C23162", mpn="0603WAF4701T5E", mfr="UNI-ROYAL"),
 )
 
 # ---------------- leds sheet ----------------
@@ -237,43 +262,44 @@ _add(
           "13": "LED6_OUT", "14": "LED5_OUT", "15": "LED4_OUT", "16": "LED3_OUT", "17": "LED2_OUT", "18": "LED1_OUT",
           "19": "GND",                     # ~OE low: outputs enabled
           "20": "5V"},
-         "leds", mpn="74HCT245PW", mfr="Nexperia"),
-    C("C22", "100nF", "5V", "GND", "leds", "0603"),
+         "leds", lcsc="C5980", mpn="74HCT245PW,118", mfr="Nexperia"),
+    C("C22", "100nF", "5V", "GND", "leds", "0603", lcsc="C14663", mpn="CC0603KRX7R9BB104", mfr="YAGEO"),
 )
 for _i in range(1, 7):
     _add(
-        R(f"R{30+_i}", "220", f"LED{_i}_OUT", f"LED{_i}_DATA", "leds", "0603"),
+        R(f"R{30+_i}", "220", f"LED{_i}_OUT", f"LED{_i}_DATA", "leds", "0603", lcsc="C22962", mpn="0603WAF2200T5E", mfr="UNI-ROYAL"),
         # Diode:PESD5V0S1BA doesn't exist in this KiCad (grep -c on Diode.kicad_sym = 0).
         # Substituted with the generic bidirectional Device:D_TVS (pins A1/A2, no polarity)
         # on the same SOD-323 footprint - fine for ESD clamping a data line to GND.
         Part(f"D{10+_i}", "PESD5V0S1BA", "Device:D_TVS", "Diode_SMD:D_SOD-323",
-             {"1": f"LED{_i}_DATA", "2": "GND"}, "leds", mpn="PESD5V0S1BA", mfr="Nexperia"),
+             {"1": f"LED{_i}_DATA", "2": "GND"}, "leds", lcsc="C19224", mpn="PESD5V0S1BA,115", mfr="Nexperia"),
         Part(f"J{10+_i}", f"LED{_i}", "Connector_Generic:Conn_01x03",
              "Connector_JST:JST_VH_B3P-VH_1x03_P3.96mm_Vertical",
-             {"1": "12V_LED", "2": f"LED{_i}_DATA", "3": "GND"}, "leds", mpn="B3P-VH(LF)(SN)", mfr="JST"),
+             {"1": "12V_LED", "2": f"LED{_i}_DATA", "3": "GND"}, "leds", lcsc="C160316", mpn="B3P-VH(LF)(SN)", mfr="JST"),
     )
 
 # ---------------- comms sheet ----------------
 _add(
     Part("J6", "OBD", "Connector_Generic:Conn_01x04", "Connector_JST:JST_XH_B4B-XH-A_1x04_P2.50mm_Vertical",
-         {"1": "CANH", "2": "CANL", "3": "K_LINE", "4": "GND"}, "comms", mpn="B4B-XH-A(LF)(SN)", mfr="JST"),
+         {"1": "CANH", "2": "CANL", "3": "K_LINE", "4": "GND"}, "comms",
+         lcsc="C144395", mpn="B4B-XH-A(LF)(SN)", mfr="JST"),
 
     # CAN. Interface_CAN_LIN:TJA1051T-3 pins confirmed from the symbol:
     # 1 TXD, 2 GND, 3 VCC, 4 RXD, 5 VIO, 6 CANL, 7 CANH, 8 S.
     Part("U8", "TJA1051T/3", "Interface_CAN_LIN:TJA1051T-3", "Package_SO:SOIC-8_3.9x4.9mm_P1.27mm",
          {"1": "CAN_TX", "2": "GND", "3": "5V", "4": "CAN_RX", "5": "3V3", "6": "CANL", "7": "CANH", "8": "CAN_STB"},
-         "comms", mpn="TJA1051T/3,118", mfr="NXP"),
-    R("R41", "10k", "3V3", "CAN_STB", "comms", "0603"),       # silent until firmware drives it
-    C("C23", "100nF", "5V", "GND", "comms", "0603"),
-    C("C24", "100nF", "3V3", "GND", "comms", "0603"),
-    R("R40", "120", "CANH", "CAN_TERM", "comms", "1206"),
+         "comms", lcsc="C58988", mpn="TJA1051T/3,118", mfr="NXP"),
+    R("R41", "10k", "3V3", "CAN_STB", "comms", "0603", lcsc="C25804", mpn="0603WAF1002T5E", mfr="UNI-ROYAL"),       # silent until firmware drives it
+    C("C23", "100nF", "5V", "GND", "comms", "0603", lcsc="C14663", mpn="CC0603KRX7R9BB104", mfr="YAGEO"),
+    C("C24", "100nF", "3V3", "GND", "comms", "0603", lcsc="C14663", mpn="CC0603KRX7R9BB104", mfr="YAGEO"),
+    R("R40", "120", "CANH", "CAN_TERM", "comms", "1206", lcsc="C17909", mpn="1206W4F1200T5E", mfr="UNI-ROYAL"),
     Part("JP1", "CAN TERM", "Connector_Generic:Conn_01x02", "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical",
-         {"1": "CAN_TERM", "2": "CANL"}, "comms"),
+         {"1": "CAN_TERM", "2": "CANL"}, "comms", lcsc="C492401", mpn="PZ254V-11-02P", mfr="XFCN"),
     # Power_Protection:PESD1CAN doesn't exist in this KiCad (grep -n on Power_Protection.kicad_sym
     # is empty). Substituted with Device:D_TVS_Dual_AAC on the same SOT-23 footprint: its pins are
     # A1=1, A2=2, common=3 - pin 3 is confirmed the common line, matching the ruling's requirement.
     Part("D20", "PESD1CAN", "Device:D_TVS_Dual_AAC", "Package_TO_SOT_SMD:SOT-23",
-         {"1": "CANH", "2": "CANL", "3": "GND"}, "comms", mpn="PESD1CAN", mfr="Nexperia"),
+         {"1": "CANH", "2": "CANL", "3": "GND"}, "comms", lcsc="C15771", mpn="PESD1CAN,215", mfr="Nexperia"),
 
     # K-line via LIN transceiver. No TJA1027 symbol exists in Interface_CAN_LIN.kicad_sym
     # (grep -c = 0), so U9 stays the custom da2:TJA1027T (drawn in Task 8). Pinout confirmed
@@ -284,11 +310,11 @@ _add(
     # permanently, same intent as the brief's "EN" tie-off).
     Part("U9", "TJA1027T/20", "da2:TJA1027T", "Package_SO:SOIC-8_3.9x4.9mm_P1.27mm",
          {"1": "K_RX", "2": "3V3", "3": "NC", "4": "K_TX", "5": "GND", "6": "K_LINE", "7": "VBAT", "8": "NC"},
-         "comms", mpn="TJA1027T/20,118", mfr="NXP"),
-    C("C25", "100nF", "VBAT", "GND", "comms", "0603"),
-    R("R42", "510 0.5W", "K_PU", "K_LINE", "comms", "2512"),
+         "comms", lcsc="C112994", mpn="TJA1027T/20,118", mfr="NXP"),
+    C("C25", "100nF", "VBAT", "GND", "comms", "0603", lcsc="C14663", mpn="CC0603KRX7R9BB104", mfr="YAGEO"),
+    R("R42", "510 0.5W", "K_PU", "K_LINE", "comms", "2512", lcsc="C2934121", mpn="FRC2512J511TS", mfr="FOJAN"),
     Part("JP2", "K PULLUP", "Connector_Generic:Conn_01x02", "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical",
-         {"1": "VBAT", "2": "K_PU"}, "comms"),
+         {"1": "VBAT", "2": "K_PU"}, "comms", lcsc="C492401", mpn="PZ254V-11-02P", mfr="XFCN"),
     Part("D21", "SMAJ24A", "Device:D_Zener", "Diode_SMD:D_SMA",
-         {"1": "K_LINE", "2": "GND"}, "comms", mpn="SMAJ24A", mfr="Littelfuse"),
+         {"1": "K_LINE", "2": "GND"}, "comms", lcsc="C148222", mpn="SMAJ24A", mfr="Littelfuse"),
 )

@@ -2,7 +2,7 @@
 	(version "E")
 	(design
 		(source "/Users/bulganbaev/Documents/Code/DriftAnalyser/PCB/v2/driftanalyser-v2.kicad_sch")
-		(date "2026-09-06T03:29:35")
+		(date "2026-09-06T04:50:43")
 		(tool "Eeschema 10.0.6")
 		(sheet
 			(number "1")
@@ -252,14 +252,11 @@
 			(footprint "Capacitor_SMD:CP_Elec_8x10.5")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C2983550")
 				(field
-					(name "MPN")
-				)
+					(name "MPN") "GVZ1H107M0810CNVC")
 				(field
-					(name "Manufacturer")
-				)
+					(name "Manufacturer") "HRK")
 				(field
 					(name "Footprint") "Capacitor_SMD:CP_Elec_8x10.5")
 				(field
@@ -276,15 +273,15 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C2983550")
 			)
 			(property
 				(name "MPN")
-				(value "")
+				(value "GVZ1H107M0810CNVC")
 			)
 			(property
 				(name "Manufacturer")
-				(value "")
+				(value "HRK")
 			)
 			(property
 				(name "Sheetname")
@@ -327,14 +324,11 @@
 			(footprint "Capacitor_SMD:CP_Elec_8x10.5")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C2983550")
 				(field
-					(name "MPN")
-				)
+					(name "MPN") "GVZ1H107M0810CNVC")
 				(field
-					(name "Manufacturer")
-				)
+					(name "Manufacturer") "HRK")
 				(field
 					(name "Footprint") "Capacitor_SMD:CP_Elec_8x10.5")
 				(field
@@ -351,15 +345,15 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C2983550")
 			)
 			(property
 				(name "MPN")
-				(value "")
+				(value "GVZ1H107M0810CNVC")
 			)
 			(property
 				(name "Manufacturer")
-				(value "")
+				(value "HRK")
 			)
 			(property
 				(name "Sheetname")
@@ -402,14 +396,11 @@
 			(footprint "Capacitor_SMD:C_1210_3225Metric")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C2918502")
 				(field
-					(name "MPN")
-				)
+					(name "MPN") "CS3225X7R106K500NRL")
 				(field
-					(name "Manufacturer")
-				)
+					(name "Manufacturer") "SAMWHA")
 				(field
 					(name "Footprint") "Capacitor_SMD:C_1210_3225Metric")
 				(field
@@ -426,15 +417,15 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C2918502")
 			)
 			(property
 				(name "MPN")
-				(value "")
+				(value "CS3225X7R106K500NRL")
 			)
 			(property
 				(name "Manufacturer")
-				(value "")
+				(value "SAMWHA")
 			)
 			(property
 				(name "Sheetname")
@@ -477,14 +468,11 @@
 			(footprint "Capacitor_SMD:C_1210_3225Metric")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C2918502")
 				(field
-					(name "MPN")
-				)
+					(name "MPN") "CS3225X7R106K500NRL")
 				(field
-					(name "Manufacturer")
-				)
+					(name "Manufacturer") "SAMWHA")
 				(field
 					(name "Footprint") "Capacitor_SMD:C_1210_3225Metric")
 				(field
@@ -501,15 +489,15 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C2918502")
 			)
 			(property
 				(name "MPN")
-				(value "")
+				(value "CS3225X7R106K500NRL")
 			)
 			(property
 				(name "Manufacturer")
-				(value "")
+				(value "SAMWHA")
 			)
 			(property
 				(name "Sheetname")
@@ -552,14 +540,11 @@
 			(footprint "Capacitor_SMD:C_1210_3225Metric")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C2918502")
 				(field
-					(name "MPN")
-				)
+					(name "MPN") "CS3225X7R106K500NRL")
 				(field
-					(name "Manufacturer")
-				)
+					(name "Manufacturer") "SAMWHA")
 				(field
 					(name "Footprint") "Capacitor_SMD:C_1210_3225Metric")
 				(field
@@ -576,15 +561,15 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C2918502")
 			)
 			(property
 				(name "MPN")
-				(value "")
+				(value "CS3225X7R106K500NRL")
 			)
 			(property
 				(name "Manufacturer")
-				(value "")
+				(value "SAMWHA")
 			)
 			(property
 				(name "Sheetname")
@@ -627,14 +612,11 @@
 			(footprint "Capacitor_SMD:C_1210_3225Metric")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C2918502")
 				(field
-					(name "MPN")
-				)
+					(name "MPN") "CS3225X7R106K500NRL")
 				(field
-					(name "Manufacturer")
-				)
+					(name "Manufacturer") "SAMWHA")
 				(field
 					(name "Footprint") "Capacitor_SMD:C_1210_3225Metric")
 				(field
@@ -651,15 +633,15 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C2918502")
 			)
 			(property
 				(name "MPN")
-				(value "")
+				(value "CS3225X7R106K500NRL")
 			)
 			(property
 				(name "Manufacturer")
-				(value "")
+				(value "SAMWHA")
 			)
 			(property
 				(name "Sheetname")
@@ -702,14 +684,11 @@
 			(footprint "Capacitor_SMD:C_0603_1608Metric")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C14663")
 				(field
-					(name "MPN")
-				)
+					(name "MPN") "CC0603KRX7R9BB104")
 				(field
-					(name "Manufacturer")
-				)
+					(name "Manufacturer") "YAGEO")
 				(field
 					(name "Footprint") "Capacitor_SMD:C_0603_1608Metric")
 				(field
@@ -726,15 +705,15 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C14663")
 			)
 			(property
 				(name "MPN")
-				(value "")
+				(value "CC0603KRX7R9BB104")
 			)
 			(property
 				(name "Manufacturer")
-				(value "")
+				(value "YAGEO")
 			)
 			(property
 				(name "Sheetname")
@@ -777,14 +756,11 @@
 			(footprint "Capacitor_SMD:C_0603_1608Metric")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C14663")
 				(field
-					(name "MPN")
-				)
+					(name "MPN") "CC0603KRX7R9BB104")
 				(field
-					(name "Manufacturer")
-				)
+					(name "Manufacturer") "YAGEO")
 				(field
 					(name "Footprint") "Capacitor_SMD:C_0603_1608Metric")
 				(field
@@ -801,15 +777,15 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C14663")
 			)
 			(property
 				(name "MPN")
-				(value "")
+				(value "CC0603KRX7R9BB104")
 			)
 			(property
 				(name "Manufacturer")
-				(value "")
+				(value "YAGEO")
 			)
 			(property
 				(name "Sheetname")
@@ -852,14 +828,11 @@
 			(footprint "Capacitor_SMD:C_1210_3225Metric")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C2918502")
 				(field
-					(name "MPN")
-				)
+					(name "MPN") "CS3225X7R106K500NRL")
 				(field
-					(name "Manufacturer")
-				)
+					(name "Manufacturer") "SAMWHA")
 				(field
 					(name "Footprint") "Capacitor_SMD:C_1210_3225Metric")
 				(field
@@ -876,15 +849,15 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C2918502")
 			)
 			(property
 				(name "MPN")
-				(value "")
+				(value "CS3225X7R106K500NRL")
 			)
 			(property
 				(name "Manufacturer")
-				(value "")
+				(value "SAMWHA")
 			)
 			(property
 				(name "Sheetname")
@@ -927,14 +900,11 @@
 			(footprint "Capacitor_SMD:C_0603_1608Metric")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C14663")
 				(field
-					(name "MPN")
-				)
+					(name "MPN") "CC0603KRX7R9BB104")
 				(field
-					(name "Manufacturer")
-				)
+					(name "Manufacturer") "YAGEO")
 				(field
 					(name "Footprint") "Capacitor_SMD:C_0603_1608Metric")
 				(field
@@ -951,15 +921,15 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C14663")
 			)
 			(property
 				(name "MPN")
-				(value "")
+				(value "CC0603KRX7R9BB104")
 			)
 			(property
 				(name "Manufacturer")
-				(value "")
+				(value "YAGEO")
 			)
 			(property
 				(name "Sheetname")
@@ -1002,14 +972,11 @@
 			(footprint "Capacitor_SMD:C_0805_2012Metric")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C45783")
 				(field
-					(name "MPN")
-				)
+					(name "MPN") "CL21A226MAQNNNE")
 				(field
-					(name "Manufacturer")
-				)
+					(name "Manufacturer") "Samsung Electro-Mechanics")
 				(field
 					(name "Footprint") "Capacitor_SMD:C_0805_2012Metric")
 				(field
@@ -1026,15 +993,15 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C45783")
 			)
 			(property
 				(name "MPN")
-				(value "")
+				(value "CL21A226MAQNNNE")
 			)
 			(property
 				(name "Manufacturer")
-				(value "")
+				(value "Samsung Electro-Mechanics")
 			)
 			(property
 				(name "Sheetname")
@@ -1077,14 +1044,11 @@
 			(footprint "Capacitor_SMD:C_0805_2012Metric")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C45783")
 				(field
-					(name "MPN")
-				)
+					(name "MPN") "CL21A226MAQNNNE")
 				(field
-					(name "Manufacturer")
-				)
+					(name "Manufacturer") "Samsung Electro-Mechanics")
 				(field
 					(name "Footprint") "Capacitor_SMD:C_0805_2012Metric")
 				(field
@@ -1101,15 +1065,15 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C45783")
 			)
 			(property
 				(name "MPN")
-				(value "")
+				(value "CL21A226MAQNNNE")
 			)
 			(property
 				(name "Manufacturer")
-				(value "")
+				(value "Samsung Electro-Mechanics")
 			)
 			(property
 				(name "Sheetname")
@@ -1152,14 +1116,11 @@
 			(footprint "Capacitor_SMD:C_0805_2012Metric")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C45783")
 				(field
-					(name "MPN")
-				)
+					(name "MPN") "CL21A226MAQNNNE")
 				(field
-					(name "Manufacturer")
-				)
+					(name "Manufacturer") "Samsung Electro-Mechanics")
 				(field
 					(name "Footprint") "Capacitor_SMD:C_0805_2012Metric")
 				(field
@@ -1176,15 +1137,15 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C45783")
 			)
 			(property
 				(name "MPN")
-				(value "")
+				(value "CL21A226MAQNNNE")
 			)
 			(property
 				(name "Manufacturer")
-				(value "")
+				(value "Samsung Electro-Mechanics")
 			)
 			(property
 				(name "Sheetname")
@@ -1227,14 +1188,11 @@
 			(footprint "Capacitor_SMD:C_0805_2012Metric")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C15850")
 				(field
-					(name "MPN")
-				)
+					(name "MPN") "CL21A106KAYNNNE")
 				(field
-					(name "Manufacturer")
-				)
+					(name "Manufacturer") "Samsung Electro-Mechanics")
 				(field
 					(name "Footprint") "Capacitor_SMD:C_0805_2012Metric")
 				(field
@@ -1251,15 +1209,15 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C15850")
 			)
 			(property
 				(name "MPN")
-				(value "")
+				(value "CL21A106KAYNNNE")
 			)
 			(property
 				(name "Manufacturer")
-				(value "")
+				(value "Samsung Electro-Mechanics")
 			)
 			(property
 				(name "Sheetname")
@@ -1302,14 +1260,11 @@
 			(footprint "Capacitor_SMD:C_0805_2012Metric")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C15850")
 				(field
-					(name "MPN")
-				)
+					(name "MPN") "CL21A106KAYNNNE")
 				(field
-					(name "Manufacturer")
-				)
+					(name "Manufacturer") "Samsung Electro-Mechanics")
 				(field
 					(name "Footprint") "Capacitor_SMD:C_0805_2012Metric")
 				(field
@@ -1326,15 +1281,15 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C15850")
 			)
 			(property
 				(name "MPN")
-				(value "")
+				(value "CL21A106KAYNNNE")
 			)
 			(property
 				(name "Manufacturer")
-				(value "")
+				(value "Samsung Electro-Mechanics")
 			)
 			(property
 				(name "Sheetname")
@@ -1377,12 +1332,11 @@
 			(footprint "Diode_SMD:D_SMC")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C284071")
 				(field
-					(name "MPN") "SMDJ18A")
+					(name "MPN") "5.0SMDJ18A")
 				(field
-					(name "Manufacturer") "Littelfuse")
+					(name "Manufacturer") "DOWO")
 				(field
 					(name "Footprint") "Diode_SMD:D_SMC")
 				(field
@@ -1399,15 +1353,15 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C284071")
 			)
 			(property
 				(name "MPN")
-				(value "SMDJ18A")
+				(value "5.0SMDJ18A")
 			)
 			(property
 				(name "Manufacturer")
-				(value "Littelfuse")
+				(value "DOWO")
 			)
 			(property
 				(name "Sheetname")
@@ -1450,12 +1404,11 @@
 			(footprint "Package_TO_SOT_SMD:SOT-323_SC-70")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C77328")
 				(field
 					(name "MPN") "BAT54W")
 				(field
-					(name "Manufacturer") "Nexperia")
+					(name "Manufacturer") "JSCJ")
 				(field
 					(name "Footprint") "Package_TO_SOT_SMD:SOT-323_SC-70")
 				(field
@@ -1472,7 +1425,7 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C77328")
 			)
 			(property
 				(name "MPN")
@@ -1480,7 +1433,7 @@
 			)
 			(property
 				(name "Manufacturer")
-				(value "Nexperia")
+				(value "JSCJ")
 			)
 			(property
 				(name "Sheetname")
@@ -1526,8 +1479,7 @@
 			(footprint "Diode_SMD:D_SMA")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C8678")
 				(field
 					(name "MPN") "SS34")
 				(field
@@ -1548,7 +1500,7 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C8678")
 			)
 			(property
 				(name "MPN")
@@ -1599,8 +1551,7 @@
 			(footprint "Diode_SMD:D_SMA")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C8678")
 				(field
 					(name "MPN") "SS34")
 				(field
@@ -1621,7 +1572,7 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C8678")
 			)
 			(property
 				(name "MPN")
@@ -1672,14 +1623,11 @@
 			(footprint "LED_SMD:LED_0603_1608Metric")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C965807")
 				(field
-					(name "MPN")
-				)
+					(name "MPN") "XL-1608UBC-04")
 				(field
-					(name "Manufacturer")
-				)
+					(name "Manufacturer") "XINGLIGHT")
 				(field
 					(name "Footprint") "LED_SMD:LED_0603_1608Metric")
 				(field
@@ -1696,15 +1644,15 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C965807")
 			)
 			(property
 				(name "MPN")
-				(value "")
+				(value "XL-1608UBC-04")
 			)
 			(property
 				(name "Manufacturer")
-				(value "")
+				(value "XINGLIGHT")
 			)
 			(property
 				(name "Sheetname")
@@ -1747,8 +1695,7 @@
 			(footprint "Connector_AMASS:AMASS_XT60PW-M_1x02_P7.20mm_Horizontal")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C98732")
 				(field
 					(name "MPN") "XT60PW-M")
 				(field
@@ -1769,7 +1716,7 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C98732")
 			)
 			(property
 				(name "MPN")
@@ -1820,14 +1767,11 @@
 			(footprint "Inductor_SMD:L_Bourns_SRN6045TA")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C341066")
 				(field
-					(name "MPN")
-				)
+					(name "MPN") "YNR6045-6R8M")
 				(field
-					(name "Manufacturer")
-				)
+					(name "Manufacturer") "YJYCOIN")
 				(field
 					(name "Footprint") "Inductor_SMD:L_Bourns_SRN6045TA")
 				(field
@@ -1844,15 +1788,15 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C341066")
 			)
 			(property
 				(name "MPN")
-				(value "")
+				(value "YNR6045-6R8M")
 			)
 			(property
 				(name "Manufacturer")
-				(value "")
+				(value "YJYCOIN")
 			)
 			(property
 				(name "Sheetname")
@@ -1895,14 +1839,11 @@
 			(footprint "Resistor_SMD:R_0603_1608Metric")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C25804")
 				(field
-					(name "MPN")
-				)
+					(name "MPN") "0603WAF1002T5E")
 				(field
-					(name "Manufacturer")
-				)
+					(name "Manufacturer") "UNI-ROYAL")
 				(field
 					(name "Footprint") "Resistor_SMD:R_0603_1608Metric")
 				(field
@@ -1919,15 +1860,15 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C25804")
 			)
 			(property
 				(name "MPN")
-				(value "")
+				(value "0603WAF1002T5E")
 			)
 			(property
 				(name "Manufacturer")
-				(value "")
+				(value "UNI-ROYAL")
 			)
 			(property
 				(name "Sheetname")
@@ -1970,14 +1911,11 @@
 			(footprint "Resistor_SMD:R_0603_1608Metric")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C25804")
 				(field
-					(name "MPN")
-				)
+					(name "MPN") "0603WAF1002T5E")
 				(field
-					(name "Manufacturer")
-				)
+					(name "Manufacturer") "UNI-ROYAL")
 				(field
 					(name "Footprint") "Resistor_SMD:R_0603_1608Metric")
 				(field
@@ -1994,15 +1932,15 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C25804")
 			)
 			(property
 				(name "MPN")
-				(value "")
+				(value "0603WAF1002T5E")
 			)
 			(property
 				(name "Manufacturer")
-				(value "")
+				(value "UNI-ROYAL")
 			)
 			(property
 				(name "Sheetname")
@@ -2045,14 +1983,11 @@
 			(footprint "Resistor_SMD:R_0603_1608Metric")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C2933240")
 				(field
-					(name "MPN")
-				)
+					(name "MPN") "FRC0603F5762TS")
 				(field
-					(name "Manufacturer")
-				)
+					(name "Manufacturer") "FOJAN")
 				(field
 					(name "Footprint") "Resistor_SMD:R_0603_1608Metric")
 				(field
@@ -2069,15 +2004,15 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C2933240")
 			)
 			(property
 				(name "MPN")
-				(value "")
+				(value "FRC0603F5762TS")
 			)
 			(property
 				(name "Manufacturer")
-				(value "")
+				(value "FOJAN")
 			)
 			(property
 				(name "Sheetname")
@@ -2120,14 +2055,11 @@
 			(footprint "Resistor_SMD:R_0603_1608Metric")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C25804")
 				(field
-					(name "MPN")
-				)
+					(name "MPN") "0603WAF1002T5E")
 				(field
-					(name "Manufacturer")
-				)
+					(name "Manufacturer") "UNI-ROYAL")
 				(field
 					(name "Footprint") "Resistor_SMD:R_0603_1608Metric")
 				(field
@@ -2144,15 +2076,15 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C25804")
 			)
 			(property
 				(name "MPN")
-				(value "")
+				(value "0603WAF1002T5E")
 			)
 			(property
 				(name "Manufacturer")
-				(value "")
+				(value "UNI-ROYAL")
 			)
 			(property
 				(name "Sheetname")
@@ -2195,14 +2127,11 @@
 			(footprint "Resistor_SMD:R_0603_1608Metric")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C23179")
 				(field
-					(name "MPN")
-				)
+					(name "MPN") "0603WAF4700T5E")
 				(field
-					(name "Manufacturer")
-				)
+					(name "Manufacturer") "UNI-ROYAL")
 				(field
 					(name "Footprint") "Resistor_SMD:R_0603_1608Metric")
 				(field
@@ -2219,15 +2148,15 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C23179")
 			)
 			(property
 				(name "MPN")
-				(value "")
+				(value "0603WAF4700T5E")
 			)
 			(property
 				(name "Manufacturer")
-				(value "")
+				(value "UNI-ROYAL")
 			)
 			(property
 				(name "Sheetname")
@@ -2270,14 +2199,11 @@
 			(footprint "Resistor_SMD:R_0603_1608Metric")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C21190")
 				(field
-					(name "MPN")
-				)
+					(name "MPN") "0603WAF1001T5E")
 				(field
-					(name "Manufacturer")
-				)
+					(name "Manufacturer") "UNI-ROYAL")
 				(field
 					(name "Footprint") "Resistor_SMD:R_0603_1608Metric")
 				(field
@@ -2294,15 +2220,15 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C21190")
 			)
 			(property
 				(name "MPN")
-				(value "")
+				(value "0603WAF1001T5E")
 			)
 			(property
 				(name "Manufacturer")
-				(value "")
+				(value "UNI-ROYAL")
 			)
 			(property
 				(name "Sheetname")
@@ -2345,14 +2271,11 @@
 			(footprint "Resistor_SMD:R_0603_1608Metric")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C25819")
 				(field
-					(name "MPN")
-				)
+					(name "MPN") "0603WAF4702T5E")
 				(field
-					(name "Manufacturer")
-				)
+					(name "Manufacturer") "UNI-ROYAL")
 				(field
 					(name "Footprint") "Resistor_SMD:R_0603_1608Metric")
 				(field
@@ -2369,15 +2292,15 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C25819")
 			)
 			(property
 				(name "MPN")
-				(value "")
+				(value "0603WAF4702T5E")
 			)
 			(property
 				(name "Manufacturer")
-				(value "")
+				(value "UNI-ROYAL")
 			)
 			(property
 				(name "Sheetname")
@@ -2420,14 +2343,11 @@
 			(footprint "Resistor_SMD:R_0603_1608Metric")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C25804")
 				(field
-					(name "MPN")
-				)
+					(name "MPN") "0603WAF1002T5E")
 				(field
-					(name "Manufacturer")
-				)
+					(name "Manufacturer") "UNI-ROYAL")
 				(field
 					(name "Footprint") "Resistor_SMD:R_0603_1608Metric")
 				(field
@@ -2444,15 +2364,15 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C25804")
 			)
 			(property
 				(name "MPN")
-				(value "")
+				(value "0603WAF1002T5E")
 			)
 			(property
 				(name "Manufacturer")
-				(value "")
+				(value "UNI-ROYAL")
 			)
 			(property
 				(name "Sheetname")
@@ -2495,14 +2415,11 @@
 			(footprint "Resistor_SMD:R_0603_1608Metric")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C25803")
 				(field
-					(name "MPN")
-				)
+					(name "MPN") "0603WAF1003T5E")
 				(field
-					(name "Manufacturer")
-				)
+					(name "Manufacturer") "UNI-ROYAL")
 				(field
 					(name "Footprint") "Resistor_SMD:R_0603_1608Metric")
 				(field
@@ -2519,15 +2436,15 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C25803")
 			)
 			(property
 				(name "MPN")
-				(value "")
+				(value "0603WAF1003T5E")
 			)
 			(property
 				(name "Manufacturer")
-				(value "")
+				(value "UNI-ROYAL")
 			)
 			(property
 				(name "Sheetname")
@@ -2570,14 +2487,11 @@
 			(footprint "Resistor_SMD:R_0603_1608Metric")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C21190")
 				(field
-					(name "MPN")
-				)
+					(name "MPN") "0603WAF1001T5E")
 				(field
-					(name "Manufacturer")
-				)
+					(name "Manufacturer") "UNI-ROYAL")
 				(field
 					(name "Footprint") "Resistor_SMD:R_0603_1608Metric")
 				(field
@@ -2594,15 +2508,15 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C21190")
 			)
 			(property
 				(name "MPN")
-				(value "")
+				(value "0603WAF1001T5E")
 			)
 			(property
 				(name "Manufacturer")
-				(value "")
+				(value "UNI-ROYAL")
 			)
 			(property
 				(name "Sheetname")
@@ -2645,8 +2559,7 @@
 			(footprint "da2:PG-TSDSO-14")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C534824")
 				(field
 					(name "MPN") "BTS7002-1EPP")
 				(field
@@ -2667,7 +2580,7 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C534824")
 			)
 			(property
 				(name "MPN")
@@ -2757,8 +2670,7 @@
 			(footprint "Package_TO_SOT_SMD:TSOT-23-6")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C2071868")
 				(field
 					(name "MPN") "AP63200WU-7")
 				(field
@@ -2779,7 +2691,7 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C2071868")
 			)
 			(property
 				(name "MPN")
@@ -2842,8 +2754,7 @@
 			(footprint "Package_TO_SOT_SMD:SOT-223-3_TabPin2")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C500795")
 				(field
 					(name "MPN") "AP7361C-33E-13")
 				(field
@@ -2864,7 +2775,7 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C500795")
 			)
 			(property
 				(name "MPN")
@@ -2918,14 +2829,11 @@
 			(footprint "Capacitor_SMD:C_0805_2012Metric")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C45783")
 				(field
-					(name "MPN")
-				)
+					(name "MPN") "CL21A226MAQNNNE")
 				(field
-					(name "Manufacturer")
-				)
+					(name "Manufacturer") "Samsung Electro-Mechanics")
 				(field
 					(name "Footprint") "Capacitor_SMD:C_0805_2012Metric")
 				(field
@@ -2942,15 +2850,15 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C45783")
 			)
 			(property
 				(name "MPN")
-				(value "")
+				(value "CL21A226MAQNNNE")
 			)
 			(property
 				(name "Manufacturer")
-				(value "")
+				(value "Samsung Electro-Mechanics")
 			)
 			(property
 				(name "Sheetname")
@@ -2993,14 +2901,11 @@
 			(footprint "Capacitor_SMD:C_0603_1608Metric")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C14663")
 				(field
-					(name "MPN")
-				)
+					(name "MPN") "CC0603KRX7R9BB104")
 				(field
-					(name "Manufacturer")
-				)
+					(name "Manufacturer") "YAGEO")
 				(field
 					(name "Footprint") "Capacitor_SMD:C_0603_1608Metric")
 				(field
@@ -3017,15 +2922,15 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C14663")
 			)
 			(property
 				(name "MPN")
-				(value "")
+				(value "CC0603KRX7R9BB104")
 			)
 			(property
 				(name "Manufacturer")
-				(value "")
+				(value "YAGEO")
 			)
 			(property
 				(name "Sheetname")
@@ -3068,14 +2973,11 @@
 			(footprint "Capacitor_SMD:C_0603_1608Metric")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C15849")
 				(field
-					(name "MPN")
-				)
+					(name "MPN") "CL10A105KB8NNNC")
 				(field
-					(name "Manufacturer")
-				)
+					(name "Manufacturer") "Samsung Electro-Mechanics")
 				(field
 					(name "Footprint") "Capacitor_SMD:C_0603_1608Metric")
 				(field
@@ -3092,15 +2994,15 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C15849")
 			)
 			(property
 				(name "MPN")
-				(value "")
+				(value "CL10A105KB8NNNC")
 			)
 			(property
 				(name "Manufacturer")
-				(value "")
+				(value "Samsung Electro-Mechanics")
 			)
 			(property
 				(name "Sheetname")
@@ -3143,14 +3045,11 @@
 			(footprint "Capacitor_SMD:C_0805_2012Metric")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C15850")
 				(field
-					(name "MPN")
-				)
+					(name "MPN") "CL21A106KAYNNNE")
 				(field
-					(name "Manufacturer")
-				)
+					(name "Manufacturer") "Samsung Electro-Mechanics")
 				(field
 					(name "Footprint") "Capacitor_SMD:C_0805_2012Metric")
 				(field
@@ -3167,15 +3066,15 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C15850")
 			)
 			(property
 				(name "MPN")
-				(value "")
+				(value "CL21A106KAYNNNE")
 			)
 			(property
 				(name "Manufacturer")
-				(value "")
+				(value "Samsung Electro-Mechanics")
 			)
 			(property
 				(name "Sheetname")
@@ -3218,14 +3117,11 @@
 			(footprint "Capacitor_SMD:C_0603_1608Metric")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C14663")
 				(field
-					(name "MPN")
-				)
+					(name "MPN") "CC0603KRX7R9BB104")
 				(field
-					(name "Manufacturer")
-				)
+					(name "Manufacturer") "YAGEO")
 				(field
 					(name "Footprint") "Capacitor_SMD:C_0603_1608Metric")
 				(field
@@ -3242,15 +3138,15 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C14663")
 			)
 			(property
 				(name "MPN")
-				(value "")
+				(value "CC0603KRX7R9BB104")
 			)
 			(property
 				(name "Manufacturer")
-				(value "")
+				(value "YAGEO")
 			)
 			(property
 				(name "Sheetname")
@@ -3293,14 +3189,11 @@
 			(footprint "Capacitor_SMD:C_0603_1608Metric")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C14663")
 				(field
-					(name "MPN")
-				)
+					(name "MPN") "CC0603KRX7R9BB104")
 				(field
-					(name "Manufacturer")
-				)
+					(name "Manufacturer") "YAGEO")
 				(field
 					(name "Footprint") "Capacitor_SMD:C_0603_1608Metric")
 				(field
@@ -3317,15 +3210,15 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C14663")
 			)
 			(property
 				(name "MPN")
-				(value "")
+				(value "CC0603KRX7R9BB104")
 			)
 			(property
 				(name "Manufacturer")
-				(value "")
+				(value "YAGEO")
 			)
 			(property
 				(name "Sheetname")
@@ -3368,14 +3261,11 @@
 			(footprint "LED_SMD:LED_0603_1608Metric")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C22371299")
 				(field
-					(name "MPN")
-				)
+					(name "MPN") "PSC-1608U49GC-G4")
 				(field
-					(name "Manufacturer")
-				)
+					(name "Manufacturer") "HONGLITRONIC")
 				(field
 					(name "Footprint") "LED_SMD:LED_0603_1608Metric")
 				(field
@@ -3392,15 +3282,15 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C22371299")
 			)
 			(property
 				(name "MPN")
-				(value "")
+				(value "PSC-1608U49GC-G4")
 			)
 			(property
 				(name "Manufacturer")
-				(value "")
+				(value "HONGLITRONIC")
 			)
 			(property
 				(name "Sheetname")
@@ -3560,14 +3450,11 @@
 			(footprint "Connector_PinHeader_2.54mm:PinHeader_1x04_P2.54mm_Vertical")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C2691448")
 				(field
-					(name "MPN")
-				)
+					(name "MPN") "PZ254V-11-04P")
 				(field
-					(name "Manufacturer")
-				)
+					(name "Manufacturer") "XFCN")
 				(field
 					(name "Footprint") "Connector_PinHeader_2.54mm:PinHeader_1x04_P2.54mm_Vertical")
 				(field
@@ -3584,15 +3471,15 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C2691448")
 			)
 			(property
 				(name "MPN")
-				(value "")
+				(value "PZ254V-11-04P")
 			)
 			(property
 				(name "Manufacturer")
-				(value "")
+				(value "XFCN")
 			)
 			(property
 				(name "Sheetname")
@@ -3641,14 +3528,11 @@
 			(footprint "Connector_PinHeader_2.54mm:PinHeader_1x06_P2.54mm_Vertical")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C492405")
 				(field
-					(name "MPN")
-				)
+					(name "MPN") "PZ254V-11-06P")
 				(field
-					(name "Manufacturer")
-				)
+					(name "Manufacturer") "XFCN")
 				(field
 					(name "Footprint") "Connector_PinHeader_2.54mm:PinHeader_1x06_P2.54mm_Vertical")
 				(field
@@ -3665,15 +3549,15 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C492405")
 			)
 			(property
 				(name "MPN")
-				(value "")
+				(value "PZ254V-11-06P")
 			)
 			(property
 				(name "Manufacturer")
-				(value "")
+				(value "XFCN")
 			)
 			(property
 				(name "Sheetname")
@@ -3728,14 +3612,11 @@
 			(footprint "Connector_Card:microSD_HC_Hirose_DM3BT-DSF-PEJS")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C597972")
 				(field
-					(name "MPN")
-				)
+					(name "MPN") "DM3BT-DSF-PEJS")
 				(field
-					(name "Manufacturer")
-				)
+					(name "Manufacturer") "Hirose")
 				(field
 					(name "Footprint") "Connector_Card:microSD_HC_Hirose_DM3BT-DSF-PEJS")
 				(field
@@ -3752,15 +3633,15 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C597972")
 			)
 			(property
 				(name "MPN")
-				(value "")
+				(value "DM3BT-DSF-PEJS")
 			)
 			(property
 				(name "Manufacturer")
-				(value "")
+				(value "Hirose")
 			)
 			(property
 				(name "Sheetname")
@@ -3830,14 +3711,11 @@
 			(footprint "Resistor_SMD:R_0603_1608Metric")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C25804")
 				(field
-					(name "MPN")
-				)
+					(name "MPN") "0603WAF1002T5E")
 				(field
-					(name "Manufacturer")
-				)
+					(name "Manufacturer") "UNI-ROYAL")
 				(field
 					(name "Footprint") "Resistor_SMD:R_0603_1608Metric")
 				(field
@@ -3854,15 +3732,15 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C25804")
 			)
 			(property
 				(name "MPN")
-				(value "")
+				(value "0603WAF1002T5E")
 			)
 			(property
 				(name "Manufacturer")
-				(value "")
+				(value "UNI-ROYAL")
 			)
 			(property
 				(name "Sheetname")
@@ -3905,14 +3783,11 @@
 			(footprint "Resistor_SMD:R_0603_1608Metric")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C25804")
 				(field
-					(name "MPN")
-				)
+					(name "MPN") "0603WAF1002T5E")
 				(field
-					(name "Manufacturer")
-				)
+					(name "Manufacturer") "UNI-ROYAL")
 				(field
 					(name "Footprint") "Resistor_SMD:R_0603_1608Metric")
 				(field
@@ -3929,15 +3804,15 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C25804")
 			)
 			(property
 				(name "MPN")
-				(value "")
+				(value "0603WAF1002T5E")
 			)
 			(property
 				(name "Manufacturer")
-				(value "")
+				(value "UNI-ROYAL")
 			)
 			(property
 				(name "Sheetname")
@@ -3980,14 +3855,11 @@
 			(footprint "Resistor_SMD:R_0603_1608Metric")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C21190")
 				(field
-					(name "MPN")
-				)
+					(name "MPN") "0603WAF1001T5E")
 				(field
-					(name "Manufacturer")
-				)
+					(name "Manufacturer") "UNI-ROYAL")
 				(field
 					(name "Footprint") "Resistor_SMD:R_0603_1608Metric")
 				(field
@@ -4004,15 +3876,15 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C21190")
 			)
 			(property
 				(name "MPN")
-				(value "")
+				(value "0603WAF1001T5E")
 			)
 			(property
 				(name "Manufacturer")
-				(value "")
+				(value "UNI-ROYAL")
 			)
 			(property
 				(name "Sheetname")
@@ -4055,14 +3927,11 @@
 			(footprint "Resistor_SMD:R_0603_1608Metric")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C23186")
 				(field
-					(name "MPN")
-				)
+					(name "MPN") "0603WAF5101T5E")
 				(field
-					(name "Manufacturer")
-				)
+					(name "Manufacturer") "UNI-ROYAL")
 				(field
 					(name "Footprint") "Resistor_SMD:R_0603_1608Metric")
 				(field
@@ -4079,15 +3948,15 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C23186")
 			)
 			(property
 				(name "MPN")
-				(value "")
+				(value "0603WAF5101T5E")
 			)
 			(property
 				(name "Manufacturer")
-				(value "")
+				(value "UNI-ROYAL")
 			)
 			(property
 				(name "Sheetname")
@@ -4130,14 +3999,11 @@
 			(footprint "Resistor_SMD:R_0603_1608Metric")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C23186")
 				(field
-					(name "MPN")
-				)
+					(name "MPN") "0603WAF5101T5E")
 				(field
-					(name "Manufacturer")
-				)
+					(name "Manufacturer") "UNI-ROYAL")
 				(field
 					(name "Footprint") "Resistor_SMD:R_0603_1608Metric")
 				(field
@@ -4154,15 +4020,15 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C23186")
 			)
 			(property
 				(name "MPN")
-				(value "")
+				(value "0603WAF5101T5E")
 			)
 			(property
 				(name "Manufacturer")
-				(value "")
+				(value "UNI-ROYAL")
 			)
 			(property
 				(name "Sheetname")
@@ -4205,14 +4071,11 @@
 			(footprint "Resistor_SMD:R_0603_1608Metric")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C25804")
 				(field
-					(name "MPN")
-				)
+					(name "MPN") "0603WAF1002T5E")
 				(field
-					(name "Manufacturer")
-				)
+					(name "Manufacturer") "UNI-ROYAL")
 				(field
 					(name "Footprint") "Resistor_SMD:R_0603_1608Metric")
 				(field
@@ -4229,15 +4092,15 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C25804")
 			)
 			(property
 				(name "MPN")
-				(value "")
+				(value "0603WAF1002T5E")
 			)
 			(property
 				(name "Manufacturer")
-				(value "")
+				(value "UNI-ROYAL")
 			)
 			(property
 				(name "Sheetname")
@@ -4280,14 +4143,11 @@
 			(footprint "Resistor_SMD:R_0603_1608Metric")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C25804")
 				(field
-					(name "MPN")
-				)
+					(name "MPN") "0603WAF1002T5E")
 				(field
-					(name "Manufacturer")
-				)
+					(name "Manufacturer") "UNI-ROYAL")
 				(field
 					(name "Footprint") "Resistor_SMD:R_0603_1608Metric")
 				(field
@@ -4304,15 +4164,15 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C25804")
 			)
 			(property
 				(name "MPN")
-				(value "")
+				(value "0603WAF1002T5E")
 			)
 			(property
 				(name "Manufacturer")
-				(value "")
+				(value "UNI-ROYAL")
 			)
 			(property
 				(name "Sheetname")
@@ -4355,14 +4215,11 @@
 			(footprint "Resistor_SMD:R_0603_1608Metric")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C25804")
 				(field
-					(name "MPN")
-				)
+					(name "MPN") "0603WAF1002T5E")
 				(field
-					(name "Manufacturer")
-				)
+					(name "Manufacturer") "UNI-ROYAL")
 				(field
 					(name "Footprint") "Resistor_SMD:R_0603_1608Metric")
 				(field
@@ -4379,15 +4236,15 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C25804")
 			)
 			(property
 				(name "MPN")
-				(value "")
+				(value "0603WAF1002T5E")
 			)
 			(property
 				(name "Manufacturer")
-				(value "")
+				(value "UNI-ROYAL")
 			)
 			(property
 				(name "Sheetname")
@@ -4430,14 +4287,11 @@
 			(footprint "Resistor_SMD:R_0603_1608Metric")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C25804")
 				(field
-					(name "MPN")
-				)
+					(name "MPN") "0603WAF1002T5E")
 				(field
-					(name "Manufacturer")
-				)
+					(name "Manufacturer") "UNI-ROYAL")
 				(field
 					(name "Footprint") "Resistor_SMD:R_0603_1608Metric")
 				(field
@@ -4454,15 +4308,15 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C25804")
 			)
 			(property
 				(name "MPN")
-				(value "")
+				(value "0603WAF1002T5E")
 			)
 			(property
 				(name "Manufacturer")
-				(value "")
+				(value "UNI-ROYAL")
 			)
 			(property
 				(name "Sheetname")
@@ -4505,14 +4359,11 @@
 			(footprint "Resistor_SMD:R_0603_1608Metric")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C25804")
 				(field
-					(name "MPN")
-				)
+					(name "MPN") "0603WAF1002T5E")
 				(field
-					(name "Manufacturer")
-				)
+					(name "Manufacturer") "UNI-ROYAL")
 				(field
 					(name "Footprint") "Resistor_SMD:R_0603_1608Metric")
 				(field
@@ -4529,15 +4380,15 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C25804")
 			)
 			(property
 				(name "MPN")
-				(value "")
+				(value "0603WAF1002T5E")
 			)
 			(property
 				(name "Manufacturer")
-				(value "")
+				(value "UNI-ROYAL")
 			)
 			(property
 				(name "Sheetname")
@@ -4580,14 +4431,11 @@
 			(footprint "Resistor_SMD:R_0603_1608Metric")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C25804")
 				(field
-					(name "MPN")
-				)
+					(name "MPN") "0603WAF1002T5E")
 				(field
-					(name "Manufacturer")
-				)
+					(name "Manufacturer") "UNI-ROYAL")
 				(field
 					(name "Footprint") "Resistor_SMD:R_0603_1608Metric")
 				(field
@@ -4604,15 +4452,15 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C25804")
 			)
 			(property
 				(name "MPN")
-				(value "")
+				(value "0603WAF1002T5E")
 			)
 			(property
 				(name "Manufacturer")
-				(value "")
+				(value "UNI-ROYAL")
 			)
 			(property
 				(name "Sheetname")
@@ -4655,14 +4503,11 @@
 			(footprint "Resistor_SMD:R_0603_1608Metric")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C23162")
 				(field
-					(name "MPN")
-				)
+					(name "MPN") "0603WAF4701T5E")
 				(field
-					(name "Manufacturer")
-				)
+					(name "Manufacturer") "UNI-ROYAL")
 				(field
 					(name "Footprint") "Resistor_SMD:R_0603_1608Metric")
 				(field
@@ -4679,15 +4524,15 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C23162")
 			)
 			(property
 				(name "MPN")
-				(value "")
+				(value "0603WAF4701T5E")
 			)
 			(property
 				(name "Manufacturer")
-				(value "")
+				(value "UNI-ROYAL")
 			)
 			(property
 				(name "Sheetname")
@@ -4730,14 +4575,11 @@
 			(footprint "Resistor_SMD:R_0603_1608Metric")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C23162")
 				(field
-					(name "MPN")
-				)
+					(name "MPN") "0603WAF4701T5E")
 				(field
-					(name "Manufacturer")
-				)
+					(name "Manufacturer") "UNI-ROYAL")
 				(field
 					(name "Footprint") "Resistor_SMD:R_0603_1608Metric")
 				(field
@@ -4754,15 +4596,15 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C23162")
 			)
 			(property
 				(name "MPN")
-				(value "")
+				(value "0603WAF4701T5E")
 			)
 			(property
 				(name "Manufacturer")
-				(value "")
+				(value "UNI-ROYAL")
 			)
 			(property
 				(name "Sheetname")
@@ -4805,14 +4647,11 @@
 			(footprint "Button_Switch_SMD:SW_SPST_PTS645Sx43SMTR92")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C221880")
 				(field
-					(name "MPN")
-				)
+					(name "MPN") "PTS645SM43SMTR92LFS")
 				(field
-					(name "Manufacturer")
-				)
+					(name "Manufacturer") "C&K")
 				(field
 					(name "Footprint") "Button_Switch_SMD:SW_SPST_PTS645Sx43SMTR92")
 				(field
@@ -4829,15 +4668,15 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C221880")
 			)
 			(property
 				(name "MPN")
-				(value "")
+				(value "PTS645SM43SMTR92LFS")
 			)
 			(property
 				(name "Manufacturer")
-				(value "")
+				(value "C&K")
 			)
 			(property
 				(name "Sheetname")
@@ -4876,14 +4715,11 @@
 			(footprint "Button_Switch_SMD:SW_SPST_PTS645Sx43SMTR92")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C221880")
 				(field
-					(name "MPN")
-				)
+					(name "MPN") "PTS645SM43SMTR92LFS")
 				(field
-					(name "Manufacturer")
-				)
+					(name "Manufacturer") "C&K")
 				(field
 					(name "Footprint") "Button_Switch_SMD:SW_SPST_PTS645Sx43SMTR92")
 				(field
@@ -4900,15 +4736,15 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C221880")
 			)
 			(property
 				(name "MPN")
-				(value "")
+				(value "PTS645SM43SMTR92LFS")
 			)
 			(property
 				(name "Manufacturer")
-				(value "")
+				(value "C&K")
 			)
 			(property
 				(name "Sheetname")
@@ -5136,8 +4972,7 @@
 			(footprint "Package_LGA:LGA-14_3x2.5mm_P0.5mm_LayoutBorder3x4y")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C967633")
 				(field
 					(name "MPN") "LSM6DS3TR-C")
 				(field
@@ -5158,7 +4993,7 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C967633")
 			)
 			(property
 				(name "MPN")
@@ -5245,8 +5080,7 @@
 			(footprint "Package_TO_SOT_SMD:SOT-23-6")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C7519")
 				(field
 					(name "MPN") "USBLC6-2SC6")
 				(field
@@ -5267,7 +5101,7 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C7519")
 			)
 			(property
 				(name "MPN")
@@ -5330,14 +5164,11 @@
 			(footprint "Capacitor_SMD:C_0603_1608Metric")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C14663")
 				(field
-					(name "MPN")
-				)
+					(name "MPN") "CC0603KRX7R9BB104")
 				(field
-					(name "Manufacturer")
-				)
+					(name "Manufacturer") "YAGEO")
 				(field
 					(name "Footprint") "Capacitor_SMD:C_0603_1608Metric")
 				(field
@@ -5354,15 +5185,15 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C14663")
 			)
 			(property
 				(name "MPN")
-				(value "")
+				(value "CC0603KRX7R9BB104")
 			)
 			(property
 				(name "Manufacturer")
-				(value "")
+				(value "YAGEO")
 			)
 			(property
 				(name "Sheetname")
@@ -5405,10 +5236,9 @@
 			(footprint "Diode_SMD:D_SOD-323")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C19224")
 				(field
-					(name "MPN") "PESD5V0S1BA")
+					(name "MPN") "PESD5V0S1BA,115")
 				(field
 					(name "Manufacturer") "Nexperia")
 				(field
@@ -5427,11 +5257,11 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C19224")
 			)
 			(property
 				(name "MPN")
-				(value "PESD5V0S1BA")
+				(value "PESD5V0S1BA,115")
 			)
 			(property
 				(name "Manufacturer")
@@ -5478,10 +5308,9 @@
 			(footprint "Diode_SMD:D_SOD-323")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C19224")
 				(field
-					(name "MPN") "PESD5V0S1BA")
+					(name "MPN") "PESD5V0S1BA,115")
 				(field
 					(name "Manufacturer") "Nexperia")
 				(field
@@ -5500,11 +5329,11 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C19224")
 			)
 			(property
 				(name "MPN")
-				(value "PESD5V0S1BA")
+				(value "PESD5V0S1BA,115")
 			)
 			(property
 				(name "Manufacturer")
@@ -5551,10 +5380,9 @@
 			(footprint "Diode_SMD:D_SOD-323")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C19224")
 				(field
-					(name "MPN") "PESD5V0S1BA")
+					(name "MPN") "PESD5V0S1BA,115")
 				(field
 					(name "Manufacturer") "Nexperia")
 				(field
@@ -5573,11 +5401,11 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C19224")
 			)
 			(property
 				(name "MPN")
-				(value "PESD5V0S1BA")
+				(value "PESD5V0S1BA,115")
 			)
 			(property
 				(name "Manufacturer")
@@ -5624,10 +5452,9 @@
 			(footprint "Diode_SMD:D_SOD-323")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C19224")
 				(field
-					(name "MPN") "PESD5V0S1BA")
+					(name "MPN") "PESD5V0S1BA,115")
 				(field
 					(name "Manufacturer") "Nexperia")
 				(field
@@ -5646,11 +5473,11 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C19224")
 			)
 			(property
 				(name "MPN")
-				(value "PESD5V0S1BA")
+				(value "PESD5V0S1BA,115")
 			)
 			(property
 				(name "Manufacturer")
@@ -5697,10 +5524,9 @@
 			(footprint "Diode_SMD:D_SOD-323")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C19224")
 				(field
-					(name "MPN") "PESD5V0S1BA")
+					(name "MPN") "PESD5V0S1BA,115")
 				(field
 					(name "Manufacturer") "Nexperia")
 				(field
@@ -5719,11 +5545,11 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C19224")
 			)
 			(property
 				(name "MPN")
-				(value "PESD5V0S1BA")
+				(value "PESD5V0S1BA,115")
 			)
 			(property
 				(name "Manufacturer")
@@ -5770,10 +5596,9 @@
 			(footprint "Diode_SMD:D_SOD-323")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C19224")
 				(field
-					(name "MPN") "PESD5V0S1BA")
+					(name "MPN") "PESD5V0S1BA,115")
 				(field
 					(name "Manufacturer") "Nexperia")
 				(field
@@ -5792,11 +5617,11 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C19224")
 			)
 			(property
 				(name "MPN")
-				(value "PESD5V0S1BA")
+				(value "PESD5V0S1BA,115")
 			)
 			(property
 				(name "Manufacturer")
@@ -5843,8 +5668,7 @@
 			(footprint "Connector_JST:JST_VH_B3P-VH_1x03_P3.96mm_Vertical")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C160316")
 				(field
 					(name "MPN") "B3P-VH(LF)(SN)")
 				(field
@@ -5865,7 +5689,7 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C160316")
 			)
 			(property
 				(name "MPN")
@@ -5919,8 +5743,7 @@
 			(footprint "Connector_JST:JST_VH_B3P-VH_1x03_P3.96mm_Vertical")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C160316")
 				(field
 					(name "MPN") "B3P-VH(LF)(SN)")
 				(field
@@ -5941,7 +5764,7 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C160316")
 			)
 			(property
 				(name "MPN")
@@ -5995,8 +5818,7 @@
 			(footprint "Connector_JST:JST_VH_B3P-VH_1x03_P3.96mm_Vertical")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C160316")
 				(field
 					(name "MPN") "B3P-VH(LF)(SN)")
 				(field
@@ -6017,7 +5839,7 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C160316")
 			)
 			(property
 				(name "MPN")
@@ -6071,8 +5893,7 @@
 			(footprint "Connector_JST:JST_VH_B3P-VH_1x03_P3.96mm_Vertical")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C160316")
 				(field
 					(name "MPN") "B3P-VH(LF)(SN)")
 				(field
@@ -6093,7 +5914,7 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C160316")
 			)
 			(property
 				(name "MPN")
@@ -6147,8 +5968,7 @@
 			(footprint "Connector_JST:JST_VH_B3P-VH_1x03_P3.96mm_Vertical")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C160316")
 				(field
 					(name "MPN") "B3P-VH(LF)(SN)")
 				(field
@@ -6169,7 +5989,7 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C160316")
 			)
 			(property
 				(name "MPN")
@@ -6223,8 +6043,7 @@
 			(footprint "Connector_JST:JST_VH_B3P-VH_1x03_P3.96mm_Vertical")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C160316")
 				(field
 					(name "MPN") "B3P-VH(LF)(SN)")
 				(field
@@ -6245,7 +6064,7 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C160316")
 			)
 			(property
 				(name "MPN")
@@ -6299,14 +6118,11 @@
 			(footprint "Resistor_SMD:R_0603_1608Metric")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C22962")
 				(field
-					(name "MPN")
-				)
+					(name "MPN") "0603WAF2200T5E")
 				(field
-					(name "Manufacturer")
-				)
+					(name "Manufacturer") "UNI-ROYAL")
 				(field
 					(name "Footprint") "Resistor_SMD:R_0603_1608Metric")
 				(field
@@ -6323,15 +6139,15 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C22962")
 			)
 			(property
 				(name "MPN")
-				(value "")
+				(value "0603WAF2200T5E")
 			)
 			(property
 				(name "Manufacturer")
-				(value "")
+				(value "UNI-ROYAL")
 			)
 			(property
 				(name "Sheetname")
@@ -6374,14 +6190,11 @@
 			(footprint "Resistor_SMD:R_0603_1608Metric")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C22962")
 				(field
-					(name "MPN")
-				)
+					(name "MPN") "0603WAF2200T5E")
 				(field
-					(name "Manufacturer")
-				)
+					(name "Manufacturer") "UNI-ROYAL")
 				(field
 					(name "Footprint") "Resistor_SMD:R_0603_1608Metric")
 				(field
@@ -6398,15 +6211,15 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C22962")
 			)
 			(property
 				(name "MPN")
-				(value "")
+				(value "0603WAF2200T5E")
 			)
 			(property
 				(name "Manufacturer")
-				(value "")
+				(value "UNI-ROYAL")
 			)
 			(property
 				(name "Sheetname")
@@ -6449,14 +6262,11 @@
 			(footprint "Resistor_SMD:R_0603_1608Metric")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C22962")
 				(field
-					(name "MPN")
-				)
+					(name "MPN") "0603WAF2200T5E")
 				(field
-					(name "Manufacturer")
-				)
+					(name "Manufacturer") "UNI-ROYAL")
 				(field
 					(name "Footprint") "Resistor_SMD:R_0603_1608Metric")
 				(field
@@ -6473,15 +6283,15 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C22962")
 			)
 			(property
 				(name "MPN")
-				(value "")
+				(value "0603WAF2200T5E")
 			)
 			(property
 				(name "Manufacturer")
-				(value "")
+				(value "UNI-ROYAL")
 			)
 			(property
 				(name "Sheetname")
@@ -6524,14 +6334,11 @@
 			(footprint "Resistor_SMD:R_0603_1608Metric")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C22962")
 				(field
-					(name "MPN")
-				)
+					(name "MPN") "0603WAF2200T5E")
 				(field
-					(name "Manufacturer")
-				)
+					(name "Manufacturer") "UNI-ROYAL")
 				(field
 					(name "Footprint") "Resistor_SMD:R_0603_1608Metric")
 				(field
@@ -6548,15 +6355,15 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C22962")
 			)
 			(property
 				(name "MPN")
-				(value "")
+				(value "0603WAF2200T5E")
 			)
 			(property
 				(name "Manufacturer")
-				(value "")
+				(value "UNI-ROYAL")
 			)
 			(property
 				(name "Sheetname")
@@ -6599,14 +6406,11 @@
 			(footprint "Resistor_SMD:R_0603_1608Metric")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C22962")
 				(field
-					(name "MPN")
-				)
+					(name "MPN") "0603WAF2200T5E")
 				(field
-					(name "Manufacturer")
-				)
+					(name "Manufacturer") "UNI-ROYAL")
 				(field
 					(name "Footprint") "Resistor_SMD:R_0603_1608Metric")
 				(field
@@ -6623,15 +6427,15 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C22962")
 			)
 			(property
 				(name "MPN")
-				(value "")
+				(value "0603WAF2200T5E")
 			)
 			(property
 				(name "Manufacturer")
-				(value "")
+				(value "UNI-ROYAL")
 			)
 			(property
 				(name "Sheetname")
@@ -6674,14 +6478,11 @@
 			(footprint "Resistor_SMD:R_0603_1608Metric")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C22962")
 				(field
-					(name "MPN")
-				)
+					(name "MPN") "0603WAF2200T5E")
 				(field
-					(name "Manufacturer")
-				)
+					(name "Manufacturer") "UNI-ROYAL")
 				(field
 					(name "Footprint") "Resistor_SMD:R_0603_1608Metric")
 				(field
@@ -6698,15 +6499,15 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C22962")
 			)
 			(property
 				(name "MPN")
-				(value "")
+				(value "0603WAF2200T5E")
 			)
 			(property
 				(name "Manufacturer")
-				(value "")
+				(value "UNI-ROYAL")
 			)
 			(property
 				(name "Sheetname")
@@ -6749,10 +6550,9 @@
 			(footprint "Package_SO:TSSOP-20_4.4x6.5mm_P0.65mm")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C5980")
 				(field
-					(name "MPN") "74HCT245PW")
+					(name "MPN") "74HCT245PW,118")
 				(field
 					(name "Manufacturer") "Nexperia")
 				(field
@@ -6771,11 +6571,11 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C5980")
 			)
 			(property
 				(name "MPN")
-				(value "74HCT245PW")
+				(value "74HCT245PW,118")
 			)
 			(property
 				(name "Manufacturer")
@@ -6876,14 +6676,11 @@
 			(footprint "Capacitor_SMD:C_0603_1608Metric")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C14663")
 				(field
-					(name "MPN")
-				)
+					(name "MPN") "CC0603KRX7R9BB104")
 				(field
-					(name "Manufacturer")
-				)
+					(name "Manufacturer") "YAGEO")
 				(field
 					(name "Footprint") "Capacitor_SMD:C_0603_1608Metric")
 				(field
@@ -6900,15 +6697,15 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C14663")
 			)
 			(property
 				(name "MPN")
-				(value "")
+				(value "CC0603KRX7R9BB104")
 			)
 			(property
 				(name "Manufacturer")
-				(value "")
+				(value "YAGEO")
 			)
 			(property
 				(name "Sheetname")
@@ -6951,14 +6748,11 @@
 			(footprint "Capacitor_SMD:C_0603_1608Metric")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C14663")
 				(field
-					(name "MPN")
-				)
+					(name "MPN") "CC0603KRX7R9BB104")
 				(field
-					(name "Manufacturer")
-				)
+					(name "Manufacturer") "YAGEO")
 				(field
 					(name "Footprint") "Capacitor_SMD:C_0603_1608Metric")
 				(field
@@ -6975,15 +6769,15 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C14663")
 			)
 			(property
 				(name "MPN")
-				(value "")
+				(value "CC0603KRX7R9BB104")
 			)
 			(property
 				(name "Manufacturer")
-				(value "")
+				(value "YAGEO")
 			)
 			(property
 				(name "Sheetname")
@@ -7026,14 +6820,11 @@
 			(footprint "Capacitor_SMD:C_0603_1608Metric")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C14663")
 				(field
-					(name "MPN")
-				)
+					(name "MPN") "CC0603KRX7R9BB104")
 				(field
-					(name "Manufacturer")
-				)
+					(name "Manufacturer") "YAGEO")
 				(field
 					(name "Footprint") "Capacitor_SMD:C_0603_1608Metric")
 				(field
@@ -7050,15 +6841,15 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C14663")
 			)
 			(property
 				(name "MPN")
-				(value "")
+				(value "CC0603KRX7R9BB104")
 			)
 			(property
 				(name "Manufacturer")
-				(value "")
+				(value "YAGEO")
 			)
 			(property
 				(name "Sheetname")
@@ -7101,10 +6892,9 @@
 			(footprint "Package_TO_SOT_SMD:SOT-23")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C15771")
 				(field
-					(name "MPN") "PESD1CAN")
+					(name "MPN") "PESD1CAN,215")
 				(field
 					(name "Manufacturer") "Nexperia")
 				(field
@@ -7123,11 +6913,11 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C15771")
 			)
 			(property
 				(name "MPN")
-				(value "PESD1CAN")
+				(value "PESD1CAN,215")
 			)
 			(property
 				(name "Manufacturer")
@@ -7173,8 +6963,7 @@
 			(footprint "Diode_SMD:D_SMA")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C148222")
 				(field
 					(name "MPN") "SMAJ24A")
 				(field
@@ -7195,7 +6984,7 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C148222")
 			)
 			(property
 				(name "MPN")
@@ -7246,8 +7035,7 @@
 			(footprint "Connector_JST:JST_XH_B4B-XH-A_1x04_P2.50mm_Vertical")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C144395")
 				(field
 					(name "MPN") "B4B-XH-A(LF)(SN)")
 				(field
@@ -7268,7 +7056,7 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C144395")
 			)
 			(property
 				(name "MPN")
@@ -7325,14 +7113,11 @@
 			(footprint "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C492401")
 				(field
-					(name "MPN")
-				)
+					(name "MPN") "PZ254V-11-02P")
 				(field
-					(name "Manufacturer")
-				)
+					(name "Manufacturer") "XFCN")
 				(field
 					(name "Footprint") "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical")
 				(field
@@ -7349,15 +7134,15 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C492401")
 			)
 			(property
 				(name "MPN")
-				(value "")
+				(value "PZ254V-11-02P")
 			)
 			(property
 				(name "Manufacturer")
-				(value "")
+				(value "XFCN")
 			)
 			(property
 				(name "Sheetname")
@@ -7400,14 +7185,11 @@
 			(footprint "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C492401")
 				(field
-					(name "MPN")
-				)
+					(name "MPN") "PZ254V-11-02P")
 				(field
-					(name "Manufacturer")
-				)
+					(name "Manufacturer") "XFCN")
 				(field
 					(name "Footprint") "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical")
 				(field
@@ -7424,15 +7206,15 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C492401")
 			)
 			(property
 				(name "MPN")
-				(value "")
+				(value "PZ254V-11-02P")
 			)
 			(property
 				(name "Manufacturer")
-				(value "")
+				(value "XFCN")
 			)
 			(property
 				(name "Sheetname")
@@ -7475,14 +7257,11 @@
 			(footprint "Resistor_SMD:R_1206_3216Metric")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C17909")
 				(field
-					(name "MPN")
-				)
+					(name "MPN") "1206W4F1200T5E")
 				(field
-					(name "Manufacturer")
-				)
+					(name "Manufacturer") "UNI-ROYAL")
 				(field
 					(name "Footprint") "Resistor_SMD:R_1206_3216Metric")
 				(field
@@ -7499,15 +7278,15 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C17909")
 			)
 			(property
 				(name "MPN")
-				(value "")
+				(value "1206W4F1200T5E")
 			)
 			(property
 				(name "Manufacturer")
-				(value "")
+				(value "UNI-ROYAL")
 			)
 			(property
 				(name "Sheetname")
@@ -7550,14 +7329,11 @@
 			(footprint "Resistor_SMD:R_0603_1608Metric")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C25804")
 				(field
-					(name "MPN")
-				)
+					(name "MPN") "0603WAF1002T5E")
 				(field
-					(name "Manufacturer")
-				)
+					(name "Manufacturer") "UNI-ROYAL")
 				(field
 					(name "Footprint") "Resistor_SMD:R_0603_1608Metric")
 				(field
@@ -7574,15 +7350,15 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C25804")
 			)
 			(property
 				(name "MPN")
-				(value "")
+				(value "0603WAF1002T5E")
 			)
 			(property
 				(name "Manufacturer")
-				(value "")
+				(value "UNI-ROYAL")
 			)
 			(property
 				(name "Sheetname")
@@ -7625,14 +7401,11 @@
 			(footprint "Resistor_SMD:R_2512_6332Metric")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C2934121")
 				(field
-					(name "MPN")
-				)
+					(name "MPN") "FRC2512J511TS")
 				(field
-					(name "Manufacturer")
-				)
+					(name "Manufacturer") "FOJAN")
 				(field
 					(name "Footprint") "Resistor_SMD:R_2512_6332Metric")
 				(field
@@ -7649,15 +7422,15 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C2934121")
 			)
 			(property
 				(name "MPN")
-				(value "")
+				(value "FRC2512J511TS")
 			)
 			(property
 				(name "Manufacturer")
-				(value "")
+				(value "FOJAN")
 			)
 			(property
 				(name "Sheetname")
@@ -7700,8 +7473,7 @@
 			(footprint "Package_SO:SOIC-8_3.9x4.9mm_P1.27mm")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C58988")
 				(field
 					(name "MPN") "TJA1051T/3,118")
 				(field
@@ -7722,7 +7494,7 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C58988")
 			)
 			(property
 				(name "MPN")
@@ -7791,8 +7563,7 @@
 			(footprint "Package_SO:SOIC-8_3.9x4.9mm_P1.27mm")
 			(fields
 				(field
-					(name "LCSC")
-				)
+					(name "LCSC") "C112994")
 				(field
 					(name "MPN") "TJA1027T/20,118")
 				(field
@@ -7813,7 +7584,7 @@
 			)
 			(property
 				(name "LCSC")
-				(value "")
+				(value "C112994")
 			)
 			(property
 				(name "MPN")

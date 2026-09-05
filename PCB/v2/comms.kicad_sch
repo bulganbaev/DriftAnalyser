@@ -1631,7 +1631,7 @@
         )
       )
     )
-    (property "LCSC" ""
+    (property "LCSC" "C144395"
       (at 33.02 15.24 0)
       (hide yes)
       (effects
@@ -1861,7 +1861,7 @@
         )
       )
     )
-    (property "LCSC" ""
+    (property "LCSC" "C58988"
       (at 71.12 33.02 0)
       (hide yes)
       (effects
@@ -2231,7 +2231,7 @@
         )
       )
     )
-    (property "LCSC" ""
+    (property "LCSC" "C25804"
       (at 106.68 27.94 0)
       (hide yes)
       (effects
@@ -2240,7 +2240,7 @@
         )
       )
     )
-    (property "MPN" ""
+    (property "MPN" "0603WAF1002T5E"
       (at 106.68 27.94 0)
       (hide yes)
       (effects
@@ -2249,7 +2249,7 @@
         )
       )
     )
-    (property "Manufacturer" ""
+    (property "Manufacturer" "UNI-ROYAL"
       (at 106.68 27.94 0)
       (hide yes)
       (effects
@@ -2391,7 +2391,7 @@
         )
       )
     )
-    (property "LCSC" ""
+    (property "LCSC" "C14663"
       (at 119.38 27.94 0)
       (hide yes)
       (effects
@@ -2400,7 +2400,7 @@
         )
       )
     )
-    (property "MPN" ""
+    (property "MPN" "CC0603KRX7R9BB104"
       (at 119.38 27.94 0)
       (hide yes)
       (effects
@@ -2409,7 +2409,7 @@
         )
       )
     )
-    (property "Manufacturer" ""
+    (property "Manufacturer" "YAGEO"
       (at 119.38 27.94 0)
       (hide yes)
       (effects
@@ -2551,7 +2551,7 @@
         )
       )
     )
-    (property "LCSC" ""
+    (property "LCSC" "C14663"
       (at 132.08 27.94 0)
       (hide yes)
       (effects
@@ -2560,7 +2560,7 @@
         )
       )
     )
-    (property "MPN" ""
+    (property "MPN" "CC0603KRX7R9BB104"
       (at 132.08 27.94 0)
       (hide yes)
       (effects
@@ -2569,7 +2569,7 @@
         )
       )
     )
-    (property "Manufacturer" ""
+    (property "Manufacturer" "YAGEO"
       (at 132.08 27.94 0)
       (hide yes)
       (effects
@@ -2711,7 +2711,7 @@
         )
       )
     )
-    (property "LCSC" ""
+    (property "LCSC" "C17909"
       (at 142.24 30.48 0)
       (hide yes)
       (effects
@@ -2720,7 +2720,7 @@
         )
       )
     )
-    (property "MPN" ""
+    (property "MPN" "1206W4F1200T5E"
       (at 142.24 30.48 0)
       (hide yes)
       (effects
@@ -2729,7 +2729,7 @@
         )
       )
     )
-    (property "Manufacturer" ""
+    (property "Manufacturer" "UNI-ROYAL"
       (at 142.24 30.48 0)
       (hide yes)
       (effects
@@ -2871,7 +2871,7 @@
         )
       )
     )
-    (property "LCSC" ""
+    (property "LCSC" "C492401"
       (at 175.26 12.7 0)
       (hide yes)
       (effects
@@ -2880,7 +2880,7 @@
         )
       )
     )
-    (property "MPN" ""
+    (property "MPN" "PZ254V-11-02P"
       (at 175.26 12.7 0)
       (hide yes)
       (effects
@@ -2889,7 +2889,7 @@
         )
       )
     )
-    (property "Manufacturer" ""
+    (property "Manufacturer" "XFCN"
       (at 175.26 12.7 0)
       (hide yes)
       (effects
@@ -3031,7 +3031,7 @@
         )
       )
     )
-    (property "LCSC" ""
+    (property "LCSC" "C15771"
       (at 205.74 12.7 0)
       (hide yes)
       (effects
@@ -3040,7 +3040,7 @@
         )
       )
     )
-    (property "MPN" "PESD1CAN"
+    (property "MPN" "PESD1CAN,215"
       (at 205.74 12.7 0)
       (hide yes)
       (effects
@@ -3226,7 +3226,7 @@
         )
       )
     )
-    (property "LCSC" ""
+    (property "LCSC" "C112994"
       (at 35.56 93.98 0)
       (hide yes)
       (effects
@@ -3540,7 +3540,7 @@
         )
       )
     )
-    (property "LCSC" ""
+    (property "LCSC" "C14663"
       (at 71.12 88.9 0)
       (hide yes)
       (effects
@@ -3549,7 +3549,7 @@
         )
       )
     )
-    (property "MPN" ""
+    (property "MPN" "CC0603KRX7R9BB104"
       (at 71.12 88.9 0)
       (hide yes)
       (effects
@@ -3558,7 +3558,7 @@
         )
       )
     )
-    (property "Manufacturer" ""
+    (property "Manufacturer" "YAGEO"
       (at 71.12 88.9 0)
       (hide yes)
       (effects
@@ -3700,7 +3700,7 @@
         )
       )
     )
-    (property "LCSC" ""
+    (property "LCSC" "C2934121"
       (at 86.36 88.9 0)
       (hide yes)
       (effects
@@ -3709,7 +3709,7 @@
         )
       )
     )
-    (property "MPN" ""
+    (property "MPN" "FRC2512J511TS"
       (at 86.36 88.9 0)
       (hide yes)
       (effects
@@ -3718,7 +3718,7 @@
         )
       )
     )
-    (property "Manufacturer" ""
+    (property "Manufacturer" "FOJAN"
       (at 86.36 88.9 0)
       (hide yes)
       (effects
@@ -3860,7 +3860,7 @@
         )
       )
     )
-    (property "LCSC" ""
+    (property "LCSC" "C492401"
       (at 116.84 71.12 0)
       (hide yes)
       (effects
@@ -3869,7 +3869,7 @@
         )
       )
     )
-    (property "MPN" ""
+    (property "MPN" "PZ254V-11-02P"
       (at 116.84 71.12 0)
       (hide yes)
       (effects
@@ -3878,7 +3878,7 @@
         )
       )
     )
-    (property "Manufacturer" ""
+    (property "Manufacturer" "XFCN"
       (at 116.84 71.12 0)
       (hide yes)
       (effects
@@ -4020,7 +4020,7 @@
         )
       )
     )
-    (property "LCSC" ""
+    (property "LCSC" "C148222"
       (at 144.78 71.12 0)
       (hide yes)
       (effects
