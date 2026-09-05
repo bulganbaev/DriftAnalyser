@@ -1,0 +1,4 @@
+(fp_lib_table
+  (version 7)
+  (lib (name "da2")(type "KiCad")(uri "${KIPRJMOD}/lib/da2.pretty")(options "")(descr "DriftAnalyser v2 custom footprints"))
+)
