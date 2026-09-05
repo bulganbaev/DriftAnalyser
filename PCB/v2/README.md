@@ -15,14 +15,16 @@ lookup time and will drift.
 | D1 | SMDJ18A | 5.0SMDJ18A (DOWO) | C284071 | Extended | 2,925 | 2026-09-06 |
 | C1, C2 | 100uF 35V | GVZ1H107M0810CNVC (HRK) | C2983550 | Extended | 66,426 | 2026-09-06 |
 | C3, C4, C5, C6, C9 | 10uF 50V | CS3225X7R106K500NRL (SAMWHA) | C2918502 | Extended | 114,648 | 2026-09-06 |
-| U2 | BTS7002-1EPP | BTS7002-1EPP (Infineon) | C534824 | Extended | not confirmed - see CONCERNS | 2026-09-06 |
+| U2 | BTS7002-1EPP | BTS70021EPPXUMA1 (Infineon) | C2680407 | Extended | 273 | 2026-09-06 |
+| U2 fallback | BTS7004-1EPP | BTS7004-1EPP (Infineon) | C534825 | Extended | 3,100 (4.4mOhm, 15A, same TSDSO-14 pkg/pinout, drop-in if 7002 out at order time) | 2026-09-06 |
 | R1, R2, R4, R8, R11, R12, R16-R21, R41 | 10k | 0603WAF1002T5E (UNI-ROYAL) | C25804 | Basic | 37,165,617 | 2026-09-06 |
 | R5 | 470 | 0603WAF4700T5E (UNI-ROYAL) | C23179 | Basic | 2,964,915 | 2026-09-06 |
 | R6, R10, R13 | 1k | 0603WAF1001T5E (UNI-ROYAL) | C21190 | Basic | 15,873,089 | 2026-09-06 |
 | C7, C8, C10, C17, C20, C21, C22, C23, C24, C25 | 100nF | CC0603KRX7R9BB104 (YAGEO) | C14663 | Basic | 81,299,425 | 2026-09-06 |
 | D2 | BAT54W | BAT54W (JSCJ) | C77328 | Extended | 4,671-7,360 | 2026-09-06 |
 | R7 | 47k | 0603WAF4702T5E (UNI-ROYAL) | C25819 | Basic | 5,115,474 | 2026-09-06 |
-| U3 | AP63200WU-7 | AP63200WU-7 (Diodes Inc) | C2071868 | Extended | 0 - OUT OF STOCK, see CONCERNS | 2026-09-06 |
+| U3 | AP63200WU-7 | AP63200WU-7 (Diodes Inc) | C2071868 | Extended | lcsc.com retail: 0/Out of Stock; JLC assembly mirror: 2,599 - kept, two pools differ | 2026-09-06 |
+| U3 fallback | TPS54302DDCR | TPS54302DDCR (TI) | C311983 | Extended | 84,590 (adjustable 4.5-28V; needs FB divider 80.6k/10k for 5.4V @ 0.596V ref + EN divider; requires redrawing U3, not done) | 2026-09-06 |
 | L1 | 6.8uH | YNR6045-6R8M (YJYCOIN) | C341066 | Extended | 8,265 | 2026-09-06 |
 | C11, C12, C13, C16 | 22uF 10V | CL21A226MAQNNNE (Samsung Electro-Mechanics) | C45783 | Basic | 5,389,915 | 2026-09-06 |
 | R3 | 57.6k | FRC0603F5762TS (FOJAN) | C2933240 | Extended | 25,989 | 2026-09-06 |
@@ -73,26 +75,23 @@ lookup time and will drift.
   needed. (This is a better source than the old board's SHOU HAN "TF PUSH" clone,
   C393941, which is only 8 contacts with no separate card-detect pins.)
 
-### CONCERNS - need controller decision
+### Resolved concerns (controller rulings, fix round after Task 10)
 
-1. **U3 `AP63200WU-7`** (C2071868, Diodes Inc): confirmed **OUT OF STOCK** on lcsc.com
-   (explicit "Out of Stock" / "Notify Me" badge, checked live twice in this session).
-   No in-stock adjustable-output TSOT-23-6 buck with a confirmed matching
-   FB/EN/IN/GND/SW/BST pin order was found (`AP63203WU-7`/`AP63205WU-7` are fixed
-   3.3V/5V and can't hit the needed 5.4V; `DIO54270TST6`/`TP6841S6` are in-stock
-   adjustable TSOT-23-6 candidates but their pinout vs. this symbol is unverified).
-   Left `lcsc="C2071868"` in the model (it is the real, correct part number) pending a
-   controller decision: wait for restock, or approve swapping to `TPS54302` and
-   redrawing U3 per the task brief's fallback.
-2. **U2 `BTS7002-1EPP`** (Infineon): `jlcpcb.com/partdetail/.../C534824` confirms this
-   is a real, catalogued Extended-category JLCPCB part, but its stock count could not
-   be read (rendered client-side, not visible to static fetch), and lcsc.com's own
-   storefront page for `C534824` 404s (its siblings `BTS7004-1EPP`/`C534825` and
-   `BTS7006-1EPP`/`C534826` do have live storefront pages), which is a warning sign it
-   may be delisted from LCSC's retail catalog even if still JLCPCB-assembly-listed.
-   Left `lcsc="C534824"` (the real part number) in the model. Controller should verify
-   live JLCPCB stock before ordering, or approve the AOD4185x2 dual-MOSFET fallback
-   redesign from the task brief (not applied - it removes/adds several parts and is a
-   bigger change than this task's scope).
+1. **U3 `AP63200WU-7`** (C2071868, Diodes Inc): lcsc.com's retail storefront page shows
+   "Out of Stock", but the JLC parts mirror (jlcsearch.tscircuit.com) shows this same
+   LCSC code has 2,599 units available for SMT assembly - LCSC's retail stock and
+   JLCPCB's assembly-reel stock are separate pools, and assembly is what matters for
+   this board. **Controller ruling: keep C2071868.** Fallback recorded above
+   (`TPS54302DDCR`, C311983) if assembly stock is actually empty at order time - not
+   applied, needs an FB divider (80.6k/10k for 5.4V against its 0.596V reference), an
+   EN divider, and redrawing U3's pinout (its symbol pins differ from AP63200WU).
+2. **U2 `BTS7002-1EPP`**: `C534824` (used in the original Task 10 pass) 404s on
+   lcsc.com because it isn't the live JLC listing for this part. The JLC parts mirror
+   (`jlcsearch.tscircuit.com/api/search?q=BTS7002-1EPP`) resolves it to **LCSC
+   `C2680407`** (mfr code `BTS70021EPPXUMA1`, TSSOP-14-EP package, 273 in stock,
+   $3.77). **Controller ruling: set `U2.lcsc = "C2680407"`, `mpn =
+   "BTS70021EPPXUMA1"`.** Fallback recorded above (`BTS7004-1EPP`, C534825, same
+   TSDSO-14 package/pinout, 4.4mOhm/15A, 3,100 in stock) if 7002 is out at order time.
 3. **J6 / D20 stock**: `B4B-XH-A(LF)(SN)` (C144395, 611 units) and the rest are fine
    for a small hobby-quantity JLCPCB order but are thin; re-check before a larger run.
+   (Still open, not part of the controller rulings above.)

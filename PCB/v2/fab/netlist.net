@@ -2,7 +2,7 @@
 	(version "E")
 	(design
 		(source "/Users/bulganbaev/Documents/Code/DriftAnalyser/PCB/v2/driftanalyser-v2.kicad_sch")
-		(date "2026-09-06T04:50:43")
+		(date "2026-09-06T04:55:16")
 		(tool "Eeschema 10.0.6")
 		(sheet
 			(number "1")
@@ -2559,9 +2559,9 @@
 			(footprint "da2:PG-TSDSO-14")
 			(fields
 				(field
-					(name "LCSC") "C534824")
+					(name "LCSC") "C2680407")
 				(field
-					(name "MPN") "BTS7002-1EPP")
+					(name "MPN") "BTS70021EPPXUMA1")
 				(field
 					(name "Manufacturer") "Infineon")
 				(field
@@ -2580,11 +2580,11 @@
 			)
 			(property
 				(name "LCSC")
-				(value "C534824")
+				(value "C2680407")
 			)
 			(property
 				(name "MPN")
-				(value "BTS7002-1EPP")
+				(value "BTS70021EPPXUMA1")
 			)
 			(property
 				(name "Manufacturer")

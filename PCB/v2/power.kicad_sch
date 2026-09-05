@@ -3756,7 +3756,7 @@
         )
       )
     )
-    (property "LCSC" "C534824"
+    (property "LCSC" "C2680407"
       (at 210.82 25.4 0)
       (hide yes)
       (effects
@@ -3765,7 +3765,7 @@
         )
       )
     )
-    (property "MPN" "BTS7002-1EPP"
+    (property "MPN" "BTS70021EPPXUMA1"
       (at 210.82 25.4 0)
       (hide yes)
       (effects

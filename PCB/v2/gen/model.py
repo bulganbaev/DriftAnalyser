@@ -72,16 +72,17 @@ _add(
     # Pinout confirmed from Infineon datasheet Rev 1.11 (2024-07-29), Table 2 / Figure 4:
     # 1 GND, 2 IN, 3 DEN, 4 IS, 5-7 n.c., 8-10 OUT, 11 n.c., 12-14 OUT, EP (exposed pad) = VS.
     # Note: pin 11 is n.c. (not an OUT pin) - the brief's "8..14 all OUT" assumption was wrong.
-    # BTS7002-1EPP: not listed on lcsc.com storefront (its siblings BTS7004-1EPP/BTS7006-1EPP
-    # are); jlcpcb.com/partdetail confirms C534824 as a real, catalogued Extended part for this
-    # exact MPN but does not render a numeric stock count via static fetch - see README /
-    # task-10 report CONCERNS. Using the real part number; controller to confirm live stock
-    # before order, or approve the AOD4185x2 dual-MOSFET fallback from the task brief.
+    # BTS7002-1EPP: C534824 (used in Task 10) 404s on lcsc.com's storefront because that's not
+    # the live JLC listing - the JLC parts mirror (jlcsearch.tscircuit.com/api/search) resolves
+    # this exact MPN to LCSC C2680407 (mfr code BTS70021EPPXUMA1, TSSOP-14-EP package,
+    # stock 273 at $3.77) per controller ruling on the Task 10 report. Fallback if out of stock
+    # at order time: BTS7004-1EPP (C534825, TSDSO-14, same pinout, 4.4mOhm/15A, 3100 in stock) -
+    # see README BOM sources.
     Part("U2", "BTS7002-1EPP", "da2:BTS7002-1EPP", "da2:PG-TSDSO-14",
          {"1": "GND", "2": "LED_PWR_EN", "3": "DEN", "4": "IS_RAW", "5": "NC", "6": "NC", "7": "NC",
           "8": "12V_LED", "9": "12V_LED", "10": "12V_LED", "11": "NC", "12": "12V_LED",
           "13": "12V_LED", "14": "12V_LED", "15": "VBAT"},
-         "power", lcsc="C534824", mpn="BTS7002-1EPP", mfr="Infineon"),
+         "power", lcsc="C2680407", mpn="BTS70021EPPXUMA1", mfr="Infineon"),
     R("R1", "10k", "LED_PWR_EN", "GND", "power", "0603", lcsc="C25804", mpn="0603WAF1002T5E", mfr="UNI-ROYAL"),        # switch off until firmware says otherwise
     R("R2", "10k", "DEN", "3V3", "power", "0603", lcsc="C25804", mpn="0603WAF1002T5E", mfr="UNI-ROYAL"),               # diagnosis always enabled
     R("R5", "470", "IS_RAW", "GND", "power", "0603", lcsc="C23179", mpn="0603WAF4700T5E", mfr="UNI-ROYAL"),            # IS sense: 30 A -> 0.62 V (kILIS 22700)
@@ -104,13 +105,14 @@ _add(
     # logic buck 12 V -> 5.4 V. Symbol is "AP63200WU" in Regulator_Switching.kicad_sym
     # (the "-7" is a Diodes Inc. tape-and-reel suffix, not part of the symbol name).
     # Pins confirmed from the symbol: 1 FB, 2 EN, 3 IN(VIN), 4 GND, 5 SW, 6 BST.
-    # AP63200WU-7 (C2071868, Diodes Inc) is confirmed OUT OF STOCK on lcsc.com (explicit
-    # "Out of Stock" / "Notify Me" badge, checked live twice). No adjustable-output TSOT-23-6
-    # buck with a matching FB/EN/IN/GND/SW/BST pinout was found in stock (candidates
-    # DIO54270TST6/TP6841S6 exist but their pin order isn't confirmed against this symbol, and
-    # AP63203WU-7/AP63205WU-7 are fixed 3.3V/5V - can't hit the needed 5.4V). Kept the real,
-    # correct part number pending a controller decision: wait for restock, or approve swapping
-    # to TPS54302 + redrawing U3 per the task brief. See README / task-10 report CONCERNS.
+    # AP63200WU-7 (C2071868, Diodes Inc): lcsc.com's retail storefront page shows "Out of
+    # Stock", but the JLC parts mirror (jlcsearch.tscircuit.com) shows 2599 units available for
+    # SMT assembly against this same LCSC code - JLCPCB's assembly stock and LCSC's retail
+    # storefront stock are separate pools. Per controller ruling, kept C2071868. Fallback if
+    # assembly stock is actually empty at order time: TPS54302DDCR (C311983, TSOT-23-6,
+    # adjustable, 4.5-28V, 84590 in stock) - needs an FB divider of 80.6k/10k for 5.4V against
+    # its 0.596V reference and an EN divider, and requires redrawing U3's pinout (not done here,
+    # symbol pins differ from AP63200WU) - see README BOM sources.
     Part("U3", "AP63200WU-7", "Regulator_Switching:AP63200WU",
          "Package_TO_SOT_SMD:TSOT-23-6",
          {"1": "BUCK_FB", "2": "BUCK_EN", "3": "VBAT", "4": "GND", "5": "BUCK_SW", "6": "BUCK_BST"},
