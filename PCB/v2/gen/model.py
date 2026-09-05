@@ -251,3 +251,42 @@ for _i in range(1, 7):
              {"1": "12V_LED", "2": f"LED{_i}_DATA", "3": "GND"}, "leds", mpn="B3P-VH(LF)(SN)", mfr="JST"),
     )
 
+# ---------------- comms sheet ----------------
+_add(
+    Part("J6", "OBD", "Connector_Generic:Conn_01x04", "Connector_JST:JST_XH_B4B-XH-A_1x04_P2.50mm_Vertical",
+         {"1": "CANH", "2": "CANL", "3": "K_LINE", "4": "GND"}, "comms", mpn="B4B-XH-A(LF)(SN)", mfr="JST"),
+
+    # CAN. Interface_CAN_LIN:TJA1051T-3 pins confirmed from the symbol:
+    # 1 TXD, 2 GND, 3 VCC, 4 RXD, 5 VIO, 6 CANL, 7 CANH, 8 S.
+    Part("U8", "TJA1051T/3", "Interface_CAN_LIN:TJA1051T-3", "Package_SO:SOIC-8_3.9x4.9mm_P1.27mm",
+         {"1": "CAN_TX", "2": "GND", "3": "5V", "4": "CAN_RX", "5": "3V3", "6": "CANL", "7": "CANH", "8": "CAN_STB"},
+         "comms", mpn="TJA1051T/3,118", mfr="NXP"),
+    R("R41", "10k", "3V3", "CAN_STB", "comms", "0603"),       # silent until firmware drives it
+    C("C23", "100nF", "5V", "GND", "comms", "0603"),
+    C("C24", "100nF", "3V3", "GND", "comms", "0603"),
+    R("R40", "120", "CANH", "CAN_TERM", "comms", "1206"),
+    Part("JP1", "CAN TERM", "Connector_Generic:Conn_01x02", "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical",
+         {"1": "CAN_TERM", "2": "CANL"}, "comms"),
+    # Power_Protection:PESD1CAN doesn't exist in this KiCad (grep -n on Power_Protection.kicad_sym
+    # is empty). Substituted with Device:D_TVS_Dual_AAC on the same SOT-23 footprint: its pins are
+    # A1=1, A2=2, common=3 - pin 3 is confirmed the common line, matching the ruling's requirement.
+    Part("D20", "PESD1CAN", "Device:D_TVS_Dual_AAC", "Package_TO_SOT_SMD:SOT-23",
+         {"1": "CANH", "2": "CANL", "3": "GND"}, "comms", mpn="PESD1CAN", mfr="Nexperia"),
+
+    # K-line via LIN transceiver. No TJA1027 symbol exists in Interface_CAN_LIN.kicad_sym
+    # (grep -c = 0), so U9 stays the custom da2:TJA1027T (drawn in Task 8). Pinout confirmed
+    # from the NXP TJA1027 datasheet Rev 3 (2018-12-18), Section 6.2 Table 3 (SO8 = TJA1027T/20):
+    # 1 RXD, 2 SLP_N (sleep control, active LOW), 3 n.c., 4 TXD, 5 GND, 6 LIN, 7 VBAT, 8 n.c.
+    # (the brief's prose called pin 2 "EN"/pin 3 "WAKE"/pin 8 "INH" - datasheet says SLP_N/n.c./n.c.,
+    # but the net assignment is unaffected: SLP_N tied to 3V3 keeps the transceiver in normal mode
+    # permanently, same intent as the brief's "EN" tie-off).
+    Part("U9", "TJA1027T/20", "da2:TJA1027T", "Package_SO:SOIC-8_3.9x4.9mm_P1.27mm",
+         {"1": "K_RX", "2": "3V3", "3": "NC", "4": "K_TX", "5": "GND", "6": "K_LINE", "7": "VBAT", "8": "NC"},
+         "comms", mpn="TJA1027T/20,118", mfr="NXP"),
+    C("C25", "100nF", "VBAT", "GND", "comms", "0603"),
+    R("R42", "510 0.5W", "K_PU", "K_LINE", "comms", "2512"),
+    Part("JP2", "K PULLUP", "Connector_Generic:Conn_01x02", "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical",
+         {"1": "VBAT", "2": "K_PU"}, "comms"),
+    Part("D21", "SMAJ24A", "Device:D_Zener", "Diode_SMD:D_SMA",
+         {"1": "K_LINE", "2": "GND"}, "comms", mpn="SMAJ24A", mfr="Littelfuse"),
+)

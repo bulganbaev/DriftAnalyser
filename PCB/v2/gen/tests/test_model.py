@@ -75,3 +75,17 @@ def test_led_chain():
         assert (f"J{10+i}", "2") in n[f"LED{i}_DATA"]
         assert (f"R{30+i}", "2") in n[f"LED{i}_DATA"] and (f"R{30+i}", "1") in n[f"LED{i}_OUT"]
         assert (f"D{10+i}", "1") in n[f"LED{i}_DATA"] and (f"D{10+i}", "2") in n["GND"]
+
+def test_obd_connector():
+    n = model.nets()
+    assert ("J6", "1") in n["CANH"] and ("J6", "2") in n["CANL"]
+    assert ("J6", "3") in n["K_LINE"] and ("J6", "4") in n["GND"]
+
+def test_can_terminator_is_jumpered():
+    n = model.nets()
+    assert ("R40", "1") in n["CANH"] and ("R40", "2") in n["CAN_TERM"]
+    assert ("JP1", "1") in n["CAN_TERM"] and ("JP1", "2") in n["CANL"]
+
+def test_all_nets_have_two_or_more_pins():
+    single = {k: v for k, v in model.nets().items() if len(v) < 2}
+    assert not single, single
