@@ -114,6 +114,15 @@ def make_base():
                 .center(by(y), Z_BOARD_TOP + 7.0).rect(1.6, 10.0).extrude(WALL + 2, both=True))
         base = base.cut(slot)
 
+    # ---- low intake slots in both long walls (chimney draught with the lid vents)
+    for (x0, x1) in ((30.0, 48.0), (64.0, 84.0)):
+        for i in range(int((x1 - x0) / 3.5)):
+            x = x0 + i * 3.5
+            for sign in (1, -1):
+                slot = (cq.Workplane("XZ", origin=(0, sign * (OUT_D / 2 - WALL / 2), 0))
+                        .center(bx(x), FLOOR + 2.5).rect(1.6, 4.0).extrude(WALL + 2, both=True))
+                base = base.cut(slot)
+
     # ---- snap recesses in the wall inner faces (mate with lid tabs)
     for (cx, cy, along_x) in _tab_positions():
         depth = BUMP + 0.15
@@ -209,17 +218,24 @@ def make_lid():
                     .translate((0, 0, -(LIP_H + TAB_H * 0.5))))
         lid = lid.union(tab).union(bump)
 
-    # ---- labels
-    lid = lid.faces(">Z").workplane().center(bx(55.0), by(45.0)).text(
-        "DriftAnalyser v2", 5.0, -0.6, combine="cut", halign="center", valign="center")
+    # ---- labels: build each text on a fresh XY workplane at the lid top so the
+    # origin never drifts with the face centroid after previous cuts
+    def engrave(txt, x, y, size):
+        t = (cq.Workplane("XY").workplane(offset=LID_T).center(x, y)
+             .text(txt, size, -0.5, halign="center", valign="center"))
+        return t
+    lid = lid.cut(engrave("DriftAnalyser v2", bx(55.0), by(36.0), 5.0))
     for i in range(1, 7):
         x = placement._strip_x(i) + 3.96
-        lid = lid.faces(">Z").workplane().center(bx(x), OUT_D / 2 - 15.0).text(
-            f"LED{i}", 3.2, -0.5, combine="cut", halign="center", valign="center")
-    lid = lid.faces(">Z").workplane().center(bx(95.75), -OUT_D / 2 + 13.0).text(
-        "OBD", 3.2, -0.5, combine="cut", halign="center", valign="center")
-    lid = lid.faces(">Z").workplane().center(bx(17.5), -OUT_D / 2 + 13.0).text(
-        "12V", 3.2, -0.5, combine="cut", halign="center", valign="center")
+        lid = lid.cut(engrave(f"LED{i}", bx(x), OUT_D / 2 - 15.0, 3.2))
+    lid = lid.cut(engrave("OBD", bx(95.75), -OUT_D / 2 + 13.0, 3.2))
+    lid = lid.cut(engrave("12V", bx(17.5), -OUT_D / 2 + 13.0, 3.2))
+    lid = lid.cut(engrave("USB", bx(57.0), -OUT_D / 2 + 13.0, 3.2))
+
+    # ---- more lid venting over the hot zone: buck/LDO (board x 40..80, y 40..62)
+    for i in range(7):
+        x = 44.0 + i * 4.5
+        lid = lid.cut(cq.Workplane("XY").center(bx(x), by(52.0)).rect(1.6, 14.0).extrude(LID_T + 1))
     return lid
 
 
