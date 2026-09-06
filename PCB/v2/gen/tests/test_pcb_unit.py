@@ -1,5 +1,5 @@
 """Board checks that need pcbnew -> run with KiCad's python: KICAD_PY -m unittest gen.tests.test_pcb_unit"""
-import json, os, subprocess, sys, unittest
+import json, os, re, subprocess, sys, unittest
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 import pcbnew
@@ -34,11 +34,41 @@ def _intersects(a, b):
     return not out.IsEmpty()
 
 
+# nets that reach their pads through a pour, not through a routed track: the
+# autorouter never sees them, so the builder has to finish them itself
+POUR_NETS = ("GND", "VBAT", "12V_LED")
+
+
 class TestPcb(unittest.TestCase):
+    _drc_cache = {}
+
     @classmethod
     def setUpClass(cls):
-        pcb_builder.build(PCB)
+        # the routed board is the artifact under test - only rebuild on demand
+        if os.environ.get("DA2_REBUILD") == "1" or not os.path.exists(PCB):
+            pcb_builder.build(PCB)
         cls.board = pcbnew.LoadBoard(PCB)
+
+    @classmethod
+    def _drc(cls, name="drc.json", extra=()):
+        if name in cls._drc_cache:
+            return cls._drc_cache[name]
+        rpt = os.path.join(env.PROJECT_DIR, "fab", name)
+        if os.path.exists(rpt):        # never let a stale report pass a test
+            os.remove(rpt)
+        r = subprocess.run([env.KICAD_CLI, "pcb", "drc", "--format", "json",
+                            "--severity-error", *extra, "-o", rpt, PCB],
+                           capture_output=True, text=True)
+        # 0 = clean, 5 = kicad-cli's "DRC violations found"
+        assert r.returncode in (0, 5), r.stdout[-800:] + r.stderr[-800:]
+        with open(rpt) as f:
+            cls._drc_cache[name] = json.load(f)
+        return cls._drc_cache[name]
+
+    @staticmethod
+    def _nets_of(violation):
+        return {m for i in violation["items"]
+                for m in re.findall(r"\[([^\]]+)\]", i["description"])}
 
     def test_every_part_placed(self):
         # H* are the mounting holes: footprints without a model part
@@ -121,15 +151,32 @@ class TestPcb(unittest.TestCase):
         self.assertGreaterEqual(n, 6)
 
     def test_stitching_vias(self):
-        """Every via we place is a power stitch: one sitting on a foreign pad would
-        silently be swallowed by that pad's net."""
+        """The power vias are ours: 0.8/0.4, or the 0.6/0.3 Default one where a
+        pour island came out too tight for the big one."""
         vias = [t for t in self.board.Tracks() if t.GetClass() == "PCB_VIA"]
-        self.assertGreaterEqual(len(vias), 40)
-        self.assertEqual({v.GetNetname() for v in vias}, {"GND", "VBAT", "12V_LED"})
-        for v in vias:
-            self.assertEqual(pcbnew.ToMM(v.GetDrillValue()), 0.4)
-            for layer in (pcbnew.F_Cu, pcbnew.B_Cu):
-                self.assertEqual(pcbnew.ToMM(v.GetWidth(layer)), 0.8)
+        power = [v for v in vias if v.GetNetname() in POUR_NETS]
+        self.assertGreaterEqual(len(power), 40)
+        for v in power:
+            size = (pcbnew.ToMM(v.GetWidth(pcbnew.F_Cu)),
+                    pcbnew.ToMM(v.GetDrillValue()))
+            self.assertIn(size, ((0.8, 0.4), (0.6, 0.3)),
+                          f"{v.GetNetname()} via at {pcbnew.ToMM(v.GetPosition().x)}, "
+                          f"{pcbnew.ToMM(v.GetPosition().y)}")
+            self.assertEqual(pcbnew.ToMM(v.GetWidth(pcbnew.B_Cu)), size[0])
+
+    def test_no_via_sits_on_a_foreign_pad(self):
+        """A via dropped on a pad of another net is silently swallowed by it."""
+        pads = [(fp.GetReference(), pad) for fp in self.board.GetFootprints()
+                for pad in fp.Pads()]
+        for v in self.board.Tracks():
+            if v.GetClass() != "PCB_VIA":
+                continue
+            p = v.GetPosition()
+            for ref, pad in pads:
+                if pad.GetNetname() != v.GetNetname() and pad.HitTest(p):
+                    self.fail(f"{v.GetNetname()} via at {pcbnew.ToMM(p.x):.2f}, "
+                              f"{pcbnew.ToMM(p.y):.2f} is on {ref} pad "
+                              f"{pad.GetNumber()} [{pad.GetNetname()}]")
 
     def test_vbat_tab_via_field(self):
         """U2's tab is fed only through vias out of the back-side VBAT run."""
@@ -143,17 +190,24 @@ class TestPcb(unittest.TestCase):
                 n += 1
         self.assertGreaterEqual(n, 18, f"only {n} VBAT vias into U2's tab area")
 
-    def test_ground_plane_has_no_floating_island(self):
-        """A GND island that no track reaches is a pad with no return path."""
+    def test_every_ground_island_is_stitched(self):
+        """Tracks cut the plane into islands. Each one has to reach the other layer
+        through a via of its own, or the pads sitting on it have no return path."""
+        vias = [t for t in self.board.Tracks()
+                if t.GetClass() == "PCB_VIA" and t.GetNetname() == "GND"]
         for z in self.board.Zones():
             if z.GetIsRuleArea() or z.GetNetname() != "GND":
                 continue
             for layer in (pcbnew.F_Cu, pcbnew.B_Cu):
                 if not z.IsOnLayer(layer):
                     continue
-                n = z.GetFilledPolysList(layer).OutlineCount()
-                self.assertEqual(n, 1, f"GND on {self.board.GetLayerName(layer)} "
-                                       f"fills as {n} disconnected pieces")
+                sp = z.GetFilledPolysList(layer)
+                for i in range(sp.OutlineCount()):
+                    poly = pcbnew.SHAPE_POLY_SET()
+                    poly.AddOutline(sp.Outline(i))
+                    self.assertTrue(any(poly.Collide(v.GetPosition()) for v in vias),
+                                    f"GND island {i} on {self.board.GetLayerName(layer)} "
+                                    f"has no via to the other side")
 
     def test_no_copper_in_antenna_keepout(self):
         """The rule area is the intent; this is the filled result."""
@@ -172,9 +226,13 @@ class TestPcb(unittest.TestCase):
                             f"copper poured into the antenna keep-out on "
                             f"{self.board.GetLayerName(layer)}")
         for t in self.board.Tracks():
-            p = t.GetPosition()
-            self.assertFalse(_inside(box, pcbnew.ToMM(p.x), pcbnew.ToMM(p.y)),
-                             f"{t.GetClass()} inside the antenna keep-out")
+            bb = t.GetBoundingBox()          # a track crossing it has both ends outside
+            hit = _rect(*(pcbnew.ToMM(v) for v in
+                          (bb.GetLeft(), bb.GetTop(), bb.GetRight(), bb.GetBottom())))
+            self.assertFalse(_intersects(hit, keepout),
+                             f"{t.GetClass()} [{t.GetNetname()}] reaches into the "
+                             f"antenna keep-out at {pcbnew.ToMM(t.GetPosition().x):.1f}, "
+                             f"{pcbnew.ToMM(t.GetPosition().y):.1f}")
         for fp in self.board.GetFootprints():
             for pad in fp.Pads():
                 p = pad.GetPosition()
@@ -193,19 +251,29 @@ class TestPcb(unittest.TestCase):
                    and z.GetDoNotAllowVias() and _covers(z.Outline(), want)]
             self.assertTrue(hit, f"no antenna rule area on {pcbnew.LayerName(layer)}")
 
+    def test_final_drc_with_parity(self):
+        """The board as it ships: nothing unrouted, nothing off the schematic."""
+        data = self._drc("drc-final.json", ("--schematic-parity",))
+        self.assertEqual(data["violations"], [],
+                         json.dumps(data["violations"][:5], indent=1, ensure_ascii=False))
+        self.assertEqual(data.get("unconnected_items", []), [],
+                         json.dumps(data.get("unconnected_items", [])[:5], indent=1,
+                                    ensure_ascii=False))
+        self.assertEqual(data.get("schematic_parity", []), [],
+                         json.dumps(data.get("schematic_parity", [])[:5], indent=1,
+                                    ensure_ascii=False))
+
     def test_drc_no_errors_except_unrouted(self):
-        rpt = os.path.join(env.PROJECT_DIR, "fab", "drc.json")
-        if os.path.exists(rpt):        # never let a stale report pass the test
-            os.remove(rpt)
-        r = subprocess.run([env.KICAD_CLI, "pcb", "drc", "--format", "json",
-                            "--severity-error", "-o", rpt, PCB],
-                           capture_output=True, text=True)
-        # 0 = clean, 5 = kicad-cli's "DRC violations found"
-        self.assertIn(r.returncode, (0, 5), r.stdout[-800:] + r.stderr[-800:])
-        with open(rpt) as f:
-            data = json.load(f)
+        data = self._drc()
         viol = [v for v in data["violations"] if v["type"] != "unconnected_items"]
         self.assertEqual(viol, [], json.dumps(viol[:5], indent=1))
+
+    def test_power_pads_reach_their_pour(self):
+        """No pad of a poured net is left for the autorouter: it would try to reach
+        it at the netclass width (3 mm on VBAT) through gaps that cannot take it."""
+        stuck = [v for v in self._drc().get("unconnected_items", [])
+                 if self._nets_of(v) & set(POUR_NETS)]
+        self.assertEqual(stuck, [], json.dumps(stuck[:5], indent=1, ensure_ascii=False))
 
 
 if __name__ == "__main__":

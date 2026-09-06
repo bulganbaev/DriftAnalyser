@@ -414,6 +414,65 @@ def _stitch(board, nets, geo):
         _via(board, nets["GND"], x, y)
 
 
+# Short manual runs from a power pad to the nearest copper of its own net. The
+# pours cannot reach these pads (a foreign pad sits in the way, or the pad is on
+# the wrong side of the board) and the autorouter must not try: VBAT is a 3 mm
+# netclass and none of these gaps take 3 mm. Widths are what the gap allows with
+# 0.4 mm (Bus12V) / 0.3 mm (Power) clearance kept to the neighbouring pads.
+# Drawn before the fill so the pours flow around them.
+STUBS = [
+    # net, width, points
+    # C4's ground pad blocks the way up to the pour, so C4 goes right to C9's
+    # VBAT pad, C9 up to U3's VIN pad, and U3 west into the pour lobe
+    ("VBAT", 1.0, [(42.0, 61.6), (45.3, 61.6)]),
+    ("VBAT", 0.9, [(45.8, 60.5), (45.8, 58.2)]),
+    ("VBAT", 0.6, [(46.3, 58.05), (44.5, 58.05), (43.7, 57.6)]),
+    # R7 (the VBAT_SENSE divider) sits 0.6 mm right of the pour's edge column
+    ("VBAT", 0.8, [(41.175, 45.0), (40.0, 45.0)]),
+    # R9 (the buck enable divider) is below the pour: out under C2's ground pad
+    # and up into C2's own VBAT pad (the pour's corner there is 0.4 from that pad)
+    ("VBAT", 0.8, [(41.175, 70.0), (40.6, 70.6), (31.5, 70.6), (31.0, 69.5)]),
+    # the K-line transceiver's battery branch: JP2 / U9 / C25 are 10 mm past the
+    # end of every VBAT pour on F.Cu, so they drop to the back-side corridor
+    ("VBAT", 0.6, [(86.5, 64.0), (85.5, 62.5), (85.5, 51.0)]),
+    ("VBAT", 0.6, [(82.475, 59.365), (84.0, 59.365), (85.5, 58.0)]),
+    ("VBAT", 0.5, [(79.225, 55.0), (79.225, 51.4)]),
+    # the two 12V decoupling caps at the switch: C5 reaches the bus arm directly,
+    # C6 has to skirt the top edge of U2's VBAT tab to get to the OUT pads
+    ("12V_LED", 0.5, [(86.0, 25.475), (87.9, 23.6)]),
+    # C6: the lane between U2's OUT pads and the tab's via field is 0.75 mm wide,
+    # so C6 goes the long way round - right of its own ground pad, over the top of
+    # the via field, and back into the 12V arm
+    ("12V_LED", 0.5, [(102.0, 25.475), (104.1, 24.6), (104.1, 20.8),
+                      (96.9, 20.8), (96.2, 21.4)]),
+    # U7 pin 19: 0.25 mm of pad pitch either side, the plane cannot get in
+    ("GND", 0.3, [(56.3, 19.725), (57.4, 19.725)]),
+]
+
+# vias that take a stub to the copper on the other side. The GND one is the way
+# out of the pocket C6's detour fences off: C6's ground pad and the strip of plane
+# around it would otherwise be an island the rest of the board never reaches.
+STUB_VIAS = [("VBAT", 85.5, 51.0), ("VBAT", 79.225, 51.4), ("GND", 101.5, 23.9)]
+
+
+def _track(board, net, layer, a, b, width):
+    t = pcbnew.PCB_TRACK(board)
+    t.SetLayer(layer)
+    t.SetStart(MM(*a))
+    t.SetEnd(MM(*b))
+    t.SetWidth(pcbnew.FromMM(width))
+    t.SetNet(net)
+    board.Add(t)
+
+
+def _power_tracks(board, nets):
+    for name, width, pts in STUBS:
+        for a, b in zip(pts, pts[1:]):
+            _track(board, nets[name], pcbnew.F_Cu, a, b, width)
+    for name, x, y in STUB_VIAS:
+        _via(board, nets[name], x, y)
+
+
 def _fill(board):
     board.BuildConnectivity()
     pcbnew.ZONE_FILLER(board).Fill(board.Zones())
@@ -433,6 +492,7 @@ def build(path):
     _footprints(board, nets)
     geo = _zones(board, nets)
     _stitch(board, nets, geo)
+    _power_tracks(board, nets)
     _fill(board)
     # aSkipSettings=True: a plain SaveBoard() also rewrites the .kicad_pro from the
     # board's empty in-memory project and drops the schematic's sheet list
