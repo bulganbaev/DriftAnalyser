@@ -124,20 +124,20 @@ def make_base():
                 base = base.cut(slot)
 
     # ---- snap recesses in the wall inner faces (mate with lid tabs)
-    for (cx, cy, along_x) in _tab_positions():
+    for (cx, cy, along_x, tw) in _tab_positions():
         depth = BUMP + 0.15
         if along_x:   # tab on a long wall (Y = +/-), recess cut into the wall inner face
-            sign = 1 if cy > 0 else -1
+            sign = 1 if by(cy) > 0 else -1          # board y is flipped in CAD, not just signed
             rec = (cq.Workplane("XY")
                    .center(bx(cx), sign * (CAV_D / 2 + depth / 2 - 0.01))
-                   .rect(TAB_W + 0.6, depth)
+                   .rect(tw + 0.6, depth)
                    .extrude(TAB_H * 0.55)
                    .translate((0, 0, BASE_H - LIP_H - TAB_H)))
         else:
-            sign = 1 if cx > 0 else -1
+            sign = 1 if bx(cx) > 0 else -1
             rec = (cq.Workplane("XY")
                    .center(sign * (CAV_W / 2 + depth / 2 - 0.01), by(cy))
-                   .rect(depth, TAB_W + 0.6)
+                   .rect(depth, tw + 0.6)
                    .extrude(TAB_H * 0.55)
                    .translate((0, 0, BASE_H - LIP_H - TAB_H)))
         base = base.cut(rec)
@@ -155,17 +155,24 @@ def make_base():
 
 
 def _tab_positions():
-    """(board x, board y, along_x) of the snap tabs / recesses.
+    """(board x, board y, along_x, width) of the snap tabs / recesses.
 
-    Two on the top wall between strip connectors, two on the bottom wall away from
-    the connector windows, one on each short wall. Tabs sit on the lid lip and bump
-    outward into the recesses.
+    Two on the strip-connector wall (board y = IN_Y0, CAD +Y), two on the
+    XT60/USB/OBD wall (board y = IN_Y1, CAD -Y), one on each short wall.
+    Tabs sit on the lid lip and bump outward into the recesses.
+
+    The strip wall has no room between the connectors: the six wire notches are
+    16 mm wide on a 15.3 mm pitch, so they overlap into one slot from board
+    x 10.96 to 103.46. The only clear stretches on that wall are its two ends,
+    and the right one only fits a short tab.
     """
     return [
-        (38.0, IN_Y0, True), (83.5, IN_Y0, True),      # top wall, between J12/J13 and J15/J16
-        (40.0, IN_Y1, True), (78.0, IN_Y1, True),      # bottom wall, clear of XT60/USB/OBD
-        (IN_X0, 66.0, False),                          # left wall, below the antenna zone
-        (IN_X1, 62.0, False),                          # right wall, below the microSD
+        (2.0, IN_Y0, True, 10.0),                       # strip wall, west of the LED1 notch
+        (107.0, IN_Y0, True, 5.0),                      # strip wall, east of the LED6 notch
+        (38.0, IN_Y1, True, 10.0),                      # between the XT60 and USB windows
+        (82.0, IN_Y1, True, 10.0),                      # between the USB window and the OBD notch
+        (IN_X0, 66.0, False, TAB_W),                    # left wall, below the antenna zone
+        (IN_X1, 62.0, False, TAB_W),                    # right wall, below the microSD
     ]
 
 
@@ -201,20 +208,20 @@ def make_lid():
         lid = lid.cut(cq.Workplane("XY").center(bx(x), by(26.0)).rect(1.6, 14.0).extrude(LID_T + 1))
 
     # ---- snap tabs hanging from the lip
-    for (cx, cy, along_x) in _tab_positions():
+    for (cx, cy, along_x, tw) in _tab_positions():
         if along_x:
-            sign = 1 if cy > 0 else -1
+            sign = 1 if by(cy) > 0 else -1          # board y is flipped in CAD, not just signed
             yc = sign * (CAV_D / 2 - FIT - TAB_T / 2)
-            tab = cq.Workplane("XY").center(bx(cx), yc).rect(TAB_W, TAB_T).extrude(-(LIP_H + TAB_H))
+            tab = cq.Workplane("XY").center(bx(cx), yc).rect(tw, TAB_T).extrude(-(LIP_H + TAB_H))
             bump = (cq.Workplane("XY").center(bx(cx), sign * (CAV_D / 2 - FIT + BUMP / 2 - 0.05))
-                    .rect(TAB_W, BUMP + 0.1).extrude(-TAB_H * 0.5)
+                    .rect(tw, BUMP + 0.1).extrude(-TAB_H * 0.5)
                     .translate((0, 0, -(LIP_H + TAB_H * 0.5))))
         else:
-            sign = 1 if cx > 0 else -1
+            sign = 1 if bx(cx) > 0 else -1
             xc = sign * (CAV_W / 2 - FIT - TAB_T / 2)
-            tab = cq.Workplane("XY").center(xc, by(cy)).rect(TAB_T, TAB_W).extrude(-(LIP_H + TAB_H))
+            tab = cq.Workplane("XY").center(xc, by(cy)).rect(TAB_T, tw).extrude(-(LIP_H + TAB_H))
             bump = (cq.Workplane("XY").center(sign * (CAV_W / 2 - FIT + BUMP / 2 - 0.05), by(cy))
-                    .rect(BUMP + 0.1, TAB_W).extrude(-TAB_H * 0.5)
+                    .rect(BUMP + 0.1, tw).extrude(-TAB_H * 0.5)
                     .translate((0, 0, -(LIP_H + TAB_H * 0.5))))
         lid = lid.union(tab).union(bump)
 
