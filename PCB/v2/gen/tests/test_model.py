@@ -32,7 +32,9 @@ def test_gpio_map_matches_spec():
 
 def test_power_topology():
     n = model.nets()
-    assert ("J1", "1") in n["VBAT"] and ("J1", "2") in n["GND"]          # XT60
+    # XT60: pad 2 is the positive contact (the housing's chamfered end is pad 1
+    # and that is the negative one), so VBAT comes in on 2, not 1
+    assert ("J1", "2") in n["VBAT"] and ("J1", "1") in n["GND"]
     assert ("U2", "2") in n["LED_PWR_EN"] and ("U2", "4") in n["IS_RAW"]  # BTS7002 IN, IS
     # BTS7002-1EPP OUT pins per Infineon datasheet Table 2: 8-10,12-14 (pin 11 is n.c., not bonded)
     assert all(("U2", str(p)) in n["12V_LED"] for p in (8, 9, 10, 12, 13, 14))

@@ -209,7 +209,12 @@ def _nets(board):
 # USB shield's legs and the two debug headers' ground pins sit where routed traces
 # leave the plane in shreds, and a spoke into a shred is a starved thermal relief;
 # all three are 2.54 mm-class pins that still solder by hand off a solid pour.
-SOLID_TO_ZONE = {("J2", "SH"), ("J3", "2"), ("J4", "2")}
+SOLID_TO_ZONE = {("J2", "SH"), ("J3", "2"), ("J4", "2"),
+                 # and the XT60's ground pin: it is the return of the whole 20 A
+                 # the board can draw, so it takes the plane solid. Four thermal
+                 # spokes into a 2.7 mm barrel is both a starved relief here and
+                 # the wrong thing electrically.
+                 ("J1", "1")}
 
 
 def _footprints(board, nets):
@@ -272,7 +277,9 @@ IN2_BUS_DEEP = (75.5, 0.5, 88.0, 22.3)
 # which is what the module and the IMU sit over. The riser to U2's tab is 20 mm
 # wide now, not 12.
 IN2_VBAT_TOP, IN2_VBAT_BOT = 34.6, 74.5
-IN2_VBAT_WEST_X, IN2_VBAT_WEST_Y = 15.0, 44.0
+# 10.5 (not 15) so the plane covers the whole of J1 pad 2, the VBAT barrel:
+# the XT60's positive contact is its pad 2, 7.2 mm west of pad 1
+IN2_VBAT_WEST_X, IN2_VBAT_WEST_Y = 10.5, 44.0
 IN2_VBAT_EAST_X = 22.0
 # The riser is the whole path's bottleneck: current turns north here and every
 # horizontal cut of it has to carry the full 20 A. 62 mm, not the 74 it started
@@ -446,8 +453,12 @@ def _zones(board, nets):
                   (teeth[-1][0], 0.5, teeth[-1][1], IN2_ARM_BOT)]),
           priority=3, clearance=BUS_CLEAR, connection=pcbnew.ZONE_CONNECTION_FULL)
 
-    # ---- VBAT input copper on F.Cu: XT60 pin 1, the TVS, the bulk caps and the
-    # buck input caps. The notch keeps the R7 / R8 / C8 sense divider out of it.
+    # ---- VBAT input copper on F.Cu: the TVS, the bulk caps and the buck input
+    # caps. J1 pin 1 is GND (pin 2, 7.2 mm west of it, is the XT60's positive
+    # contact - see the note on J1 in the model), so the pour runs around the
+    # ground barrel with the filler's clearance ring instead of onto it; the 20 A
+    # itself does not come through here at all, the barrel of pin 2 lands on the
+    # In2 plane solid. The notch keeps the R7 / R8 / C8 sense divider out of it.
     vx0, _, _, _ = _pad_box(board, "J1", "1")
     d1_top = _pad_box(board, "D1", "1")[1]
     col_x = _pad_box(board, "R7", "1")[0] - 0.6
@@ -534,7 +545,9 @@ def _stitch(board, nets, geo):
             _via(board, nets["VBAT"], x, bar_top + 0.6 + 1.5 * k)
     # VBAT: F.Cu <-> In2 under the XT60, between the TVS and the bulk caps. The
     # XT60's own barrel is worth about five of these; the pour above them is the
-    # 30 A input.
+    # 30 A input. They sit in the pour, west of J1's ground barrel and east of
+    # it: the field is protected wiring in the session, so it has to stay where
+    # the session recorded it.
     for x in [19.5 + 2.0 * i for i in range(8)]:
         for y in (51.0, 53.0, 54.8):
             _via(board, nets["VBAT"], x, y)
@@ -914,7 +927,7 @@ REF_HIDE = (("H1", "H2", "H3", "H4")
 REF_AT = {
     "J1": (6.5, 62.0),          # was off the bottom edge
     "U1": (11.0, 22.0),         # was on SW2 and on the module's own pad row
-    "SW1": (13.5, 51.6), "SW2": (17.5, 51.6),
+    "SW1": (4.6, 51.6), "SW2": (27.5, 51.6),   # the row under the buttons says EN / BOOT
     "R22": (58.0, 36.0), "R23": (58.0, 38.5),
     "C9": (46.8, 63.6), "U3": (45.5, 51.0),
     "R3": (54.0, 51.0), "R2": (91.5, 32.6),
@@ -978,17 +991,23 @@ def _silk(board):
         _text(board, "12V DATA GND", cx, 12.3, size=0.8)
         _text(board, f"LED{i}", cx, 17.0, size=1.4, bold=True)
 
-    # ---- power in: + is J1 pin 1 (VBAT), - is pin 2, both marked over the pad
+    # ---- power in. J1 pin 2 is the XT60's positive contact and sits at x 13.8
+    # (the connector is rot 180), pin 1 is GND at x 21 - each mark goes over its
+    # own hole. The footprint brings its own "+"/"-" pair, on the other pads;
+    # _fields() deletes those so there is exactly one of each on the board.
     _text(board, "EN", 10.0, 51.6, size=1.2, bold=True)
     _text(board, "BOOT", 21.5, 51.6, size=1.2, bold=True)
-    _text(board, "-", 13.8, 53.7, size=1.3, bold=True)
+    _text(board, "+", 13.8, 53.7, size=1.3, bold=True)
     _text(board, "12V IN", 17.4, 53.7, size=0.9, bold=True)
-    _text(board, "+", 21.0, 53.7, size=1.3, bold=True)
+    _text(board, "-", 21.0, 53.7, size=1.3, bold=True)
 
     _text(board, "USB", 57.0, 63.5, size=1.2, bold=True)
 
-    # ---- OBD side: J6 pin 1 is CANH, on the left
-    _text(board, "OBD: CANH CANL K GND", 96.0, 66.5, size=0.8)
+    # ---- OBD side: the header names the connector, each pin name stands over
+    # its own pin (2.5 mm pitch, so they run up the board rather than across)
+    _text(board, "OBD", 95.75, 62.0, size=1.1, bold=True)
+    for name, px in zip(("CANH", "CANL", "K", "GND"), (92.0, 94.5, 97.0, 99.5)):
+        _text(board, name, px, 65.6, size=0.8, rot=90)
     _text(board, "CAN TERM", 72.6, 58.6, size=0.8, rot=90)
     _text(board, "K PULLUP", 85.1, 58.6, size=0.8, rot=90)
 
@@ -1037,10 +1056,20 @@ def _clip_silk(board):
     return n
 
 
+# footprint-native silk text we draw ourselves instead: the XT60's "+" / "-" pair
+# sits beside the wrong pads for this board's netlist, and two of each on one
+# connector is how a board gets wired backwards
+DROP_FP_TEXT = {"J1": ("+", "-")}
+
+
 def _fields(board):
     """Values off the board, references small and out of everyone's way."""
     for fp in board.GetFootprints():
         ref = fp.GetReference()
+        for it in list(fp.GraphicalItems()):
+            if isinstance(it, pcbnew.PCB_TEXT) and it.GetLayer() == pcbnew.F_SilkS \
+                    and it.GetText() in DROP_FP_TEXT.get(ref, ()):
+                fp.Remove(it)
         fp.Value().SetVisible(False)
         f = fp.Reference()
         f.SetTextSize(pcbnew.VECTOR2I(pcbnew.FromMM(REF_SIZE), pcbnew.FromMM(REF_SIZE)))

@@ -51,9 +51,14 @@ def parts_on(sheet):
 
 # ---------------- power sheet ----------------
 _add(
+    # XT60 polarity: the housing's chamfered end is the NEGATIVE contact and the
+    # straight end the positive one (AMASS drawing + the XT60 convention). KiCad's
+    # own AMASS_XT60-M vertical footprint draws those two chamfers at the pad 1 end,
+    # and every XT60 footprint in that library prints "-" beside pad 1 and "+"
+    # beside pad 2. So pad 1 = GND, pad 2 = VBAT - v2 had this backwards.
     Part("J1", "XT60PW-M", "Connector_Generic:Conn_01x02",
          "Connector_AMASS:AMASS_XT60PW-M_1x02_P7.20mm_Horizontal",
-         {"1": "VBAT", "2": "GND"}, "power", lcsc="C98732", mpn="XT60PW-M", mfr="AMASS"),
+         {"1": "GND", "2": "VBAT"}, "power", lcsc="C98732", mpn="XT60PW-M", mfr="AMASS"),
     # D_Zener: pin1 = K (cathode), pin2 = A (anode) -> cathode on VBAT clamps to GND on overvoltage
     # Littelfuse's own "SMDJ18A" isn't listed on LCSC/JLCPCB; substituted DOWO 5.0SMDJ18A
     # (C284071), same SMC(DO-214AB) package, same 18V standoff - see README BOM sources.

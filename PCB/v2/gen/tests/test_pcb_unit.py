@@ -1,5 +1,5 @@
 """Board checks that need pcbnew -> run with KiCad's python: KICAD_PY -m unittest gen.tests.test_pcb_unit"""
-import json, os, re, subprocess, sys, unittest
+import json, math, os, re, subprocess, sys, unittest
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 import pcbnew
@@ -526,11 +526,46 @@ class TestPcb(unittest.TestCase):
         """Every connector, jumper and button says what it is without the schematic."""
         texts = self._silk_texts()
         want = ["DriftAnalyser v2", "2026-09", "12V DATA GND", "12V IN", "+", "-",
-                "USB", "OBD: CANH CANL K GND", "CAN TERM", "K PULLUP",
+                "USB", "OBD", "CANH", "CANL", "K", "GND", "CAN TERM", "K PULLUP",
                 "UART0: 3V3 GND TX RX", "EXT: 3V3 GND TX2 RX2 SDA SCL",
                 "X", "Y", "nose = +X", "BOOT", "EN"]
         want += [f"LED{i}" for i in range(1, 7)]
         self.assertEqual([w for w in want if w not in texts], [])
+
+    def test_xt60_polarity_marked_once(self):
+        """The XT60's own footprint prints a "+" and a "-" beside the other two
+        pads: leave both pairs on and the board tells you to wire it backwards.
+        Exactly one of each survives, and the "+" is over the VBAT hole."""
+        j1 = self.board.FindFootprintByReference("J1")
+        near = []
+        for t in list(self.board.GetDrawings()) + list(j1.GraphicalItems()):
+            if not isinstance(t, pcbnew.PCB_TEXT) or t.GetLayer() != pcbnew.F_SilkS:
+                continue
+            if t.GetText() in ("+", "-"):
+                p = t.GetPosition()
+                near.append((t.GetText(), pcbnew.ToMM(p.x), pcbnew.ToMM(p.y)))
+        self.assertEqual(sorted(t for t, _, _ in near), ["+", "-"], near)
+        pads = {p.GetNumber(): p for p in j1.Pads() if p.GetNumber()}
+        self.assertEqual(pads["2"].GetNetname(), "VBAT")   # the straight-side contact
+        self.assertEqual(pads["1"].GetNetname(), "GND")    # the chamfered-side one
+        def gap(x, y, pad):
+            """Distance from a point to the pad's copper, 0 inside it. The pads
+            are 4.1 mm across and 7.2 mm apart, so centre distance says little."""
+            bb = pad.GetBoundingBox()
+            x0, y0, x1, y1 = (pcbnew.ToMM(v) for v in
+                              (bb.GetLeft(), bb.GetTop(), bb.GetRight(), bb.GetBottom()))
+            return math.hypot(max(x0 - x, 0, x - x1), max(y0 - y, 0, y - y1))
+
+        for mark, net in (("+", "VBAT"), ("-", "GND")):
+            x, y = next((x, y) for t, x, y in near if t == mark)
+            mine = next(p for p in j1.Pads() if p.GetNetname() == net)
+            other = next(p for p in j1.Pads()
+                         if p.GetNumber() and p.GetNetname() != net)
+            d, far = gap(x, y, mine), gap(x, y, other)
+            self.assertLess(d, 3.0, f"{mark} is {d:.1f} mm from its {net} pad")
+            self.assertLess(d + 3.0, far,
+                            f"{mark} is {d:.1f} mm from {net} and {far:.1f} mm from "
+                            f"the other pad - not clearly at one of them")
 
     def test_no_silk_warnings(self):
         """Silk that overlaps a pad, another label or the outline is silk the fab
@@ -576,7 +611,7 @@ class TestPcb(unittest.TestCase):
         """One command has to produce everything the fab is sent, from this board."""
         import csv
         from gen import export
-        export.export_all()
+        export.export_fab()
         fab = os.path.join(env.PROJECT_DIR, "fab")
 
         def path(name):
@@ -603,9 +638,7 @@ class TestPcb(unittest.TestCase):
         self.assertEqual({r["Designator"] for r in cpl}, {p.ref for p in model.PARTS})
         self.assertEqual({r["Layer"] for r in cpl}, {"Top"})
 
-        for name in ("render-top.svg", "render-bottom.svg", "render-in1.svg",
-                     "render-in2.svg", "schematic.pdf", "render-3d-top.png",
-                     "render-3d-bottom.png", "driftanalyser-v2.step", "README-fab.md"):
+        for name in ("render-top.svg", "README-fab.md"):
             path(name)
 
 

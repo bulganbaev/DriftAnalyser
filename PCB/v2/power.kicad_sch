@@ -2529,7 +2529,7 @@
     )
     (uuid "b4530c59-cc9f-5baf-ab2a-2b597713c4f6")
   )
-  (global_label "VBAT"
+  (global_label "GND"
     (shape passive)
     (at 20.32 12.7 180)
     (fields_autoplaced yes)
@@ -2561,7 +2561,7 @@
     )
     (uuid "06c1effc-6218-5c62-a5d4-972d2f1b7cce")
   )
-  (global_label "GND"
+  (global_label "VBAT"
     (shape passive)
     (at 20.32 15.24 180)
     (fields_autoplaced yes)

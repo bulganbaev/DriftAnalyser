@@ -612,11 +612,41 @@ def normalise_via_drills(board):
     return fixed
 
 
+def drop_foreign_pad_wires(board):
+    """Replayed wires that end on a pad of another net.
+
+    The session is a recording: it was drawn against the netlist of the day, and
+    a pad that changes net (J1's two power pins swapped when the XT60's polarity
+    was corrected) turns a wire that was fine into a short. The router itself
+    cannot be asked again without redrawing the whole board, so the replay drops
+    those wires and says so - DRC then has to still come back with nothing
+    unconnected, which is what says the copper was redundant."""
+    pads = [pad for fp in board.GetFootprints() for pad in fp.Pads()]
+    doomed, dropped = [], []
+    for t in board.Tracks():                    # scan first: removing mid-walk
+        if t.GetClass() != "PCB_TRACK":         # leaves board.Tracks() unusable
+            continue
+        for pad in pads:
+            if pad.GetNetname() == t.GetNetname() or not pad.IsOnLayer(t.GetLayer()):
+                continue
+            if pad.HitTest(t.GetStart()) or pad.HitTest(t.GetEnd()):
+                doomed.append(t)
+                dropped.append((t.GetNetname(), pad.GetParentFootprint().GetReference()
+                                + "." + pad.GetNumber(),
+                                round(pcbnew.ToMM(t.GetStart().x), 2),
+                                round(pcbnew.ToMM(t.GetStart().y), 2)))
+                break
+    for t in doomed:
+        board.RemoveNative(t)       # Remove() hands the C++ object to Python and
+    return dropped                  # freeing it here leaves board.Tracks() broken
+
+
 def import_ses(pcb, ses):
     board = pcbnew.LoadBoard(pcb)
     ok = pcbnew.ImportSpecctraSES(board, ses)
     if not ok:
         raise RuntimeError(f"SES import of {ses} failed")
+    foreign = drop_foreign_pad_wires(board)
     n = strip_keepout(board)
     drills = normalise_via_drills(board)
     stitched = pcb_builder.vbat_stitch(board)
@@ -631,7 +661,7 @@ def import_ses(pcb, ses):
     pcb_builder.write_design_rules()
     tracks = [t for t in board.Tracks() if t.GetClass() == "PCB_TRACK"]
     vias = [t for t in board.Tracks() if t.GetClass() == "PCB_VIA"]
-    return n, len(vias), len(tracks), added, stranded, hand, drills, stitched
+    return n, len(vias), len(tracks), added, stranded, hand, drills, stitched, foreign
 
 
 def already_routed(pcb):
@@ -667,11 +697,14 @@ def route(pcb=PCB, dsn=DSN, ses=SES, passes=PASSES, reroute=REROUTE):
     else:
         print(f"replaying {ses} ({os.path.getsize(ses) // 1024} kB) - "
               f"set DA2_REROUTE=1 to draw a new one")
-    stripped, vias, tracks, added, stranded, hand, drills, stitched = import_ses(pcb, ses)
+    (stripped, vias, tracks, added, stranded, hand, drills, stitched,
+     foreign) = import_ses(pcb, ses)
     print(f"imported: {tracks} tracks, {vias} vias, {stripped} removed from the "
           f"keep-out, {drills} via drills restored, "
           f"{hand} connections finished by hand, "
-          f"{len(stitched)} extra VBAT vias F.Cu <-> In2")
+          f"{len(stitched)} extra VBAT vias F.Cu <-> In2"
+          + (f", {len(foreign)} replayed wires dropped off foreign pads: {foreign}"
+             if foreign else ""))
     print(f"stitched: {len(added)} vias into cut-off pour islands"
           + (f", {len(stranded)} islands left stranded: {stranded}" if stranded else ""))
 

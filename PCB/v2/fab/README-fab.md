@@ -29,7 +29,19 @@ bottom-left corner as the origin), assemble from `BOM.csv` + `CPL.csv`.
 - R31..R36 / D11..D16 have no reference on the silk (no room between the strip
   connectors and the LED legend) - they are the series resistor and the data
   clamp of the strip above them, one pair per strip, and they are in the CPL.
-- J1 is an XT60PW-M: **+ is pin 1**, marked on the silk next to the pad.
+- J1 is an XT60PW-M: **+ is pin 2**, the hole on the left as the board is drawn,
+  marked on the silk over its own pad. The XT60 housing's chamfered end is the
+  negative contact and its straight end the positive one, and on this footprint
+  the chamfered end is pin 1 - so pin 1 is GND. The footprint's own "+"/"-"
+  silk is deleted by the generator; the two marks on the board are ours.
+
+## Regenerating
+
+`bash gen/build.sh` rebuilds everything here. `gerbers.zip` uses a fixed entry
+timestamp, but KiCad stamps a `CreationDate` into every gerber, the drill files
+and the `.gbrjob`, so the zip's bytes still change on each run even when the
+board does not. The STEP, the 3D PNGs and the inner/bottom plots are not tracked
+at all - run `KICAD_PY -m gen.export` to get them back.
 
 ## Hand check before power-up
 

@@ -10076,8 +10076,8 @@
 			)
 			(node
 				(ref "J1")
-				(pin "2")
-				(pinfunction "Pin_2_2")
+				(pin "1")
+				(pinfunction "Pin_1_1")
 				(pintype "passive")
 			)
 			(node
@@ -11293,8 +11293,8 @@
 			)
 			(node
 				(ref "J1")
-				(pin "1")
-				(pinfunction "Pin_1_1")
+				(pin "2")
+				(pinfunction "Pin_2_2")
 				(pintype "passive")
 			)
 			(node

@@ -9,3 +9,7 @@ __pycache__/
 ~*.lck
 fab/gerbers/
 fab/pos.csv
+fab/driftanalyser-v2.step
+fab/render-3d-*.png
+fab/render-bottom.svg
+fab/render-in*.svg
