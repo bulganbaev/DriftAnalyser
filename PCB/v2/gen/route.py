@@ -69,7 +69,12 @@ CONFIG = {
 
 
 PCB = os.path.join(env.PROJECT_DIR, env.PROJECT_NAME + ".kicad_pcb")
-DSN = os.path.join(env.PROJECT_DIR, "fab", "route.dsn")
+# scratch, not fab/: the DSN carries an absolute path on its first line and the
+# plane scopes come out in whatever order the zones were built, so a tracked copy
+# is dirty after every build even when nothing changed. DA2_DSN puts it back
+# somewhere useful when it needs reading.
+DSN = os.environ.get("DA2_DSN") or os.path.join(
+    tempfile.gettempdir(), env.PROJECT_NAME + "-route.dsn")
 # The session file is committed, and it is what makes this build reproducible:
 # Freerouting has no seed, so a fresh draw of the same input lands somewhere else
 # every time (26 draws of this board came out at between 0 and 5 open links).

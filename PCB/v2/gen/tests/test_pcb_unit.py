@@ -3,7 +3,7 @@ import json, os, re, subprocess, sys, unittest
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 import pcbnew
-from gen import env, model, placement, pcb_builder
+from gen import env, model, placement, pcb_builder, sch_writer
 
 PCB = os.path.join(env.PROJECT_DIR, env.PROJECT_NAME + ".kicad_pcb")
 
@@ -70,6 +70,20 @@ def _down(copper, y, x0, x1, w=0.2):
     return _slice(copper, (x0, y - w / 2, x1, y + w / 2), w)
 
 
+# JLCPCB 4 layer with the 1 oz inner option: 0.035 mm on every copper layer
+OZ = 0.035
+
+
+def _amps(inner, outer, dT=20.0, t=OZ):
+    """IPC-2221 ampacity of `inner` mm of plane plus `outer` mm of outer-layer
+    copper at a dT K rise: I = k * dT^0.44 * A^0.725 with A in mil^2, k = 0.024
+    for an internal layer and 0.048 for an external one. 30 mm of 1 oz internal
+    copper is 19.2 A at 20 K, which is why widths alone are not the test."""
+    def one(w, k):
+        return 0.0 if w <= 0 else k * dT ** 0.44 * (w * t * 1550.0) ** 0.725
+    return one(inner, 0.024) + one(outer, 0.048)
+
+
 class TestPcb(unittest.TestCase):
     _drc_cache = {}
 
@@ -97,6 +111,8 @@ class TestPcb(unittest.TestCase):
                            capture_output=True, text=True)
         # 0 = clean, 5 = kicad-cli's "DRC violations found"
         assert r.returncode in (0, 5), r.stdout[-800:] + r.stderr[-800:]
+        # the report is tracked, and its only changing field is the time of day
+        sch_writer.strip_timestamp(rpt, r'"date": "[^"]*"', '"date": ""')
         with open(rpt) as f:
             cls._drc_cache[name] = json.load(f)
         return cls._drc_cache[name]
@@ -313,31 +329,47 @@ class TestPcb(unittest.TestCase):
                               f"{pad.GetNumber()} [{pad.GetNetname()}]")
 
     def test_vbat_carries_the_current(self):
-        """The path from the XT60 to U2's tab is the In2 plane plus whatever of
-        F.Cu is free alongside it, and there is no VBAT copper on B.Cu at all.
+        """The XT60 -> U2 path has to carry 20 A, which is where the BTS7002
+        sits, and it is cut two ways because it turns a corner.
 
-        Measured two ways, because a column of signal vias makes any single thin
-        slice look worse than the copper is: the mean over a 3 mm window (which
-        is how the current actually spreads round a via) has to hold 30 mm, and
-        no 0.2 mm slice may fall under 25. 30 mm of 1 oz internal copper is
-        20 A at a 21 K rise, which is where U2 sits."""
+        The corridor runs east across the lower half of the board, so its cross
+        section is a vertical cut. The riser turns north into U2's tab, so its
+        cross section is a *horizontal* cut - and that is the one that was wrong
+        the first time round: x-slices never cross the riser at all, and its
+        narrowest transverse cut was 21.8 mm, 15.2 A, not the 20 the switch
+        needs.
+
+        Both are scanned on 0.1 / 0.25 mm lines and asserted in amps, not
+        millimetres: 30 mm of 1 oz internal copper is 19.2 A at 20 K, so a width
+        that sounds generous is not automatically enough."""
         inner = _fill_of(self.board, "VBAT", pcbnew.In2_Cu)
         outer = _fill_of(self.board, "VBAT", pcbnew.F_Cu)
-        for x in (30.0, 45.0, 53.0, 60.0, 62.0, 75.0, 90.0):
-            wide = sum(_across(c, x, 0.0, placement.BOARD_H, w=3.0)[0]
-                       for c in (inner, outer))
-            thin = sum(_across(c, x, 0.0, placement.BOARD_H)[0]
-                       for c in (inner, outer))
-            self.assertGreaterEqual(wide, 30.0,
-                                    f"only {wide:.1f} mm of VBAT copper over "
-                                    f"3 mm at x = {x}")
-            self.assertGreaterEqual(thin, 25.0,
-                                    f"only {thin:.1f} mm of VBAT copper at "
-                                    f"x = {x}")
+        W, H = placement.BOARD_W, placement.BOARD_H
+
+        worst, y = (999.0, None, 0, 0), 24.6      # U2's tab pour starts at 24.26
+        while y <= 34.5:                          # ... the corridor takes over
+            a = _down(inner, y, 0.0, W, w=0.1)[0]
+            b = _down(outer, y, 0.0, W, w=0.1)[0]
+            worst = min(worst, (_amps(a, b), round(y, 2), round(a, 2), round(b, 2)))
+            y += 0.1
+        self.assertGreaterEqual(worst[0], 20.0,
+                                f"riser: {worst[0]:.1f} A at y = {worst[1]} "
+                                f"({worst[2]} mm In2 + {worst[3]} mm F.Cu)")
+
+        worst, x = (999.0, None, 0, 0), 24.0      # east of the XT60's own barrel
+        while x <= 99.0:                          # ... to the tab
+            a = _across(inner, x, 30.0, H, w=0.1)[0]
+            b = _across(outer, x, 30.0, H, w=0.1)[0]
+            worst = min(worst, (_amps(a, b), round(x, 2), round(a, 2), round(b, 2)))
+            x += 0.25
+        self.assertGreaterEqual(worst[0], 20.0,
+                                f"corridor: {worst[0]:.1f} A at x = {worst[1]} "
+                                f"({worst[2]} mm In2 + {worst[3]} mm F.Cu)")
+
         self.assertEqual(_fill_of(self.board, "VBAT", pcbnew.B_Cu).Area(), 0,
                          "VBAT is on In2 now, nothing of it belongs on B.Cu")
         # In2 in one piece, and the F.Cu half is the two pad-level pours plus the
-        # spread that fills the open ground between them
+        # spread that fills the open ground between and above them
         self.assertEqual(inner.OutlineCount(), 1)
         self.assertGreater(outer.Area() / 1e12, 700.0)
 
@@ -351,14 +383,21 @@ class TestPcb(unittest.TestCase):
             self.assertEqual(pcbnew.ToMM(v.GetWidth(pcbnew.F_Cu)), 0.8)
 
     def test_12v_bus_carries_the_branches(self):
-        """1 oz outside, 0.5 oz inside, so In2 counts half. Per branch: the comb
-        tooth that feeds each connector's pin 1 is >= 3 mm of F.Cu. The arm out of
-        U2's OUT pads carries all six and is >= 8 mm of 1 oz equivalent."""
+        """1 oz on every layer, so In2 counts at the internal k and F.Cu at the
+        external one. Per branch: the comb tooth that feeds each connector's pin
+        1 is >= 3 mm of F.Cu. The arm out of U2's OUT pads carries all six.
+
+        And the run along the top edge tapers: it is fed at the arm on the right
+        and sheds a sixth of the load at every connector going west, so what it
+        has to carry at a given x is (connectors still to the west) / 6 of 20 A.
+        The stretch between J15 and the arm is the tight one - five branches
+        through the part of the comb that has no tooth to widen it."""
         front = _fill_of(self.board, "12V_LED", pcbnew.F_Cu)
         inner = _fill_of(self.board, "12V_LED", pcbnew.In2_Cu)
-        for i in range(1, 7):
-            fp = self.board.FindFootprintByReference(f"J1{i}")
-            cx = pcbnew.ToMM(fp.FindPadByNumber("1").GetPosition().x)
+        pins = sorted(pcbnew.ToMM(self.board.FindFootprintByReference(f"J1{i}")
+                                  .FindPadByNumber("1").GetPosition().x)
+                      for i in range(1, 7))
+        for i, cx in enumerate(pins, 1):
             # just below the connector pad row, where the tooth is on its own
             width, _ = _down(front, 7.5, cx - 4.5, cx + 2.6)
             self.assertGreaterEqual(width, 3.0,
@@ -366,9 +405,23 @@ class TestPcb(unittest.TestCase):
         # the arm, below the lane cut out of the keep-out and above U2's OUT pads
         f_arm, _ = _down(front, 21.0, 85.0, 101.0)
         i_arm, _ = _down(inner, 21.0, 85.0, 101.0)
-        self.assertGreaterEqual(f_arm + i_arm / 2, 8.0,
+        self.assertGreaterEqual(_amps(i_arm, f_arm), 20.0,
                                 f"the 12V arm is {f_arm:.1f} mm on F.Cu and "
                                 f"{i_arm:.1f} mm on In2")
+        # from the first connector east to where the arm joins the run: J16's
+        # tooth is the arm, and everything east of it is the arm's own copper
+        worst, x = (999.0, None, 0, 0, 0), pins[0] + 0.5
+        while x <= pins[-1] - 4.5:
+            left = sum(1 for p in pins if p < x)  # branches still to be fed
+            a = _across(inner, x, 0.0, 25.0, w=0.1)[0]
+            b = _across(front, x, 0.0, 25.0, w=0.1)[0]
+            worst = min(worst, (_amps(a, b) - 20.0 * left / 6.0, round(x, 2),
+                                left, round(a, 2), round(b, 2)))
+            x += 0.2
+        self.assertGreaterEqual(worst[0], 0.0,
+                                f"the 12V run is {-worst[0]:.1f} A short at "
+                                f"x = {worst[1]} with {worst[2]} branches left "
+                                f"({worst[3]} mm In2 + {worst[4]} mm F.Cu)")
         self.assertEqual(_fill_of(self.board, "12V_LED", pcbnew.B_Cu).Area(), 0)
 
     def test_vbat_tab_via_field(self):

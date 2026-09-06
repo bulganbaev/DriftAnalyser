@@ -1,6 +1,7 @@
 *.kicad_prl
 *-backups/
 fab/*-backups/
+fab/route.dsn
 __pycache__/
 .pytest_cache/
 .DS_Store

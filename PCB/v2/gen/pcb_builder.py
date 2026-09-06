@@ -260,6 +260,10 @@ BUS_CLEAR = 0.4
 # and runs under the 3V3 block and the microSD resistor column - both all SMD, so
 # it only pays for the signal vias the router drops through it.
 IN2_BUS_BOT, IN2_ARM_BOT = 12.0, 22.3
+# The stretch of the 12V run between J15 and the arm carries five of the six
+# branches through the thinnest part of the F.Cu comb (the 3.75 mm band, with no
+# tooth to widen it), so In2 goes deep there instead.
+IN2_BUS_DEEP = (75.5, 0.5, 88.0, 22.3)
 
 # The VBAT plane. In2 carries the whole XT60 -> U2 path and nothing routes on it,
 # so it is as large as the board allows: the entire lower band, starting at
@@ -267,17 +271,28 @@ IN2_BUS_BOT, IN2_ARM_BOT = 12.0, 22.3
 # module is out of the way at IN2_VBAT_WEST_Y. GND keeps the top half of In2,
 # which is what the module and the IMU sit over. The riser to U2's tab is 20 mm
 # wide now, not 12.
-IN2_VBAT_TOP, IN2_VBAT_BOT = 37.5, 74.5
+IN2_VBAT_TOP, IN2_VBAT_BOT = 34.6, 74.5
 IN2_VBAT_WEST_X, IN2_VBAT_WEST_Y = 15.0, 44.0
 IN2_VBAT_EAST_X = 22.0
-IN2_RISER_X = 74.0
+# The riser is the whole path's bottleneck: current turns north here and every
+# horizontal cut of it has to carry the full 20 A. 62 mm, not the 74 it started
+# at - In1 is solid ground underneath, so the only thing the extra 12 mm costs is
+# In2 ground, and In2 ground is a bonus layer, not the reference.
+IN2_RISER_X = 60.0
+# nothing new drills through the riser: a 0.8 mm ground tie there is 1.6 mm off
+# every transverse cut
+RISER_BOX = (IN2_RISER_X, 24.2, 100.0, 37.5)
 IN2_J6_X, IN2_J6_Y = 82.0, 67.5
 
 # The same rail on F.Cu, at a lower priority than the pad-level pours so those
 # keep their shape: a band across the middle of the lower half that stops short
 # of the ESP32 / the boot buttons on the west and of the USB and OBD connector
 # row on the south, where hand-soldered ground matters more than copper.
-F_SPREAD = (46.0, 43.0, 100.0, 62.0)
+F_SPREAD = [(46.0, 43.0, 100.0, 62.0),
+            # and the bridge over the riser: the tab pour stops at y = 30.02 and
+            # the band above starts at 43, so without this the riser is In2 only
+            # exactly where it is narrowest
+            (74.0, 29.8, 100.0, 43.5)]
 # how far that pour keeps away from a ground pad that has no tie via: such a pad
 # reaches ground only through the top pour, so pouring VBAT around it strands it
 # on its own fringe - measured, four of them
@@ -427,7 +442,7 @@ def _zones(board, nets):
     # all six of them; pins 2 and 3 only cost an anti-pad) and sends the same arm
     # down to U2, where the twelve vias of the arm tie the two layers together.
     _zone(board, nets["12V_LED"], pcbnew.In2_Cu,
-          _union([(bx0, 0.5, bx1, IN2_BUS_BOT),
+          _union([(bx0, 0.5, bx1, IN2_BUS_BOT), IN2_BUS_DEEP,
                   (teeth[-1][0], 0.5, teeth[-1][1], IN2_ARM_BOT)]),
           priority=3, clearance=BUS_CLEAR, connection=pcbnew.ZONE_CONNECTION_FULL)
 
@@ -592,8 +607,10 @@ STUBS = [
     # Pin 1 is ground. It used to drop into a via 0.75 mm below the pad, which
     # put an 0.8 mm barrel in the middle of the pocket and left pin 2 with no way
     # out at all - in four draws of the router LED_PWR_EN never once connected.
-    # It now runs south past R1 and R2 and takes its via in the open below them.
-    ("GND", 0.3, [(92.05, 29.3), (92.05, 31.9)]),
+    # It now runs south past R1 and takes its via in the lane between the pad
+    # row and R2 - as far north as it will go, because anything in y 30..37 is a
+    # 1.6 mm bite out of the VBAT riser's cross section.
+    ("GND", 0.3, [(92.05, 29.3), (92.05, 30.7)]),
     # Pin 2 is the enable, and its pull-down R1 is 4.5 mm west, on the far side of
     # that ground run. There is no path on F.Cu, so it drops to B.Cu right here:
     # 0.75 mm of track into the lane between the pad row and R2, and a via. The
@@ -638,7 +655,7 @@ STUBS = [
 # around it would otherwise be an island the rest of the board never reaches.
 STUB_VIAS = [("VBAT", 85.5, 51.0), ("VBAT", 79.225, 51.4), ("GND", 101.5, 23.9),
              ("GND", 35.4, 43.0),
-             ("GND", 92.05, 31.9), ("LED_PWR_EN", 92.8, 29.95),
+             ("GND", 92.05, 30.7), ("LED_PWR_EN", 92.8, 29.95),
              ("IMU_INT1", 49.3, 34.2), ("IMU_INT1", 14.17, 43.3),
              ("I2C_SDA", 53.6, 29.0),
              ("I2C_SCL", 56.4, 28.4)]
@@ -694,9 +711,13 @@ def _gnd_ties(board, nets):
     pads = [pad for fp in board.GetFootprints() for pad in fp.Pads()]
     ties = []
 
+    rx0, ry0, rx1, ry1 = RISER_BOX
+
     def free(x, y):
         if not (0.5 + r <= x <= placement.BOARD_W - 0.5 - r
                 and 0.5 + r <= y <= placement.BOARD_H - 0.5 - r):
+            return False
+        if rx0 - r <= x <= rx1 + r and ry0 - r <= y <= ry1 + r:
             return False
         if ax0 - 1.0 <= x <= ax1 + 1.0 and ay0 - 1.0 <= y <= ay1 + 1.0:
             return False
@@ -800,7 +821,7 @@ def _vbat_spread(board, nets):
     it only takes copper where it is actually wide, and a hole punched round
     every ground pad that has no tie via of its own."""
     loose = _loose_gnd_pads(board)
-    poly = _poly([F_SPREAD])
+    poly = _poly(F_SPREAD)
     poly.BooleanSubtract(_poly([(x0 - SPREAD_KEEP, y0 - SPREAD_KEEP,
                                  x1 + SPREAD_KEEP, y1 + SPREAD_KEEP)
                                 for x0, y0, x1, y1 in loose]))

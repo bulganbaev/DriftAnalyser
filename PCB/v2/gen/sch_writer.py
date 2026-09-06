@@ -10,6 +10,7 @@ import copy
 import json
 import math
 import os
+import re
 import uuid
 
 from gen import env, libs, model, sexp
@@ -351,6 +352,17 @@ def write_all():
                                  [[SHEET_UUID[s], s] for s in SHEETS]}, f, indent=2)
 
 
+def strip_timestamp(path, pattern, replacement):
+    """kicad-cli stamps the time of day into every report it writes, and those
+    reports are tracked build products: without this a rebuild that changed
+    nothing still shows up as a diff. Lives here because sch_writer is the one
+    generator module that runs under plain python3."""
+    with open(path) as f:
+        text = f.read()
+    with open(path, "w") as f:
+        f.write(re.sub(pattern, replacement, text, count=1))
+
+
 def export_netlist():
     """{(ref, pin): netname} straight out of kicad-cli.
 
@@ -363,6 +375,7 @@ def export_netlist():
     out = os.path.join(env.PROJECT_DIR, "fab", "netlist.net")
     r = env.run_cli("sch", "export", "netlist", "--format", "kicadsexpr", "-o", out, root)
     assert r.returncode == 0, r.stderr
+    strip_timestamp(out, r'\(date "[^"]*"\)', '(date "")')
     doc = sexp.parse(open(out).read())[0]
     got = {}
     for net in sexp.find(sexp.find1(doc, "nets"), "net"):

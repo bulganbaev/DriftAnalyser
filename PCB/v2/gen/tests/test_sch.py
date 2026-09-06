@@ -9,6 +9,8 @@ def test_write_and_erc():
     rpt = os.path.join(env.PROJECT_DIR, "fab", "erc.rpt")
     r = env.run_cli("sch", "erc", "--severity-error", "--exit-code-violations", "-o", rpt, root)
     assert r.returncode == 0, open(rpt).read()
+    # the report is tracked; without this every run of the suite dirties it
+    sch_writer.strip_timestamp(rpt, r"ERC report \([^,]*, ", "ERC report (")
 
 
 def test_netlist_matches_model():
