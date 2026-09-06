@@ -7,5 +7,5 @@ KPY=/Applications/KiCad/KiCad.app/Contents/Frameworks/Python.framework/Versions/
 python3 -c 'from gen import sch_writer; sch_writer.write_all()'
 "$KPY" -m gen.pcb_builder
 "$KPY" -m gen.route
+"$KPY" -m gen.export
 python3 -m pytest gen/tests -q
-# "$KPY" -m gen.export        # task 14

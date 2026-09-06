@@ -892,6 +892,166 @@ def vbat_stitch(board, step=1.6):
     return added
 
 
+# ---------------------------------------------------------------- silkscreen
+
+# how far silk stays from the board outline, and the size every reference gets:
+# the stock 1.0 mm references collide with each other all over the dense corners
+SILK_EDGE_KEEP = 0.4
+REF_SIZE = 0.8
+REF_THICK = 0.12
+
+# mounting holes: their references sit off the board edge and say nothing.
+# The LED strip row is the one place with no legible spot left: 1.8 mm between
+# the connector silk and the resistor row goes to the pin legend, the rest to
+# LED1..LED6. R31..R36 / D11..D16 are a repeating pair per strip and are on the
+# CPL, so they lose their reference rather than the legend losing its place.
+REF_HIDE = (("H1", "H2", "H3", "H4")
+            + tuple(f"R{30 + i}" for i in range(1, 7))
+            + tuple(f"D{10 + i}" for i in range(1, 7)))
+
+# references the stock offset drops on a neighbour's pad or silk. Absolute mm,
+# text unrotated - the free spot was picked off the silk + pad map of the board.
+REF_AT = {
+    "J1": (6.5, 62.0),          # was off the bottom edge
+    "U1": (11.0, 22.0),         # was on SW2 and on the module's own pad row
+    "SW1": (13.5, 51.6), "SW2": (17.5, 51.6),
+    "R22": (58.0, 36.0), "R23": (58.0, 38.5),
+    "C9": (46.8, 63.6), "U3": (45.5, 51.0),
+    "R3": (54.0, 51.0), "R2": (91.5, 32.6),
+    "J4": (35.0, 36.3),
+    "R40": (61.5, 65.0), "R14": (61.0, 63.5), "R15": (65.0, 63.5),
+}
+
+
+def _text(board, s, x, y, size=1.0, rot=0, bold=False, layer=pcbnew.F_SilkS):
+    t = pcbnew.PCB_TEXT(board)
+    t.SetText(s)
+    t.SetLayer(layer)
+    t.SetTextSize(pcbnew.VECTOR2I(pcbnew.FromMM(size), pcbnew.FromMM(size)))
+    t.SetTextThickness(pcbnew.FromMM(0.25 * size if bold else 0.15 * size))
+    t.SetTextAngleDegrees(rot)
+    t.SetPosition(MM(x, y))
+    board.Add(t)
+    return t
+
+
+def _seg(board, x0, y0, x1, y1, w=0.2, layer=pcbnew.F_SilkS):
+    s = pcbnew.PCB_SHAPE(board)
+    s.SetShape(pcbnew.SHAPE_T_SEGMENT)
+    s.SetLayer(layer)
+    s.SetWidth(pcbnew.FromMM(w))
+    s.SetStart(MM(x0, y0))
+    s.SetEnd(MM(x1, y1))
+    board.Add(s)
+
+
+def _dot(board, x, y, d=0.7):
+    c = pcbnew.PCB_SHAPE(board)
+    c.SetShape(pcbnew.SHAPE_T_CIRCLE)
+    c.SetLayer(pcbnew.F_SilkS)
+    c.SetFilled(True)
+    c.SetWidth(pcbnew.FromMM(0.1))
+    c.SetCenter(MM(x, y))
+    c.SetEnd(MM(x + d / 2.0, y))
+    board.Add(c)
+
+
+def _arrow(board, x0, y0, x1, y1, head=0.8):
+    """A segment with a two-stroke head at (x1, y1)."""
+    _seg(board, x0, y0, x1, y1)
+    ux, uy = x1 - x0, y1 - y0
+    n = math.hypot(ux, uy)
+    ux, uy = ux / n, uy / n
+    for sx, sy in ((-uy, ux), (uy, -ux)):
+        _seg(board, x1, y1,
+             x1 - ux * head + sx * head * 0.5, y1 - uy * head + sy * head * 0.5)
+
+
+def _silk(board):
+    """Everything a person needs to wire the board up without the schematic."""
+    _text(board, "DriftAnalyser v2", 72.0, 28.0, size=1.5, bold=True)
+    _text(board, "2026-09", 72.0, 30.5, size=1.0)
+
+    # ---- LED strip connectors: pin 1 (12V) is the left one of the three
+    for i in range(1, 7):
+        cx = placement._strip_x(i) + 3.96          # over pin 2, the middle pin
+        _text(board, "12V DATA GND", cx, 12.3, size=0.8)
+        _text(board, f"LED{i}", cx, 17.0, size=1.4, bold=True)
+
+    # ---- power in: + is J1 pin 1 (VBAT), - is pin 2, both marked over the pad
+    _text(board, "EN", 10.0, 51.6, size=1.2, bold=True)
+    _text(board, "BOOT", 21.5, 51.6, size=1.2, bold=True)
+    _text(board, "-", 13.8, 53.7, size=1.3, bold=True)
+    _text(board, "12V IN", 17.4, 53.7, size=0.9, bold=True)
+    _text(board, "+", 21.0, 53.7, size=1.3, bold=True)
+
+    _text(board, "USB", 57.0, 63.5, size=1.2, bold=True)
+
+    # ---- OBD side: J6 pin 1 is CANH, on the left
+    _text(board, "OBD: CANH CANL K GND", 96.0, 66.5, size=0.8)
+    _text(board, "CAN TERM", 72.6, 58.6, size=0.8, rot=90)
+    _text(board, "K PULLUP", 85.1, 58.6, size=0.8, rot=90)
+
+    # ---- debug + expansion headers. The legend runs down the header, pin 1
+    # first, and a dot sits beside pin 1; 0.8 mm is the fab's floor for silk, so
+    # neither string fits the 1.25 mm gap left of J3 - UART0 goes between them.
+    _text(board, "UART0: 3V3 GND TX RX", 32.25, 27.0, size=0.8, rot=-90)
+    _dot(board, 26.9, 22.0, d=0.5)
+    _text(board, "EXT: 3V3 GND TX2 RX2 SDA SCL", 38.6, 27.5, size=0.8, rot=-90)
+    _dot(board, 37.25, 21.0, d=0.5)
+
+    # ---- IMU axes. U5 sits at rot 0, so the sensor's +X points at the board's
+    # right edge and +Y at the top edge; the firmware calls +X the car's nose.
+    _arrow(board, 46.0, 39.0, 50.5, 39.0)
+    _text(board, "X", 51.8, 39.0, size=1.0, bold=True)
+    _arrow(board, 46.0, 39.0, 46.0, 34.5)
+    _text(board, "Y", 46.0, 33.3, size=1.0, bold=True)
+    _text(board, "nose = +X", 48.3, 41.5, size=0.8)
+
+
+def _clip_silk(board):
+    """Silk off the board is silk printed on the panel: the ESP32 module's outline
+    runs out over the left edge with its antenna. Pull segment ends back inside."""
+    lo, hi = SILK_EDGE_KEEP, (placement.BOARD_W - SILK_EDGE_KEEP,
+                              placement.BOARD_H - SILK_EDGE_KEEP)
+    def clamp(p):
+        return pcbnew.VECTOR2I(
+            min(max(p.x, pcbnew.FromMM(lo)), pcbnew.FromMM(hi[0])),
+            min(max(p.y, pcbnew.FromMM(lo)), pcbnew.FromMM(hi[1])))
+    n = 0
+    for fp in board.GetFootprints():
+        for it in list(fp.GraphicalItems()):
+            if it.GetLayer() != pcbnew.F_SilkS or not isinstance(it, pcbnew.PCB_SHAPE) \
+                    or it.GetShape() != pcbnew.SHAPE_T_SEGMENT:
+                continue
+            a, b = clamp(it.GetStart()), clamp(it.GetEnd())
+            if (a.x, a.y) == (it.GetStart().x, it.GetStart().y) and \
+               (b.x, b.y) == (it.GetEnd().x, it.GetEnd().y):
+                continue
+            n += 1
+            if a == b:
+                fp.Remove(it)
+            else:
+                it.SetStart(a)
+                it.SetEnd(b)
+    return n
+
+
+def _fields(board):
+    """Values off the board, references small and out of everyone's way."""
+    for fp in board.GetFootprints():
+        ref = fp.GetReference()
+        fp.Value().SetVisible(False)
+        f = fp.Reference()
+        f.SetTextSize(pcbnew.VECTOR2I(pcbnew.FromMM(REF_SIZE), pcbnew.FromMM(REF_SIZE)))
+        f.SetTextThickness(pcbnew.FromMM(REF_THICK))
+        if ref in REF_HIDE:
+            f.SetVisible(False)
+        elif ref in REF_AT:
+            f.SetTextAngleDegrees(0)
+            f.SetPosition(MM(*REF_AT[ref]))
+
+
 def _fill(board):
     board.BuildConnectivity()
     pcbnew.ZONE_FILLER(board).Fill(board.Zones())
@@ -914,6 +1074,9 @@ def build(path):
     _stub_tracks(board, nets)
     ties = _gnd_ties(board, nets)
     kept = _vbat_spread(board, nets)
+    _silk(board)
+    _fields(board)
+    _clip_silk(board)
     _fill(board)
     print(f"{len(ties)} ground pads tied to the In1 plane by their own via, "
           f"{kept} untied ones kept clear of the F.Cu VBAT spread")

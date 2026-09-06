@@ -516,6 +516,35 @@ class TestPcb(unittest.TestCase):
                    and z.GetDoNotAllowVias() and _covers(z.Outline(), want)]
             self.assertTrue(hit, f"no antenna rule area on {pcbnew.LayerName(layer)}")
 
+    # ---- silkscreen -------------------------------------------------------
+
+    def _silk_texts(self):
+        return {t.GetText() for t in self.board.GetDrawings()
+                if isinstance(t, pcbnew.PCB_TEXT) and t.GetLayer() == pcbnew.F_SilkS}
+
+    def test_silk_labels_present(self):
+        """Every connector, jumper and button says what it is without the schematic."""
+        texts = self._silk_texts()
+        want = ["DriftAnalyser v2", "2026-09", "12V DATA GND", "12V IN", "+", "-",
+                "USB", "OBD: CANH CANL K GND", "CAN TERM", "K PULLUP",
+                "UART0: 3V3 GND TX RX", "EXT: 3V3 GND TX2 RX2 SDA SCL",
+                "X", "Y", "nose = +X", "BOOT", "EN"]
+        want += [f"LED{i}" for i in range(1, 7)]
+        self.assertEqual([w for w in want if w not in texts], [])
+
+    def test_no_silk_warnings(self):
+        """Silk that overlaps a pad, another label or the outline is silk the fab
+        drops or smears: the whole legend has to survive the panel."""
+        silk = [v for v in self._drc("drc-silk.json", ("--severity-all",))["violations"]
+                if v["type"].startswith("silk")]
+        self.assertEqual(silk, [], json.dumps(silk[:5], indent=1, ensure_ascii=False))
+
+    def test_values_hidden(self):
+        """Only references stay on the board; values would just crowd the silk."""
+        shown = [fp.GetReference() for fp in self.board.GetFootprints()
+                 if fp.Value().IsVisible()]
+        self.assertEqual(shown, [])
+
     def test_final_drc_with_parity(self):
         """The board as it ships: nothing unrouted, nothing off the schematic."""
         data = self._drc("drc-final.json", ("--schematic-parity",))
@@ -539,6 +568,45 @@ class TestPcb(unittest.TestCase):
         stuck = [v for v in self._drc().get("unconnected_items", [])
                  if self._nets_of(v) & set(POUR_NETS)]
         self.assertEqual(stuck, [], json.dumps(stuck[:5], indent=1, ensure_ascii=False))
+
+
+    # ---- fab outputs ------------------------------------------------------
+
+    def test_fab_files(self):
+        """One command has to produce everything the fab is sent, from this board."""
+        import csv
+        from gen import export
+        export.export_all()
+        fab = os.path.join(env.PROJECT_DIR, "fab")
+
+        def path(name):
+            f = os.path.join(fab, name)
+            self.assertTrue(os.path.exists(f) and os.path.getsize(f) > 0, name)
+            return f
+
+        import zipfile
+        with zipfile.ZipFile(path("gerbers.zip")) as z:
+            names = z.namelist()
+        for want in ("F_Cu", "In1_Cu", "In2_Cu", "B_Cu", "F_Silkscreen", "B_Silkscreen",
+                     "F_Mask", "B_Mask", "F_Paste", "B_Paste", "Edge_Cuts",
+                     "PTH.drl", "NPTH.drl"):
+            self.assertTrue([n for n in names if want in n], f"{want} missing from gerbers.zip")
+
+        bom = list(csv.DictReader(open(path("BOM.csv"))))
+        self.assertEqual(list(bom[0].keys()), ["Comment", "Designator", "Footprint", "LCSC Part #"])
+        refs = [r for row in bom for r in row["Designator"].split(",")]
+        self.assertEqual(sorted(refs), sorted(p.ref for p in model.PARTS))
+        self.assertEqual([r for r in bom if not r["LCSC Part #"]], [])
+
+        cpl = list(csv.DictReader(open(path("CPL.csv"))))
+        self.assertEqual(list(cpl[0].keys()), ["Designator", "Mid X", "Mid Y", "Layer", "Rotation"])
+        self.assertEqual({r["Designator"] for r in cpl}, {p.ref for p in model.PARTS})
+        self.assertEqual({r["Layer"] for r in cpl}, {"Top"})
+
+        for name in ("render-top.svg", "render-bottom.svg", "render-in1.svg",
+                     "render-in2.svg", "schematic.pdf", "render-3d-top.png",
+                     "render-3d-bottom.png", "driftanalyser-v2.step", "README-fab.md"):
+            path(name)
 
 
 if __name__ == "__main__":
