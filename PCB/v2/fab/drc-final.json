@@ -1,7 +1,7 @@
 {
     "$schema": "https://schemas.kicad.org/drc.v1.json",
     "coordinate_units": "mm",
-    "date": "2026-09-06T12:57:54",
+    "date": "2026-09-06T21:52:28",
     "ignored_checks": [
         {
             "description": "Footprint has no courtyard defined",
@@ -30,99 +30,6 @@
     "kicad_version": "10.0.6",
     "schematic_parity": [],
     "source": "driftanalyser-v2.kicad_pcb",
-    "unconnected_items": [
-        {
-            "description": "Missing connection between items",
-            "items": [
-                {
-                    "description": "Дорожка [LED_PWR_EN] на F.Cu, длина 6.3480 mm",
-                    "pos": {
-                        "x": 88.175,
-                        "y": 31.0
-                    },
-                    "uuid": "b9ba8753-de25-4fb4-bf5c-181a484751e0"
-                },
-                {
-                    "description": "Конт. пл. 2 [LED_PWR_EN] от U2 на F.Cu",
-                    "pos": {
-                        "x": 92.7,
-                        "y": 28.85
-                    },
-                    "uuid": "e92547ae-cb10-4641-8e7b-ebb7cf40bc70"
-                }
-            ],
-            "severity": "error",
-            "type": "unconnected_items"
-        },
-        {
-            "description": "Missing connection between items",
-            "items": [
-                {
-                    "description": "Конт. пл. 11 [CAN_TX] от U1 на F.Cu",
-                    "pos": {
-                        "x": 15.44,
-                        "y": 41.75
-                    },
-                    "uuid": "a72c8bc3-3203-4043-9051-552d1d828079"
-                },
-                {
-                    "description": "Конт. пл. 1 [CAN_TX] от U8 на F.Cu",
-                    "pos": {
-                        "x": 65.525,
-                        "y": 58.095
-                    },
-                    "uuid": "967749d6-340e-44e8-8db1-29f8c97870fd"
-                }
-            ],
-            "severity": "error",
-            "type": "unconnected_items"
-        },
-        {
-            "description": "Missing connection between items",
-            "items": [
-                {
-                    "description": "Конт. пл. 23 [CAN_RX] от U1 на F.Cu",
-                    "pos": {
-                        "x": 20.5,
-                        "y": 29.825
-                    },
-                    "uuid": "e9828278-19fd-49b6-8457-a27cd1912b15"
-                },
-                {
-                    "description": "Конт. пл. 4 [CAN_RX] от U8 на F.Cu",
-                    "pos": {
-                        "x": 65.525,
-                        "y": 61.905
-                    },
-                    "uuid": "9df93c66-339d-4dc3-9de8-b27a916dda08"
-                }
-            ],
-            "severity": "error",
-            "type": "unconnected_items"
-        },
-        {
-            "description": "Missing connection between items",
-            "items": [
-                {
-                    "description": "Конт. пл. 2 [SD_CD] от R21 на F.Cu",
-                    "pos": {
-                        "x": 84.0,
-                        "y": 51.175
-                    },
-                    "uuid": "7427c0c1-184d-4604-8af8-15fa9a52a420"
-                },
-                {
-                    "description": "Дорожка [SD_CD] на F.Cu, длина 2.6662 mm",
-                    "pos": {
-                        "x": 87.3483,
-                        "y": 36.4588
-                    },
-                    "uuid": "1ec36e9d-cb2f-44fd-89e9-ad6d8fac8a84"
-                }
-            ],
-            "severity": "error",
-            "type": "unconnected_items"
-        }
-    ],
+    "unconnected_items": [],
     "violations": []
 }

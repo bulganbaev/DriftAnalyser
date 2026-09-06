@@ -17,6 +17,11 @@ from gen import env, libs, model, placement
 
 EDGE_W = pcbnew.FromMM(0.1)
 
+# F.Cu / In1.Cu (solid GND) / In2.Cu (VBAT + 12V_LED + GND) / B.Cu, in stack order.
+# pcbnew numbers them 0, 4, 6, 2 - never assume the ids are ordered.
+CU = (pcbnew.F_Cu, pcbnew.In1_Cu, pcbnew.In2_Cu, pcbnew.B_Cu)
+INNER = (pcbnew.In1_Cu, pcbnew.In2_Cu)
+
 
 def _pro_path():
     return os.path.join(env.PROJECT_DIR, env.PROJECT_NAME + ".kicad_pro")
@@ -36,9 +41,9 @@ def write_project_netclasses():
     with open(_pro_path()) as f:
         pro = json.load(f)
     pro.setdefault("board", {})["design_settings"] = {
-        # JLCPCB 2 oz capability, not the KiCad defaults
-        # 0.15 mm is below JLCPCB's 2 oz floor (0.2 mm) but only U5's LGA-14 land
-        # pattern needs it; see the .kicad_dru, which scopes the exception to U5.
+        # JLCPCB 4 layer, 1 oz outer / 0.5 oz inner capability, not the KiCad
+        # defaults. 0.15 mm clearance is above that process' floor (0.127 mm); it
+        # is only U5's LGA-14 land pattern that ever needs to go that low.
         "rules": {"min_clearance": 0.15, "min_track_width": 0.2, "min_via_diameter": 0.6,
                   "min_via_annular_width": 0.15, "min_through_hole_diameter": 0.3,
                   "min_copper_edge_clearance": 0.3,
@@ -50,7 +55,7 @@ def write_project_netclasses():
     pro["net_settings"] = {
         "classes": [
             _netclass("Default", 0.2, 0.25, 0.6, 0.3),
-            # 0.5 mm at 2 oz is ~2.5 A: the 5 V and 3V3 rails carry under 1 A and
+            # 0.5 mm at 1 oz is ~1.7 A: the 5 V and 3V3 rails carry under 1 A and
             # BUCK_SW is 3 mm long. 1 mm was unroutable - the autorouter could not
             # get it into a 0.5 mm pad pitch and gave up on 22 connections.
             _netclass("Power", 0.25, 0.5, 0.8, 0.4),
@@ -77,8 +82,9 @@ DRU = """(version 1)
 
 # Pad to pad spacing inside a land pattern is the part maker's, not ours. Measured
 # gaps: U5 (LGA-14) 0.15 mm, J2 (USB-C) and U2 (TSDSO-14) 0.20, U7 0.25, U3 0.35 -
-# only U5 is under JLCPCB's 2 oz floor of 0.2 mm. Both rules are scoped to pads of
-# one footprint, so the netclass clearance still governs everything we draw.
+# all of them clear JLCPCB's 4 layer 1 oz floor (0.127 mm), none of them clear the
+# 0.25 mm we ask of our own copper. Both rules are scoped to pads of one footprint,
+# so the netclass clearance still governs everything we draw.
 (rule "same footprint pad spacing"
 \t(constraint clearance (min 0.2mm))
 \t(condition "A.Type == 'Pad' && B.Type == 'Pad' && A.Reference == B.Reference"))
@@ -89,9 +95,9 @@ DRU = """(version 1)
 
 # Getting a trace out of a 0.5 mm pitch land pattern costs the netclass margin:
 # 0.35 mm pads leave 0.15 mm between them, so a 0.2 mm escape out of one pad runs
-# 0.225 mm from the next. That is still the fab's 2 oz floor (0.2 mm), it is just
-# below the 0.25 mm we ask of ourselves everywhere else, and it is scoped to U5's
-# own pads - the autorouter never sees it, it routes to the netclass.
+# 0.225 mm from the next. That is well clear of the fab's floor (0.127 mm), it is
+# just below the 0.25 mm we ask of ourselves everywhere else, and it is scoped to
+# U5's own pads - the autorouter never sees it, it routes to the netclass.
 (rule "U5 LGA-14 escapes"
 	(constraint clearance (min 0.2mm))
 	(condition "A.Type == 'Pad' && A.memberOfFootprint('U5') && B.Type == 'Track'"))
@@ -108,6 +114,42 @@ def write_design_rules():
     path = os.path.join(env.PROJECT_DIR, env.PROJECT_NAME + ".kicad_dru")
     with open(path, "w") as f:
         f.write(DRU)
+
+
+# JLCPCB's stock 4 layer 1.6 mm stack (JLC04161H-7628): 1 oz outer, 0.5 oz inner,
+# one 7628 prepreg either side of a 1.065 mm core. pcbnew does not wrap
+# BOARD_STACKUP usefully, so this goes into the saved file as text - without it
+# KiCad spreads the 1.6 mm evenly and the fab has to guess.
+STACKUP = """	(stackup
+		(layer "F.SilkS" (type "Top Silk Screen"))
+		(layer "F.Paste" (type "Top Solder Paste"))
+		(layer "F.Mask" (type "Top Solder Mask") (thickness 0.01))
+		(layer "F.Cu" (type "copper") (thickness 0.035))
+		(layer "dielectric 1" (type "prepreg") (thickness 0.2104) (material "7628") (epsilon_r 4.4) (loss_tangent 0.02))
+		(layer "In1.Cu" (type "copper") (thickness 0.0152))
+		(layer "dielectric 2" (type "core") (thickness 1.065) (material "FR4") (epsilon_r 4.6) (loss_tangent 0.02))
+		(layer "In2.Cu" (type "copper") (thickness 0.0152))
+		(layer "dielectric 3" (type "prepreg") (thickness 0.2104) (material "7628") (epsilon_r 4.4) (loss_tangent 0.02))
+		(layer "B.Cu" (type "copper") (thickness 0.035))
+		(layer "B.Mask" (type "Bottom Solder Mask") (thickness 0.01))
+		(layer "B.Paste" (type "Bottom Solder Paste"))
+		(layer "B.SilkS" (type "Bottom Silk Screen"))
+		(copper_finish "ENIG")
+		(dielectric_constraints no)
+	)
+"""
+
+
+def write_stackup(path):
+    """Put the JLC stack into the saved board, or leave the one already there."""
+    with open(path) as f:
+        text = f.read()
+    if "(stackup" in text:
+        return False
+    i = text.index("\n", text.index("\t(setup")) + 1
+    with open(path, "w") as f:
+        f.write(text[:i] + STACKUP + text[i:])
+    return True
 
 
 def _edge(board, shape):
@@ -210,6 +252,14 @@ def _footprints(board, nets):
 GND_CLEAR = 0.4
 BUS_CLEAR = 0.4
 
+# In2.Cu extents. The 12V slab stops at IN2_BUS_BOT, clear of the LED series
+# resistor row at y = 14; its arm reaches IN2_ARM_BOT, 0.4 past the last via of
+# the F.Cu arm and 1.9 short of the VBAT riser. The VBAT corridor is 13 mm tall
+# and runs under the 3V3 block and the microSD resistor column - both all SMD, so
+# it only pays for the signal vias the router drops through it.
+IN2_BUS_BOT, IN2_ARM_BOT = 12.0, 22.3
+IN2_VBAT_TOP, IN2_VBAT_BOT = 41.0, 54.0
+
 
 def _pad_box(board, ref, num):
     """Bounding box of one pad on the built board, in mm (x0, y0, x1, y1)."""
@@ -275,9 +325,26 @@ def _zone(board, net, layer, pts, priority=0, clearance=GND_CLEAR, min_w=0.25,
     return z
 
 
+def _union(rects):
+    """One outline around a set of axis-aligned boxes, in mm."""
+    poly = pcbnew.SHAPE_POLY_SET()
+    for x0, y0, x1, y1 in rects:
+        part = pcbnew.SHAPE_POLY_SET()
+        part.NewOutline()
+        for x, y in _rect(x0, y0, x1, y1):
+            part.Append(pcbnew.FromMM(x), pcbnew.FromMM(y))
+        poly.BooleanAdd(part)
+    poly.Simplify()
+    if poly.OutlineCount() != 1:
+        raise ValueError(f"{rects} do not make one connected region")
+    o = poly.Outline(0)
+    return [(pcbnew.ToMM(o.CPoint(k).x), pcbnew.ToMM(o.CPoint(k).y))
+            for k in range(o.PointCount())]
+
+
 def _rule_area(board, pts):
-    """Keep-out on both copper layers: no pour, no track, no via."""
-    for layer in (pcbnew.F_Cu, pcbnew.B_Cu):
+    """Keep-out on every copper layer: no pour, no track, no via."""
+    for layer in CU:
         z = pcbnew.ZONE(board)
         z.SetLayer(layer)
         z.SetIsRuleArea(True)
@@ -298,10 +365,13 @@ def _zones(board, nets):
     ax0, ay0, ax1, ay1 = placement.ANTENNA_KEEPOUT
     _rule_area(board, _rect(max(ax0, 0.0), ay0, ax1, ay1))
 
-    # ---- GND over the whole board, lowest priority: everything else cuts into it
+    # ---- GND over the whole board on every layer, lowest priority: everything
+    # else cuts into it. In1.Cu is the point of the four layer stack - nothing
+    # else is ever poured there, so it stays a solid reference under every signal
+    # on F.Cu and the return path for the strip connectors' pin 3.
     full = _rect(0.5, 0.5, W - 0.5, H - 0.5)
-    _zone(board, nets["GND"], pcbnew.F_Cu, full, priority=0)
-    _zone(board, nets["GND"], pcbnew.B_Cu, full, priority=0)
+    for layer in CU:
+        _zone(board, nets["GND"], layer, full, priority=0)
 
     # ---- 12V_LED, a comb rather than a band across the connector row: a run along
     # the top edge
@@ -324,10 +394,19 @@ def _zones(board, nets):
     for tx0, tx1, tb in reversed(teeth):
         bus += [(tx1, band_bot), (tx1, tb), (tx0, tb), (tx0, band_bot)]
     bus.append((bx0, band_bot))
-    for layer in (pcbnew.F_Cu, pcbnew.B_Cu):
-        _zone(board, nets["12V_LED"], layer, bus, priority=2, clearance=BUS_CLEAR,
-              connection=pcbnew.ZONE_CONNECTION_FULL)
+    _zone(board, nets["12V_LED"], pcbnew.F_Cu, bus, priority=2, clearance=BUS_CLEAR,
+          connection=pcbnew.ZONE_CONNECTION_FULL)
     bus_geo = (bx0, bx1, band_bot)
+
+    # ---- 12V_LED on In2.Cu, in parallel with the comb above it. There are no
+    # pads down here, only barrels, so it is a plain slab: it runs past the
+    # connector row (pin 1 is a through hole on this net, so the slab bonds to
+    # all six of them; pins 2 and 3 only cost an anti-pad) and sends the same arm
+    # down to U2, where the twelve vias of the arm tie the two layers together.
+    _zone(board, nets["12V_LED"], pcbnew.In2_Cu,
+          _union([(bx0, 0.5, bx1, IN2_BUS_BOT),
+                  (teeth[-1][0], 0.5, teeth[-1][1], IN2_ARM_BOT)]),
+          priority=2, clearance=BUS_CLEAR, connection=pcbnew.ZONE_CONNECTION_FULL)
 
     # ---- VBAT input copper on F.Cu: XT60 pin 1, the TVS, the bulk caps and the
     # buck input caps. The notch keeps the R7 / R8 / C8 sense divider out of it.
@@ -371,33 +450,19 @@ def _zones(board, nets):
     _zone(board, nets["VBAT"], pcbnew.F_Cu, vbat_tab, priority=1, clearance=BUS_CLEAR,
           connection=pcbnew.ZONE_CONNECTION_FULL)
 
-    # ---- VBAT on B.Cu: input block (tied through the XT60 / C1 / C2 through holes
-    # and a via field), a corridor across the empty back side, a riser to U2's tab
+    # ---- VBAT on In2.Cu: the whole path from the XT60 to U2's tab in one piece -
+    # the input block (tied through the XT60 / C1 / C2 barrels and a via field),
+    # a 13 mm corridor across the middle of the board, and a riser under U2's tab
+    # via field. On two layers this lived on B.Cu and had to be split into two
+    # bands with a channel between them, because signals had nowhere else to
+    # cross; nothing routes on In2, so it is solid and the notch under U2's
+    # control row is gone with it.
     c1_right = _pad_box(board, "C1", "1")[2]
-    bx_l, bx_r = vx0 - 2.0, c1_right + 2.5       # input block, tied through the XT60 /
-    by_t, by_b = top, c2_bot + 0.8               # C1 / C2 through holes and a via field
-    # The corridor is 8 mm of copper - ~20 A at 2 oz / 20 K by IPC-2221, the same
-    # ceiling U2's tab land already sets - but split into two 4.2 mm bands (the
-    # filler gives back a hair less than the outline) with a 2.5 mm channel, because a solid 8 mm wall across the back side
-    # is a wall for signals too and everything on the right of the board has to
-    # cross it. Both bands run from the input block to the riser.
-    cy_t, cy_b = 42.3, 46.5
-    band_t, band_b = 49.0, 53.2
-    # A notch out of the top of the riser, between its two via columns: it puts
-    # back-side ground under U2's control row, and without it every signal in that
-    # cluster is stuck on one layer with no room to cross.
-    vbat_b = [(86.0, 18.0), (91.6, 18.0), (91.6, 36.0), (96.0, 36.0), (96.0, 18.0),
-              (tab_right, 18.0), (tab_right, cy_b), (bx_r, cy_b),
-              (bx_r, by_b), (bx_l, by_b), (bx_l, by_t), (30.0, by_t),
-              (30.0, cy_t), (86.0, cy_t)]
-    _zone(board, nets["VBAT"], pcbnew.B_Cu, vbat_b, priority=1, clearance=BUS_CLEAR,
-          connection=pcbnew.ZONE_CONNECTION_FULL)
-    # the second band, drawn as its own zone so both keep a simple outline: it
-    # overlaps the input block on the left and the riser on the right
-    # priority 3: it deliberately overlaps the input block and the riser at its two
-    # ends, and KiCad wants a winner wherever two zones share copper
-    _zone(board, nets["VBAT"], pcbnew.B_Cu, _rect(30.0, band_t, 90.0, band_b),
-          priority=3, clearance=BUS_CLEAR, connection=pcbnew.ZONE_CONNECTION_FULL)
+    blk = (vx0 - 2.0, top, c1_right + 2.5, c2_bot + 0.8)
+    corridor = (30.0, IN2_VBAT_TOP, tab_right, IN2_VBAT_BOT)
+    riser = (tab_left, oy1 + 0.4, tab_right, IN2_VBAT_TOP)
+    _zone(board, nets["VBAT"], pcbnew.In2_Cu, _union([blk, corridor, riser]),
+          priority=1, clearance=BUS_CLEAR, connection=pcbnew.ZONE_CONNECTION_FULL)
     return {"bus": bus_geo, "arm": (ox0, ox1, oy1),
             "tab": (tab_left, tab_right, leg_l, leg_r, bar_top, leg_bot),
             "cap_gnd": (gnd_x, col_x, c1_gnd[3], _pad_box(board, "C2", "2")[1])}
@@ -424,12 +489,13 @@ def _stitch(board, nets, geo):
     for x in cols:
         for k in range(4):
             _via(board, nets["VBAT"], x, bar_top + 0.6 + 1.5 * k)
-    # VBAT: F <-> B under the XT60, between the TVS and the bulk caps. The XT60's own
-    # barrel is worth about five of these; the pour above them is the 30 A input.
+    # VBAT: F.Cu <-> In2 under the XT60, between the TVS and the bulk caps. The
+    # XT60's own barrel is worth about five of these; the pour above them is the
+    # 30 A input.
     for x in [19.5 + 2.0 * i for i in range(8)]:
         for y in (51.0, 53.0, 54.8):
             _via(board, nets["VBAT"], x, y)
-    # 12V_LED: F <-> B along the run at the top edge
+    # 12V_LED: F.Cu <-> the In2 slab along the run at the top edge
     bx0, bx1, band_bot = geo["bus"]
     x = bx0 + 1.5
     while x < bx1 - 1.5:
@@ -443,8 +509,8 @@ def _stitch(board, nets, geo):
     for i in range(1, 7):
         pin3 = _pad_box(board, f"J1{i}", "3")
         _via(board, nets["GND"], (pin3[0] + pin3[2]) / 2, pin3[3] + 2.15)
-    # GND: in the lane the VBAT pour leaves open for C1 / C2's SMD ground pads, so the
-    # bulk cap return reaches the back-side plane too
+    # GND: in the lane the VBAT pour leaves open for C1 / C2's SMD ground pads, so
+    # the bulk cap return reaches the In1 plane too
     gnd_x, gnd_r, c1_bot, c2_top = geo["cap_gnd"]
     for x in (gnd_x + 1.5, gnd_x + 4.0):
         for y in (c1_bot + 2.25, c1_bot + 5.25):
@@ -473,7 +539,7 @@ STUBS = [
     # and up into C2's own VBAT pad (the pour's corner there is 0.4 from that pad)
     ("VBAT", 0.8, [(41.175, 70.0), (40.6, 70.6), (31.5, 70.6), (31.0, 69.5)]),
     # the K-line transceiver's battery branch: JP2 / U9 / C25 are 10 mm past the
-    # end of every VBAT pour on F.Cu, so they drop to the back-side corridor
+    # end of every VBAT pour on F.Cu, so they drop to the In2 corridor
     ("VBAT", 0.6, [(86.5, 64.0), (85.5, 62.5), (85.5, 51.0)]),
     ("VBAT", 0.6, [(82.475, 59.365), (84.0, 59.365), (85.5, 58.0)]),
     ("VBAT", 0.5, [(79.225, 55.0), (79.225, 51.4)]),
@@ -491,12 +557,20 @@ STUBS = [
     # so it has neither plane to fall back on: out of the pour to the north, into
     # the ground above it, and down to the back plane through the via below
     ("GND", 0.5, [(35.4, 46.0), (35.4, 43.0)]),
-    # U2's ground pin and R1's pull-down sit between the tab via field and the
-    # control row with the VBAT run underneath: no plane on either side, and the
-    # router keeps fencing them in. Tie them to C7's ground pad by hand.
-    # U2's ground pin only has to reach the back plane, which the notch in the
-    # VBAT riser now puts right underneath it - 0.75 mm of track and a via
-    ("GND", 0.3, [(92.05, 29.3), (92.05, 30.05)]),
+    # U2's control row is a 0.65 mm pitch of seven pins in a 1 mm pocket: the
+    # VBAT tab bar closes it to the north, the tab's two legs to west and east,
+    # and R1 / R2 / R5 to the south. Two of those pins have to be drawn by hand
+    # or nothing else fits.
+    # Pin 1 is ground. It used to drop into a via 0.75 mm below the pad, which
+    # put an 0.8 mm barrel in the middle of the pocket and left pin 2 with no way
+    # out at all - in four draws of the router LED_PWR_EN never once connected.
+    # It now runs south past R1 and R2 and takes its via in the open below them.
+    ("GND", 0.3, [(92.05, 29.3), (92.05, 31.9)]),
+    # Pin 2 is the enable, and its pull-down R1 is 4.5 mm west, on the far side of
+    # that ground run. There is no path on F.Cu, so it drops to B.Cu right here:
+    # 0.75 mm of track into the lane between the pad row and R2, and a via. The
+    # gap it sits in is 1.02 mm tall and the via wants 1.0 of it.
+    ("LED_PWR_EN", 0.2, [(92.7, 29.2), (92.8, 29.95)]),
     # U7's supply pin has its ground pin 0.25 mm away: every time the router got
     # itself into that gap it broke the clearance, so the decoupling loop to C22
     # is drawn here instead.
@@ -506,7 +580,17 @@ STUBS = [
     # is the board minimum and the only width that keeps 0.2 mm to the next pad.
     # Each escape ends clear of the land pattern, and the ones the router still
     # could not pick up end on a via, so it can take them on the back side.
-    ("IMU_INT1", 0.2, [(53.9, 32.8), (52.8, 32.8)]),               # pad 4, west
+    # pad 4, west - and then all the way past C20, because stopping beside it is
+    # no good: C20's two pads are a 2.45 mm wall on F.Cu with 0.65 mm between
+    # them, and in draw after draw the router came east to x = 49.7 and gave up
+    # there. The run turns south under C20 and lands in open board.
+    ("IMU_INT1", 0.2, [(53.9, 32.8), (52.8, 32.8), (52.8, 34.2), (49.3, 34.2)]),
+    # the other end of the same net. U1's pin field is a 1.27 mm pitch row and
+    # the router escapes each pin northward across its neighbours' exits; pin 10
+    # ends up fenced in by pin 9's, and in six draws in a row IMU_INT1 came back
+    # with no copper on it at all. It gets its own way out to the south instead,
+    # into the 1.6 mm gap between the module's pins and SW1.
+    ("IMU_INT1", 0.2, [(14.17, 42.0), (14.17, 43.3)]),
     ("I2C_SDA", 0.2, [(54.5, 30.9), (54.5, 29.8), (53.6, 29.0)]),  # pad 14, north
     ("I2C_SCL", 0.2, [(55.0, 30.9), (55.0, 29.8), (56.4, 28.4)]),  # pad 13, north
     # 3V3 lands on three pads of U5 on three different sides: the rail round the
@@ -515,6 +599,10 @@ STUBS = [
     ("3V3", 0.25, [(55.5, 30.0), (57.3, 29.5), (57.3, 34.4), (54.5, 34.4)]),
     ("3V3", 0.2, [(54.5, 33.1), (54.5, 34.4)]),                    # pad 5, south
     ("3V3", 0.2, [(56.3, 32.75), (57.3, 32.75)]),                  # pad 8, east
+    # and on to C21, the IMU's other decoupling cap: 1.7 mm of empty board that
+    # the router kept leaving open because everything else around U5 got there
+    # first
+    ("3V3", 0.25, [(57.3, 32.75), (59.2, 32.75)]),
 ]
 
 # vias that take a stub to the copper on the other side. The GND one is the way
@@ -522,8 +610,9 @@ STUBS = [
 # around it would otherwise be an island the rest of the board never reaches.
 STUB_VIAS = [("VBAT", 85.5, 51.0), ("VBAT", 79.225, 51.4), ("GND", 101.5, 23.9),
              ("GND", 35.4, 43.0),
-             ("GND", 92.05, 30.05),
-             ("IMU_INT1", 52.8, 32.8), ("I2C_SDA", 53.6, 29.0),
+             ("GND", 92.05, 31.9), ("LED_PWR_EN", 92.8, 29.95),
+             ("IMU_INT1", 49.3, 34.2), ("IMU_INT1", 14.17, 43.3),
+             ("I2C_SDA", 53.6, 29.0),
              ("I2C_SCL", 56.4, 28.4)]
 
 
@@ -546,6 +635,75 @@ def _stub_tracks(board, nets):
         _via(board, nets[name], x, y, *(0.8, 0.4) if big else (0.6, 0.3))
 
 
+# a 0.6/0.3 via, its clearance, and how far a ground pad's own tie may sit from
+# another ground via before it counts as already tied down
+TIE_D, TIE_DRILL, TIE_CLEAR, TIE_NEAR = 0.6, 0.3, 0.3, 1.6
+
+
+def _gnd_ties(board, nets):
+    """A via down to the In1 plane beside every ground pad that lives only on F.Cu.
+
+    This is the thing four layers buy. On two layers the back side was VBAT
+    copper exactly where it was needed, and eighteen ground pads ended up
+    stranded on islands the routed traces cut out of the top pour, with nowhere
+    to stitch them to. Here In1.Cu is solid ground under the whole board, so each
+    of these pads gets its own via before routing, and the autorouter has to plan
+    around it instead of fencing the pad in.
+
+    A tie is skipped where one is not needed (the pad already has a ground via or
+    a through hole within TIE_NEAR) or where none fits: no spot outside the pad
+    that clears every other pad and every existing track by TIE_CLEAR, stays
+    0.5 mm inside the board, keeps out of the antenna box, and does not land in
+    the VBAT or 12V_LED pours, whose copper is worth more than the tie."""
+    r = TIE_D / 2
+    reach = pcbnew.FromMM(r + TIE_CLEAR)
+    ax0, ay0, ax1, ay1 = placement.ANTENNA_KEEPOUT
+    power = [z for z in board.Zones()
+             if not z.GetIsRuleArea() and z.GetNetname() in ("VBAT", "12V_LED")]
+    pads = [pad for fp in board.GetFootprints() for pad in fp.Pads()]
+    ties = []
+
+    def free(x, y):
+        if not (0.5 + r <= x <= placement.BOARD_W - 0.5 - r
+                and 0.5 + r <= y <= placement.BOARD_H - 0.5 - r):
+            return False
+        if ax0 - 1.0 <= x <= ax1 + 1.0 and ay0 - 1.0 <= y <= ay1 + 1.0:
+            return False
+        p = MM(x, y)
+        if any(pad.HitTest(p, reach) for pad in pads):
+            return False
+        if any(t.HitTest(p, reach) for t in board.Tracks()):
+            return False
+        return not any(z.Outline().Collide(p, reach) for z in power)
+
+    for fp in board.GetFootprints():
+        for pad in fp.Pads():
+            if (pad.GetNetname() != "GND" or not pad.IsOnLayer(pcbnew.F_Cu)
+                    or pad.IsOnLayer(pcbnew.B_Cu)):
+                continue
+            c = pad.GetPosition()
+            cx, cy = pcbnew.ToMM(c.x), pcbnew.ToMM(c.y)
+            near = pcbnew.FromMM(TIE_NEAR)
+            if any(t.GetClass() == "PCB_VIA" and t.GetNetname() == "GND"
+                   and abs(t.GetPosition().x - c.x) < near
+                   and abs(t.GetPosition().y - c.y) < near
+                   for t in board.Tracks()):
+                continue
+            bb = pad.GetBoundingBox()
+            x0, y0, x1, y1 = (pcbnew.ToMM(v) for v in
+                              (bb.GetLeft(), bb.GetTop(), bb.GetRight(), bb.GetBottom()))
+            d = r + TIE_CLEAR
+            spot = next((s for s in ((cx, y1 + d), (cx, y0 - d), (x1 + d, cy),
+                                     (x0 - d, cy), (x1 + d, y1 + d), (x0 - d, y1 + d),
+                                     (x1 + d, y0 - d), (x0 - d, y0 - d))
+                         if free(*s)), None)
+            if spot is None:
+                continue
+            _via(board, nets["GND"], spot[0], spot[1], TIE_D, TIE_DRILL)
+            ties.append((fp.GetReference() + "." + pad.GetNumber(), spot))
+    return ties
+
+
 def _fill(board):
     board.BuildConnectivity()
     pcbnew.ZONE_FILLER(board).Fill(board.Zones())
@@ -555,7 +713,7 @@ def build(path):
     board = pcbnew.BOARD()
     board.SetFileName(path)
     ds = board.GetDesignSettings()
-    ds.SetCopperLayerCount(2)
+    ds.SetCopperLayerCount(4)
     ds.SetBoardThickness(pcbnew.FromMM(1.6))
     # gerbers / pick-and-place are exported relative to the bottom-left corner
     ds.SetAuxOrigin(MM(0.0, placement.BOARD_H))
@@ -566,10 +724,13 @@ def build(path):
     geo = _zones(board, nets)
     _stitch(board, nets, geo)
     _stub_tracks(board, nets)
+    ties = _gnd_ties(board, nets)
     _fill(board)
+    print(f"{len(ties)} ground pads tied to the In1 plane by their own via")
     # aSkipSettings=True: a plain SaveBoard() also rewrites the .kicad_pro from the
     # board's empty in-memory project and drops the schematic's sheet list
     pcbnew.SaveBoard(path, board, True)
+    write_stackup(path)
     write_project_netclasses()
     write_design_rules()
 

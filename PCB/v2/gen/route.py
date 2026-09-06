@@ -28,18 +28,25 @@ JAR = os.path.expanduser("~/.local/freerouting/freerouting.jar")
 JAVA = os.environ.get("JAVA", "/opt/homebrew/opt/openjdk/bin/java")
 PASSES = int(os.environ.get("DA2_PASSES", "200"))
 
-# The power pours are copper the router must not cut: the VBAT run on B.Cu is the
-# 30 A path to the switch, and one signal crossing it breaks the board. They go
+# The power pours are copper the router must not cut. On the outer layers they go
 # into the DSN as keep-outs, and their nets are split pad by pad so the router
 # never tries to reach a pad the pour already holds - the split keeps every pad
 # in its netclass, which is what sets the clearance the router leaves around it.
+# The In2 halves of VBAT and 12V_LED need no fence: nothing routes on In2 (see
+# dedicate_power_layers), so only the router's vias ever cross them.
 BUS = ("VBAT", "12V_LED")
 POURED = ("GND",) + BUS
 
+# F.Cu and B.Cu carry the signals; In1.Cu is the solid ground plane and In2.Cu
+# the VBAT / 12V_LED power plane, and nothing is ever routed on either of them.
+OUTER = (pcbnew.F_Cu, pcbnew.B_Cu)
+CU = (pcbnew.F_Cu, pcbnew.In1_Cu, pcbnew.In2_Cu, pcbnew.B_Cu)
+INNER = ("In1.Cu", "In2.Cu")
+
 # Freerouting reads these on top of its own config file (FREEROUTING__ROUTER__*)
 ROUTER_ENV = {
-    # fanout drops a via next to every SMD pad: on a 2 layer board with planes
-    # that is 100+ extra holes and nothing gained
+    # fanout drops a via next to every SMD pad: with two plane layers under every
+    # pad that is 100+ extra holes and nothing gained
     "FREEROUTING__ROUTER__FANOUT__ENABLED": "false",
     # it necks traces down to 0.15 mm to enter fine pads; the board minimum is 0.2
     "FREEROUTING__ROUTER__NECK_WIDTH_UM": "200",
@@ -85,6 +92,31 @@ def export_dsn(pcb, dsn):
         raise RuntimeError(f"DSN export to {dsn} failed")
 
 
+def dedicate_power_layers(dsn, layers=INNER):
+    """Tell Freerouting the two inner layers are planes, not routing layers.
+
+    KiCad writes `(type signal)` for all four copper layers and has no setting
+    that says otherwise, so without this the router treats In1 and In2 as two
+    more signal layers and buries traces in the ground plane. Freerouting reads
+    `(type power)` (Layer.isSignal) and says so on startup: "Layer 'In1.Cu' is a
+    dedicated power plane and cannot be routed. Forcing active state to false."
+
+    A Specctra `wire_keepout` would be the other way to say it, but Freerouting's
+    keyword table only knows `keepout`, `via_keepout` and `place_keepout` - and a
+    plain `keepout` would also bar the vias, which is exactly what the planes
+    need to be reachable at all."""
+    with open(dsn) as f:
+        text = f.read()
+    for name in layers:
+        want = f"(layer {name}\n      (type signal)"
+        if want not in text:
+            raise RuntimeError(f"no signal layer {name} in the DSN")
+        text = text.replace(want, f"(layer {name}\n      (type power)")
+    with open(dsn, "w") as f:
+        f.write(text)
+    return len(layers)
+
+
 def protect_existing(dsn):
     """Every wire and via in the DSN is ours (the power stubs and the stitching).
     KiCad exports them as `route`, which Freerouting is free to rip up and redraw
@@ -97,10 +129,14 @@ def protect_existing(dsn):
     return text.count("(type route)")
 
 
-def split_bus_nets(dsn, nets=BUS):
+def split_bus_nets(dsn, nets=POURED):
     """One net per pad, all of them still in the netclass the original was in.
-    The pour connects these pads; the router has nothing to do for them and must
-    not try - VBAT is a 3 mm netclass and no gap on this board takes 3 mm."""
+
+    The pours connect these pads; the router has nothing to do for them and must
+    not try - VBAT is a 3 mm netclass and no gap on this board takes 3 mm. GND is
+    in here for the other half of the reason: a single-pad net is still a pad, so
+    the router keeps the netclass clearance around it, which is exactly what it
+    stops doing when the pad is swallowed by a declared plane."""
     with open(dsn) as f:
         text = f.read()
     added = 0
@@ -136,7 +172,7 @@ KEEPOUT_LANES = [(91.0, 9.0, 100.0, 20.0, None), (93.5, 4.0, 100.0, 9.0, None),
                  # and a slit across the protected part, or the sixth channel's
                  # series resistor can only be reached the long way round. Front
                  # only: a trace may cut the front pour there because the arm's
-                 # back-side copper and the vias down it carry the current.
+                 # In2 copper and the twelve vias down it carry the current.
                  (87.0, 15.0, 91.0, 18.0, "F.Cu")]
 
 
@@ -152,16 +188,16 @@ def _lane_mask(layer):
 
 
 def bus_keepouts(pcb, dsn, nets=BUS):
-    """Fence the power pours off. KiCad exports zones as `(plane ...)`, which tells
-    Freerouting the net is connected but not that the copper matters, so without
-    this it drives signal traces straight through the VBAT run on the back side
-    and cuts the 30 A path into pieces."""
+    """Fence the power pours off on the routing layers. KiCad exports zones as
+    `(plane ...)`, which tells Freerouting the net is connected but not that the
+    copper matters, so without this it drives signal traces straight through the
+    12V comb and the VBAT tab pour and cuts the current path into pieces."""
     board = pcbnew.LoadBoard(pcb)
     outs = []
     for z in board.Zones():
         if z.GetIsRuleArea() or z.GetNetname() not in nets:
             continue
-        for layer in (pcbnew.F_Cu, pcbnew.B_Cu):
+        for layer in OUTER:
             if not z.IsOnLayer(layer):
                 continue
             fence = pcbnew.SHAPE_POLY_SET()
@@ -185,19 +221,27 @@ def bus_keepouts(pcb, dsn, nets=BUS):
     return len(outs)
 
 
-def drop_gnd_planes(dsn):
-    """Take both ground pours out of the DSN. KiCad exports zones as `(plane ...)`,
-    and a plane tells Freerouting the whole net is already connected, so it routes
-    no GND at all. On two layers that is a lie the moment its own traces cross a
-    pour: with the top plane held back it ties every F.Cu ground pad down to the
-    back plane, and with the back plane held back too it actually routes ground,
-    which is the only way the net comes out in one piece. The pours go back on top
-    of that copper afterwards and only add to it."""
+def drop_plane(dsn, net, layer):
+    """Take one `(plane ...)` scope out of the DSN.
+
+    All four ground pours go. Freerouting treats a plane as copper a trace may
+    cross, and it extends that licence to the pads sitting inside it: with the
+    pours declared it put twelve vias between 0.14 and 0.22 mm from D21's and
+    C17's ground pads, and KiCad's DRC called every one of them. Leaving the
+    pours out and splitting the ground pads off net by net (split_bus_nets)
+    turns them back into ordinary pads that get their 0.25 mm, and still gives
+    the router nothing to route: ground is finished by the pours and by the vias
+    stitch_islands adds afterwards, all of which land on In1.Cu.
+
+    Declaring them and routing ground properly instead was measured and is
+    worse: 222 items instead of 148, 63 of them still unrouted after 180 s, and
+    Freerouting died in the optimiser without writing a session file."""
     with open(dsn) as f:
         text = f.read()
+    head = f"(plane {net} (polygon {layer}"
     dropped = 0
-    while "(plane GND (polygon" in text:
-        i = text.index("(plane GND (polygon")
+    while head in text:
+        i = text.index(head)
         depth = 0
         for j in range(i, len(text)):
             if text[j] == "(":
@@ -206,13 +250,19 @@ def drop_gnd_planes(dsn):
                 depth -= 1
                 if depth == 0:
                     break
-        start = text.rindex("\n", 0, i) + 1
-        end = text.index("\n", j) + 1
-        text = text[:start] + text[end:]
+        text = text[:text.rindex("\n", 0, i) + 1] + text[text.index("\n", j) + 1:]
         dropped += 1
     with open(dsn, "w") as f:
         f.write(text)
     return dropped
+
+
+def check_planes(dsn):
+    """The planes still in the DSN, for the log and for a sanity read: VBAT and
+    12V_LED, which the router must see so it does not try to reach their pads."""
+    with open(dsn) as f:
+        text = f.read()
+    return sorted(re.findall(r"\(plane (\S+) \(polygon (\S+)", text))
 
 
 def keepout_layers(dsn):
@@ -242,7 +292,10 @@ def run_freerouting(dsn, ses, passes=PASSES):
     try:
         # -mt 1: the multi threaded optimizer is known to shove traces into each
         # other (it says so itself on startup) and it did short 5V_BUCK to BUCK_FB
-        r = subprocess.run([JAVA, f"-Duser.home={workdir}", "-jar", JAR,
+        # -Xmx3g: the default max heap is a quarter of RAM, and two runs were
+        # killed outright by the OS mid-pass on a loaded machine. The router's
+        # own peak is around 1.2 GB, so this only stops it reaching for more.
+        r = subprocess.run([JAVA, f"-Duser.home={workdir}", "-Xmx3g", "-jar", JAR,
                             "-de", dsn, "-do", ses, "-mp", str(passes),
                             "-mt", "1", "-l", "en"],
                            capture_output=True, text=True, timeout=7200,
@@ -278,10 +331,52 @@ def strip_keepout(board):
     return len(doomed)
 
 
-# The fill already keeps 0.4 mm from foreign copper, so a via whose edge lands on
-# the fill boundary still clears everything: the margin only has to be the via
-# radius. The small via is the Default netclass one, for pockets 0.8 cannot enter.
-STITCH_VIAS = ((0.8, 0.4, 0.45), (0.6, 0.3, 0.35))
+# The fill keeps 0.4 mm from foreign copper on the island's own layer, so the
+# margin there only has to be the via radius. It says nothing about the other
+# three layers, though, and a stitching via is a through via: hence _blockers.
+# The small via is the Default netclass one, for pockets 0.8 cannot enter.
+# (diameter, drill, how far inside the fill the centre has to sit). The fill is
+# already 0.4 mm clear of foreign copper on the island's own layer, so the last
+# entry - a small via whose barrel pokes 0.1 mm past the fill edge and still
+# keeps 0.25 mm to anything else - is the one that gets into a 2 mm2 pocket.
+STITCH_VIAS = ((0.8, 0.4, 0.45), (0.6, 0.3, 0.35), (0.6, 0.3, 0.2))
+# what the Power netclass asks between a via and anything else
+CLEARANCE = pcbnew.FromMM(0.25)
+
+
+def _blockers(board, net, cell=4.0):
+    """Everything a through via must not land on, bucketed 4 mm at a time.
+
+    Foreign tracks, vias and pads on *any* layer, plus every via of any net (two
+    vias in the same hole is not a connection, it is a mess). Without this the
+    stitcher reads its own layer's fill, sees 0.45 mm of clear ground copper, and
+    drops a via straight through a signal trace on the other side - after which
+    KiCad's net propagation quietly renames the via to that signal's net and the
+    island it was meant to rescue is still adrift."""
+    grid = {}
+    items = [t for t in board.Tracks()
+             if t.GetClass() == "PCB_VIA" or t.GetNetname() != net]
+    items += [pad for fp in board.GetFootprints() for pad in fp.Pads()
+              if pad.GetNetname() != net]
+    for it in items:
+        bb = it.GetBoundingBox()
+        for cx in range(int(pcbnew.ToMM(bb.GetLeft()) // cell),
+                        int(pcbnew.ToMM(bb.GetRight()) // cell) + 1):
+            for cy in range(int(pcbnew.ToMM(bb.GetTop()) // cell),
+                            int(pcbnew.ToMM(bb.GetBottom()) // cell) + 1):
+                grid.setdefault((cx, cy), []).append(it)
+    return grid, cell
+
+
+def _blocked(blockers, p, reach):
+    grid, cell = blockers
+    cx, cy = int(pcbnew.ToMM(p.x) // cell), int(pcbnew.ToMM(p.y) // cell)
+    for dx in (-1, 0, 1):
+        for dy in (-1, 0, 1):
+            for it in grid.get((cx + dx, cy + dy), ()):
+                if it.HitTest(p, reach):
+                    return True
+    return False
 
 
 def _fills(board, net, layer):
@@ -298,11 +393,12 @@ def _fills(board, net, layer):
     return out
 
 
-def _spot(island, other, pads, margin, step=0.3):
+def _spot(island, other, pads, margin, blockers, dia, step=0.1):
     """A point that sits `margin` inside this island and inside same-net copper on
-    the other layer. The fill already keeps its distance from foreign copper, so a
-    point that deep in it is a legal via position."""
+    some other layer, with nothing of another net within reach of the barrel on
+    any of the four."""
     m = pcbnew.FromMM(margin)
+    reach = pcbnew.FromMM(dia / 2) + CLEARANCE
     inner = pcbnew.SHAPE_POLY_SET(island)
     inner.Deflate(m, pcbnew.CORNER_STRATEGY_ROUND_ALL_CORNERS, pcbnew.FromMM(0.01))
     if inner.IsEmpty():
@@ -322,7 +418,8 @@ def _spot(island, other, pads, margin, step=0.3):
         while x <= x1:
             p = MM(x, y)
             if (inner.Contains(p) and any(d.Contains(p) for d in deep)
-                    and not any(pad.HitTest(p, m) for pad in pads)):
+                    and not any(pad.HitTest(p, m) for pad in pads)
+                    and not _blocked(blockers, p, reach)):
                 return x, y
             x += step
         y += step
@@ -330,8 +427,8 @@ def _spot(island, other, pads, margin, step=0.3):
 
 
 def _islands(board, net):
-    """[(layer, poly)] for every filled island of the net, both layers."""
-    return [(layer, poly) for layer in (pcbnew.F_Cu, pcbnew.B_Cu)
+    """[(layer, poly)] for every filled island of the net, on all four layers."""
+    return [(layer, poly) for layer in CU
             for poly in _fills(board, net, layer)]
 
 
@@ -359,21 +456,28 @@ def _groups(board, net, islands):
                 return i
         return None
 
+    def tie(pos, layers):
+        """One piece of copper: everything this item touches, on every layer."""
+        hits = [which(layer, pos) for layer in layers]
+        hits = [h for h in hits if h is not None]
+        for h in hits[1:]:
+            union(hits[0], h)
+
     for t in board.Tracks():
         if t.GetNetname() != net:
             continue
         if t.GetClass() == "PCB_VIA":
-            union(which(pcbnew.F_Cu, t.GetPosition()), which(pcbnew.B_Cu, t.GetPosition()))
+            tie(t.GetPosition(), [l for l in CU if t.IsOnLayer(l)])
         else:
-            layer = pcbnew.F_Cu if t.IsOnLayer(pcbnew.F_Cu) else pcbnew.B_Cu
+            layer = t.GetLayer()
             union(which(layer, t.GetStart()), which(layer, t.GetEnd()))
     for fp in board.GetFootprints():
         for pad in fp.Pads():
             if pad.GetNetname() != net:
                 continue
-            if pad.IsOnLayer(pcbnew.F_Cu) and pad.IsOnLayer(pcbnew.B_Cu):
-                union(which(pcbnew.F_Cu, pad.GetPosition()),
-                      which(pcbnew.B_Cu, pad.GetPosition()))
+            on = [l for l in CU if pad.IsOnLayer(l)]
+            if len(on) > 1:                     # a through hole ties every layer
+                tie(pad.GetPosition(), on)
     out = {}
     for i in range(len(islands)):
         out.setdefault(find(i), []).append(islands[i])
@@ -397,11 +501,12 @@ def stitch_islands(board, nets=POURED):
     return path. Returns (vias added, groups left stranded)."""
     pads = [pad for fp in board.GetFootprints() for pad in fp.Pads()]
     added = []
-    for _ in range(6):
+    for _ in range(10):
         pcbnew.ZONE_FILLER(board).Fill(board.Zones())
         board.BuildConnectivity()
         progress = False
         for net in nets:
+            blockers = _blockers(board, net)
             islands = _islands(board, net)
             groups = _groups(board, net, islands)
             if len(groups) < 2:
@@ -413,7 +518,7 @@ def stitch_islands(board, nets=POURED):
                     far = [p for lay, p in main if lay != layer]
                     spot = None
                     for d, drill, margin in STITCH_VIAS:
-                        spot = _spot(poly, far, pads, margin)
+                        spot = _spot(poly, far, pads, margin, blockers, d)
                         if spot:
                             break
                     if spot:
@@ -440,12 +545,67 @@ def stitch_islands(board, nets=POURED):
     return added, stranded
 
 
+# What the autorouter would not finish, drawn by hand along free copper found on
+# the routed board. Each entry is (net, width, [(x, y, layer), ...]); a via goes in
+# wherever the layer changes, so the two points either side of it are the same
+# point. Only F and B: In1 and In2 are planes here too. Default netclass:
+# 0.25 mm track, 0.6/0.3 via.
+HAND_ROUTES = []
+
+
+def finish_by_hand(board, routes=HAND_ROUTES):
+    """Lay the hand-routed connections. They go in after the session import, so
+    they are drawn against copper that already exists, and before the fill."""
+    layers = {"F": pcbnew.F_Cu, "B": pcbnew.B_Cu}
+    for name, width, path in routes:
+        net = board.FindNet(name)
+        if net is None:
+            raise KeyError(f"no net {name}")
+        for a, b in zip(path, path[1:]):
+            if a[2] == b[2]:
+                pcb_builder._track(board, net, layers[a[2]], a[:2], b[:2], width)
+            else:
+                if a[:2] != b[:2]:
+                    raise ValueError(f"{name}: layer change needs one point, not {a} {b}")
+                pcb_builder._via(board, net, a[0], a[1], d=0.6, drill=0.3)
+    return len(routes)
+
+
+# the only two vias this board uses: the power one and the Default netclass one
+VIA_SIZES = {0.8: 0.4, 0.6: 0.3}
+
+
+def normalise_via_drills(board):
+    """Put the drills back after the session import.
+
+    ImportSpecctraSES drops every via's own drill and leaves it reading the
+    netclass default, so the 0.6 mm ground ties the builder drew with a 0.3 mm
+    hole come back with the Power class' 0.4 mm one - a 0.10 mm annular ring
+    against a 0.15 mm board minimum, and 44 DRC violations. Both of our via
+    sizes have exactly one drill, so this just says so again."""
+    fixed = 0
+    for t in board.Tracks():
+        if t.GetClass() != "PCB_VIA":
+            continue
+        want = VIA_SIZES.get(round(pcbnew.ToMM(t.GetWidth(pcbnew.F_Cu)), 3))
+        if want is None:
+            raise RuntimeError(f"via of {pcbnew.ToMM(t.GetWidth(pcbnew.F_Cu))} mm "
+                               f"at {pcbnew.ToMM(t.GetPosition().x)}, "
+                               f"{pcbnew.ToMM(t.GetPosition().y)} is not one of ours")
+        if round(pcbnew.ToMM(t.GetDrillValue()), 3) != want:
+            t.SetDrill(pcbnew.FromMM(want))
+            fixed += 1
+    return fixed
+
+
 def import_ses(pcb, ses):
     board = pcbnew.LoadBoard(pcb)
     ok = pcbnew.ImportSpecctraSES(board, ses)
     if not ok:
         raise RuntimeError(f"SES import of {ses} failed")
     n = strip_keepout(board)
+    drills = normalise_via_drills(board)
+    hand = finish_by_hand(board)
     board.BuildConnectivity()
     added, stranded = stitch_islands(board)
     # aSkipSettings=True, same reason as in pcb_builder: keep the .kicad_pro.
@@ -456,27 +616,33 @@ def import_ses(pcb, ses):
     pcb_builder.write_design_rules()
     tracks = [t for t in board.Tracks() if t.GetClass() == "PCB_TRACK"]
     vias = [t for t in board.Tracks() if t.GetClass() == "PCB_VIA"]
-    return n, len(vias), len(tracks), added, stranded
+    return n, len(vias), len(tracks), added, stranded, hand, drills
 
 
 def route(pcb=PCB, dsn=DSN, ses=SES, passes=PASSES):
     export_dsn(pcb, dsn)
     kept = protect_existing(dsn)
-    split = split_bus_nets(dsn)
+    split = split_bus_nets(dsn, POURED)
     fenced = bus_keepouts(PCB, dsn)
-    planes = drop_gnd_planes(dsn)
+    inner = dedicate_power_layers(dsn)
+    for layer in ("F.Cu", "In1.Cu", "In2.Cu", "B.Cu"):
+        drop_plane(dsn, "GND", layer)
+    planes = check_planes(dsn)
     layers = keepout_layers(dsn)
     print(f"dsn: {dsn} ({os.path.getsize(dsn) // 1024} kB), {kept} wires/vias protected, "
           f"{split} bus pads split off, {fenced} pour keep-outs, "
-          f"{planes} GND planes held back, "
+          f"{inner} inner layers marked as power planes, "
+          f"{len(planes)} planes: {planes}, "
           f"antenna keep-out on {sorted(layers)}")
-    if layers != {"F.Cu", "B.Cu"}:
+    if layers != set(INNER) | {"F.Cu", "B.Cu"}:
         raise RuntimeError("the antenna keep-out is missing from the DSN")
     secs, log = run_freerouting(dsn, ses, passes)
     print(summarize(log))
     print(f"freerouting: {passes} passes, {secs:.0f} s")
-    stripped, vias, tracks, added, stranded = import_ses(pcb, ses)
-    print(f"imported: {tracks} tracks, {vias} vias, {stripped} removed from the keep-out")
+    stripped, vias, tracks, added, stranded, hand, drills = import_ses(pcb, ses)
+    print(f"imported: {tracks} tracks, {vias} vias, {stripped} removed from the "
+          f"keep-out, {drills} via drills restored, "
+          f"{hand} connections finished by hand")
     print(f"stitched: {len(added)} vias into cut-off pour islands"
           + (f", {len(stranded)} islands left stranded: {stranded}" if stranded else ""))
 
