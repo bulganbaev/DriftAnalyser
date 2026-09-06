@@ -2,7 +2,7 @@
 	(version "E")
 	(design
 		(source "/Users/bulganbaev/Documents/Code/DriftAnalyser/PCB/v2/driftanalyser-v2.kicad_sch")
-		(date "2026-09-06T04:55:16")
+		(date "2026-09-06T05:22:13")
 		(tool "Eeschema 10.0.6")
 		(sheet
 			(number "1")
@@ -9267,7 +9267,7 @@
 		(net
 			(code "1")
 			(name "3V3")
-			(class "Default")
+			(class "Power")
 			(node
 				(ref "C15")
 				(pin "1")
@@ -9433,7 +9433,7 @@
 		(net
 			(code "2")
 			(name "5V")
-			(class "Default")
+			(class "Power")
 			(node
 				(ref "C13")
 				(pin "1")
@@ -9499,7 +9499,7 @@
 		(net
 			(code "3")
 			(name "5V_BUCK")
-			(class "Default")
+			(class "Power")
 			(node
 				(ref "C11")
 				(pin "1")
@@ -9531,7 +9531,7 @@
 		(net
 			(code "4")
 			(name "12V_LED")
-			(class "Default")
+			(class "Bus12V")
 			(node
 				(ref "C5")
 				(pin "1")
@@ -9693,7 +9693,7 @@
 		(net
 			(code "9")
 			(name "BUCK_SW")
-			(class "Default")
+			(class "Power")
 			(node
 				(ref "C10")
 				(pin "1")
@@ -9887,7 +9887,7 @@
 		(net
 			(code "18")
 			(name "GND")
-			(class "Default")
+			(class "Power")
 			(node
 				(ref "C1")
 				(pin "2")
@@ -11254,7 +11254,7 @@
 		(net
 			(code "65")
 			(name "VBAT")
-			(class "Default")
+			(class "Bus12V")
 			(node
 				(ref "C1")
 				(pin "1")
@@ -11361,7 +11361,7 @@
 		(net
 			(code "67")
 			(name "VBUS_USB")
-			(class "Default")
+			(class "Power")
 			(node
 				(ref "D4")
 				(pin "2")
