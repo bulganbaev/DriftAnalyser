@@ -4,7 +4,5 @@ fab/*-backups/
 __pycache__/
 .pytest_cache/
 .DS_Store
-fab/route.dsn
-fab/route.ses
 .history/
 ~*.lck

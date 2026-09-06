@@ -198,8 +198,10 @@ class TestPcb(unittest.TestCase):
         # 1 oz outside, 0.5 oz inside - the numbers the current ratings assume.
         # KiCad reformats the block when it rewrites the board, so read it, do
         # not string-match it.
-        for name, thickness in (("F.Cu", 0.035), ("In1.Cu", 0.0152),
-                                ("In2.Cu", 0.0152), ("B.Cu", 0.035)):
+        # 1 oz on all four: the inner weight is a JLCPCB option and it is what
+        # lets the In2 plane carry the strip current
+        for name, thickness in (("F.Cu", 0.035), ("In1.Cu", 0.035),
+                                ("In2.Cu", 0.035), ("B.Cu", 0.035)):
             m = re.search(r'\(layer "%s"\s*\(type "copper"\)\s*\(thickness ([\d.]+)\)'
                           % re.escape(name), text)
             self.assertTrue(m, f"{name} is not a copper layer in the stackup")
@@ -310,19 +312,43 @@ class TestPcb(unittest.TestCase):
                               f"{pcbnew.ToMM(p.y):.2f} is on {ref} pad "
                               f"{pad.GetNumber()} [{pad.GetNetname()}]")
 
-    def test_vbat_corridor_carries_the_current(self):
-        """The In2 corridor is the whole path from the XT60 to U2's tab - there is
-        no VBAT copper on B.Cu any more. It is drawn 13 mm wide; what has to hold
-        after routing is 8 mm of it, the same ~20 A ceiling U2's tab land sets.
-        Signal vias are the only thing that eats into it now, not signal traces."""
-        copper = _fill_of(self.board, "VBAT", pcbnew.In2_Cu)
-        for x in (45.0, 60.0, 75.0):
-            width, _ = _across(copper, x, 0.0, placement.BOARD_H)
-            self.assertGreaterEqual(width, 8.0,
-                                    f"only {width:.1f} mm of In2 VBAT copper "
-                                    f"at x = {x}")
+    def test_vbat_carries_the_current(self):
+        """The path from the XT60 to U2's tab is the In2 plane plus whatever of
+        F.Cu is free alongside it, and there is no VBAT copper on B.Cu at all.
+
+        Measured two ways, because a column of signal vias makes any single thin
+        slice look worse than the copper is: the mean over a 3 mm window (which
+        is how the current actually spreads round a via) has to hold 30 mm, and
+        no 0.2 mm slice may fall under 25. 30 mm of 1 oz internal copper is
+        20 A at a 21 K rise, which is where U2 sits."""
+        inner = _fill_of(self.board, "VBAT", pcbnew.In2_Cu)
+        outer = _fill_of(self.board, "VBAT", pcbnew.F_Cu)
+        for x in (30.0, 45.0, 53.0, 60.0, 62.0, 75.0, 90.0):
+            wide = sum(_across(c, x, 0.0, placement.BOARD_H, w=3.0)[0]
+                       for c in (inner, outer))
+            thin = sum(_across(c, x, 0.0, placement.BOARD_H)[0]
+                       for c in (inner, outer))
+            self.assertGreaterEqual(wide, 30.0,
+                                    f"only {wide:.1f} mm of VBAT copper over "
+                                    f"3 mm at x = {x}")
+            self.assertGreaterEqual(thin, 25.0,
+                                    f"only {thin:.1f} mm of VBAT copper at "
+                                    f"x = {x}")
         self.assertEqual(_fill_of(self.board, "VBAT", pcbnew.B_Cu).Area(), 0,
                          "VBAT is on In2 now, nothing of it belongs on B.Cu")
+        # In2 in one piece, and the F.Cu half is the two pad-level pours plus the
+        # spread that fills the open ground between them
+        self.assertEqual(inner.OutlineCount(), 1)
+        self.assertGreater(outer.Area() / 1e12, 700.0)
+
+    def test_vbat_planes_are_stitched_together(self):
+        """The In2 plane and the F.Cu pours are one conductor only through vias,
+        so there have to be plenty, and they have to be the big ones."""
+        vias = [v for v in self.board.Tracks()
+                if v.GetClass() == "PCB_VIA" and v.GetNetname() == "VBAT"]
+        self.assertGreaterEqual(len(vias), 90)
+        for v in vias:
+            self.assertEqual(pcbnew.ToMM(v.GetWidth(pcbnew.F_Cu)), 0.8)
 
     def test_12v_bus_carries_the_branches(self):
         """1 oz outside, 0.5 oz inside, so In2 counts half. Per branch: the comb

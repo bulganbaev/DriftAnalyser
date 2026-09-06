@@ -70,7 +70,16 @@ CONFIG = {
 
 PCB = os.path.join(env.PROJECT_DIR, env.PROJECT_NAME + ".kicad_pcb")
 DSN = os.path.join(env.PROJECT_DIR, "fab", "route.dsn")
-SES = os.path.join(env.PROJECT_DIR, "fab", "route.ses")
+# The session file is committed, and it is what makes this build reproducible:
+# Freerouting has no seed, so a fresh draw of the same input lands somewhere else
+# every time (26 draws of this board came out at between 0 and 5 open links).
+# With fab/route.ses present, `route()` replays it instead of drawing again;
+# DA2_REROUTE=1 asks for a new draw, and DA2_SES points somewhere else.
+SES = os.path.join(env.PROJECT_DIR, os.environ.get("DA2_SES", "fab/route.ses"))
+REROUTE = os.environ.get("DA2_REROUTE") == "1"
+
+# what the builder leaves on the board: the power stubs and the U5 / U1 escapes
+BUILDER_TRACKS = 100
 
 _KEEPOUT = re.compile(r'\(keepout\s+""\s+\(polygon\s+(\S+)\s+\d+\s+([-\d.\s]+)\)')
 
@@ -605,6 +614,7 @@ def import_ses(pcb, ses):
         raise RuntimeError(f"SES import of {ses} failed")
     n = strip_keepout(board)
     drills = normalise_via_drills(board)
+    stitched = pcb_builder.vbat_stitch(board)
     hand = finish_by_hand(board)
     board.BuildConnectivity()
     added, stranded = stitch_islands(board)
@@ -616,10 +626,19 @@ def import_ses(pcb, ses):
     pcb_builder.write_design_rules()
     tracks = [t for t in board.Tracks() if t.GetClass() == "PCB_TRACK"]
     vias = [t for t in board.Tracks() if t.GetClass() == "PCB_VIA"]
-    return n, len(vias), len(tracks), added, stranded, hand, drills
+    return n, len(vias), len(tracks), added, stranded, hand, drills, stitched
 
 
-def route(pcb=PCB, dsn=DSN, ses=SES, passes=PASSES):
+def already_routed(pcb):
+    """True if this board has been through import_ses already. Running route()
+    on it a second time would import the same session on top of itself."""
+    board = pcbnew.LoadBoard(pcb)
+    return sum(1 for t in board.Tracks() if t.GetClass() == "PCB_TRACK") > BUILDER_TRACKS
+
+
+def route(pcb=PCB, dsn=DSN, ses=SES, passes=PASSES, reroute=REROUTE):
+    if already_routed(pcb):
+        raise RuntimeError(f"{pcb} is already routed - run gen.pcb_builder first")
     export_dsn(pcb, dsn)
     kept = protect_existing(dsn)
     split = split_bus_nets(dsn, POURED)
@@ -636,13 +655,18 @@ def route(pcb=PCB, dsn=DSN, ses=SES, passes=PASSES):
           f"antenna keep-out on {sorted(layers)}")
     if layers != set(INNER) | {"F.Cu", "B.Cu"}:
         raise RuntimeError("the antenna keep-out is missing from the DSN")
-    secs, log = run_freerouting(dsn, ses, passes)
-    print(summarize(log))
-    print(f"freerouting: {passes} passes, {secs:.0f} s")
-    stripped, vias, tracks, added, stranded, hand, drills = import_ses(pcb, ses)
+    if reroute or not os.path.exists(ses):
+        secs, log = run_freerouting(dsn, ses, passes)
+        print(summarize(log))
+        print(f"freerouting: {passes} passes, {secs:.0f} s")
+    else:
+        print(f"replaying {ses} ({os.path.getsize(ses) // 1024} kB) - "
+              f"set DA2_REROUTE=1 to draw a new one")
+    stripped, vias, tracks, added, stranded, hand, drills, stitched = import_ses(pcb, ses)
     print(f"imported: {tracks} tracks, {vias} vias, {stripped} removed from the "
           f"keep-out, {drills} via drills restored, "
-          f"{hand} connections finished by hand")
+          f"{hand} connections finished by hand, "
+          f"{len(stitched)} extra VBAT vias F.Cu <-> In2")
     print(f"stitched: {len(added)} vias into cut-off pour islands"
           + (f", {len(stranded)} islands left stranded: {stranded}" if stranded else ""))
 
