@@ -211,11 +211,10 @@ class TestPcb(unittest.TestCase):
         with open(PCB) as f:
             text = f.read()
         self.assertIn("(stackup", text)
-        # 1 oz outside, 0.5 oz inside - the numbers the current ratings assume.
-        # KiCad reformats the block when it rewrites the board, so read it, do
-        # not string-match it.
-        # 1 oz on all four: the inner weight is a JLCPCB option and it is what
-        # lets the In2 plane carry the strip current
+        # 1 oz on all four layers - the inner weight is a JLCPCB order option,
+        # not their stock 0.5 oz, and it is what lets the In2 plane carry the
+        # strip current. KiCad reformats the block when it rewrites the board,
+        # so read it, do not string-match it.
         for name, thickness in (("F.Cu", 0.035), ("In1.Cu", 0.035),
                                 ("In2.Cu", 0.035), ("B.Cu", 0.035)):
             m = re.search(r'\(layer "%s"\s*\(type "copper"\)\s*\(thickness ([\d.]+)\)'
@@ -410,12 +409,24 @@ class TestPcb(unittest.TestCase):
             width, _ = _down(front, 7.5, cx - 4.5, cx + 2.6)
             self.assertGreaterEqual(width, 3.0,
                                     f"J1{i}'s comb tooth is {width:.1f} mm")
-        # the arm, below the lane cut out of the keep-out and above U2's OUT pads
-        f_arm, _ = _down(front, 21.0, 85.0, 101.0)
-        i_arm, _ = _down(inner, 21.0, 85.0, 101.0)
-        self.assertGreaterEqual(_amps(i_arm, f_arm), 20.0,
-                                f"the 12V arm is {f_arm:.1f} mm on F.Cu and "
-                                f"{i_arm:.1f} mm on In2")
+        # the arm, from below the lane cut out of the keep-out down to U2's OUT
+        # pad row. Every horizontal cut of it carries all six branches, and the
+        # narrowest is not the top one: the F.Cu comb loses 1.25 mm to pin 11's
+        # clearance (that pin is n.c.) just before the pads, so scan the band.
+        out_top = min(pcbnew.ToMM(self.board.FindFootprintByReference("U2")
+                                  .FindPadByNumber(n).GetBoundingBox().GetTop())
+                      for n in ("8", "9", "10", "12", "13", "14"))
+        worst_arm, y = (999.0, None, 0, 0), 20.0
+        while y <= out_top + 1e-9:
+            f_arm, _ = _down(front, y, 85.0, 101.0)
+            i_arm, _ = _down(inner, y, 85.0, 101.0)
+            worst_arm = min(worst_arm, (_amps(i_arm, f_arm), round(y, 2),
+                                        round(f_arm, 2), round(i_arm, 2)))
+            y += 0.1
+        self.assertGreaterEqual(worst_arm[0], 20.0,
+                                f"the 12V arm is only {worst_arm[0]:.1f} A at "
+                                f"y = {worst_arm[1]}: {worst_arm[2]} mm on F.Cu "
+                                f"and {worst_arm[3]} mm on In2")
         # from the first connector east to where the arm joins the run: J16's
         # tooth is the arm, and everything east of it is the arm's own copper
         worst, x = (999.0, None, 0, 0, 0), pins[0] + 0.5

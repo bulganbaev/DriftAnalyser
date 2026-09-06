@@ -13,7 +13,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import pcbnew
 from pcbnew import VECTOR2I_MM as MM
 
-from gen import env, libs, model, placement
+from gen import env, libs, model, placement, sch_writer
 
 EDGE_W = pcbnew.FromMM(0.1)
 
@@ -41,8 +41,8 @@ def write_project_netclasses():
     with open(_pro_path()) as f:
         pro = json.load(f)
     pro.setdefault("board", {})["design_settings"] = {
-        # JLCPCB 4 layer, 1 oz outer / 0.5 oz inner capability, not the KiCad
-        # defaults. 0.15 mm clearance is above that process' floor (0.127 mm); it
+        # JLCPCB 4 layer, 1 oz on all four layers - the inner weight is an
+        # order option, not JLC's stock 0.5 oz - not the KiCad defaults. 0.15 mm clearance is above that process' floor (0.127 mm); it
         # is only U5's LGA-14 land pattern that ever needs to go that low.
         "rules": {"min_clearance": 0.15, "min_track_width": 0.2, "min_via_diameter": 0.6,
                   "min_via_annular_width": 0.15, "min_through_hole_diameter": 0.3,
@@ -182,6 +182,36 @@ def _outline(board):
         _edge(board, arc)
 
 
+def _link(fp, part):
+    """Point the footprint at its schematic symbol.
+
+    Two things have to line up or `pcb drc --schematic-parity` (and Update PCB
+    from Schematic) treats them as unrelated: the footprint's own library id has
+    to carry the nickname the symbol's Footprint field names, and its path has to
+    be /root-sheet-uuid/sheet-uuid/symbol-uuid.
+
+    Naming the library is also what lets DRC compare the board's copy of a
+    footprint with the library's, so U1 and J2 - the two the generator edits the
+    silk of - now report a `lib_footprint_mismatch` warning. That is the check
+    working, not a fault: severity-error DRC is still clean."""
+    fp.SetFPID(pcbnew.LIB_ID(*part.footprint.split(":", 1)))
+    fp.SetPath(pcbnew.KIID_PATH(
+        f"/{sch_writer.ROOT_UUID}/{sch_writer.SHEET_UUID[part.sheet]}/"
+        f"{sch_writer.symbol_uuid(part)}"))
+
+
+def _fab_field(fp, name, value):
+    """A footprint field the parity check compares against the symbol's. They go
+    on F.Fab and hidden - visible they would land in the middle of the silk."""
+    if not hasattr(fp, "SetField"):
+        return
+    fp.SetField(name, value)
+    f = fp.GetField(name)
+    if f is not None:
+        f.SetLayer(pcbnew.F_Fab)
+        f.SetVisible(False)
+
+
 def _holes(board):
     libdir = os.path.join(env.FOOTPRINT_DIR, "MountingHole.pretty")
     for i, (x, y) in enumerate(placement.HOLES, 1):
@@ -190,6 +220,7 @@ def _holes(board):
             raise RuntimeError(f"MountingHole_3.2mm_M3 not found in {libdir}")
         fp.SetReference(f"H{i}")
         fp.SetValue("M3")
+        _link(fp, sch_writer._hole_parts()[i - 1])
         fp.SetPosition(MM(x, y))
         fp.SetAttributes(fp.GetAttributes()
                          | pcbnew.FP_EXCLUDE_FROM_BOM | pcbnew.FP_EXCLUDE_FROM_POS_FILES)
@@ -225,12 +256,14 @@ def _footprints(board, nets):
             raise RuntimeError(f"{p.ref}: footprint {p.footprint} not found in {libdir}")
         fp.SetReference(p.ref)
         fp.SetValue(p.value)
-        if p.lcsc and hasattr(fp, "SetField") and hasattr(fp, "GetField"):
-            fp.SetField("LCSC", p.lcsc)
-            f = fp.GetField("LCSC")         # lands visible on F.SilkS otherwise
-            if f is not None:
-                f.SetLayer(pcbnew.F_Fab)
-                f.SetVisible(False)
+        _link(fp, p)
+        # the fields the symbol carries, so schematic parity has nothing left to
+        # report: LCSC is what the assembly house reads off the board, MPN and
+        # Manufacturer are what the parity check misses without them
+        for name, value in (("LCSC", p.lcsc), ("MPN", p.mpn),
+                            ("Manufacturer", p.mfr)):
+            if value:
+                _fab_field(fp, name, value)
         x, y, rot, side = placement.PLACE[p.ref]
         fp.SetPosition(MM(x, y))
         fp.SetOrientationDegrees(rot)
@@ -260,11 +293,14 @@ GND_CLEAR = 0.4
 BUS_CLEAR = 0.4
 
 # In2.Cu extents. The 12V slab stops at IN2_BUS_BOT, clear of the LED series
-# resistor row at y = 14; its arm reaches IN2_ARM_BOT, 0.4 past the last via of
-# the F.Cu arm and 1.9 short of the VBAT riser. The VBAT corridor is 13 mm tall
+# resistor row at y = 14; its arm reaches IN2_ARM_BOT, level with U2's OUT pad
+# row (22.495..23.805) and 0.5 short of the In2 VBAT riser's filled edge at 24.2.
+# It used to stop at 22.3, which left the 1.5 mm right above the OUT pads on F.Cu
+# alone - 8.8 mm of one layer is 15.2 A, under the 20 the switch is rated for,
+# and the arm test only ever cut it at y = 21. The VBAT corridor is 13 mm tall
 # and runs under the 3V3 block and the microSD resistor column - both all SMD, so
 # it only pays for the signal vias the router drops through it.
-IN2_BUS_BOT, IN2_ARM_BOT = 12.0, 22.3
+IN2_BUS_BOT, IN2_ARM_BOT = 12.0, 23.7
 # The stretch of the 12V run between J15 and the arm carries five of the six
 # branches through the thinnest part of the F.Cu comb (the 3.75 mm band, with no
 # tooth to widen it), so In2 goes deep there instead.

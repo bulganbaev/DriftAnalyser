@@ -33,5 +33,36 @@
     "schematic_parity": [],
     "source": "driftanalyser-v2.kicad_pcb",
     "unconnected_items": [],
-    "violations": []
+    "violations": [
+        {
+            "description": "Посад. место 'USB_C_Receptacle_HRO_TYPE-C-31-M-12' не соответствует копии в библиотеке 'Connector_USB'",
+            "items": [
+                {
+                    "description": "Посад. место J2",
+                    "pos": {
+                        "x": 57.0,
+                        "y": 71.0
+                    },
+                    "uuid": "0f2acd2d-1c90-4458-b8af-3b451cbed633"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        },
+        {
+            "description": "Посад. место 'ESP32-S3-WROOM-1' не соответствует копии в библиотеке 'RF_Module'",
+            "items": [
+                {
+                    "description": "Посад. место U1",
+                    "pos": {
+                        "x": 8.0,
+                        "y": 33.0
+                    },
+                    "uuid": "da43540d-a11b-47eb-9e40-d8e2965964b3"
+                }
+            ],
+            "severity": "warning",
+            "type": "lib_footprint_mismatch"
+        }
+    ]
 }

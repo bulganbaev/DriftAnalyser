@@ -56,6 +56,13 @@ def _u(key):
     return Str(str(uuid.uuid5(_UUID_NS, key)))
 
 
+def symbol_uuid(part):
+    """uuid of `part`'s symbol on its sheet. pcb_builder writes
+    /ROOT/SHEET/<this> into the footprint's path, which is the only thing that
+    tells KiCad the footprint and the symbol are the same component."""
+    return str(_u(f"{part.sheet}/{part.ref}"))
+
+
 def _effects(size=TEXT_H, hide=False, justify=None):
     eff = ["effects", ["font", ["size", size, size]]]
     if justify:
@@ -191,25 +198,29 @@ def _place_part(part, x, y, sheet):
     lo_x, hi_x, _lo_y, hi_y = _extents(part)
     mid = round((lo_x + hi_x) / 2, 4)
     hidden = part.ref.startswith("#")
+    mech = not part.pins                # mounting holes: on the board, not a BOM line
     sym = ["symbol",
            ["lib_id", Str(part.symbol)],
            ["at", round(x, 4), round(y, 4), part.rot],
            ["unit", 1],
            ["body_style", 1],
            ["exclude_from_sim", Sym("no")],
-           ["in_bom", Sym("no" if part.dnp or hidden else "yes")],
+           ["in_bom", Sym("no" if part.dnp or hidden or mech else "yes")],
            ["on_board", Sym("no" if hidden else "yes")],
-           ["in_pos_files", Sym("no" if hidden else "yes")],
+           ["in_pos_files", Sym("no" if hidden or mech else "yes")],
            ["dnp", Sym("yes" if part.dnp else "no")],
            ["uuid", _u(f"{sheet}/{part.ref}")],
            _prop("Reference", part.ref, x + mid, y + hi_y - 5.0, hide=hidden),
            _prop("Value", part.value, x + mid, y + hi_y - 1.5, hide=hidden),
            _prop("Footprint", part.footprint, x, y, hide=True),
            _prop("Datasheet", "", x, y, hide=True),
-           _prop("Description", "", x, y, hide=True),
-           _prop("LCSC", part.lcsc, x, y, hide=True),
-           _prop("MPN", part.mpn, x, y, hide=True),
-           _prop("Manufacturer", part.mfr, x, y, hide=True)]
+           _prop("Description", "", x, y, hide=True)]
+    # only for parts that are ordered: an empty LCSC / MPN / Manufacturer on the
+    # symbol is a field the footprint does not have, and schematic parity says so
+    for name, value in (("LCSC", part.lcsc), ("MPN", part.mpn),
+                        ("Manufacturer", part.mfr)):
+        if value:
+            sym.append(_prop(name, value, x, y, hide=True))
     for num, _net, _ex, _ey, _away in _pin_geometry(part):
         sym.append(["pin", Str(num), ["uuid", _u(f"{sheet}/{part.ref}/pin{num}")]])
     sym.append(["instances",
@@ -242,10 +253,20 @@ def _flag_parts():
             for i, net in enumerate(FLAG_NETS)]
 
 
+def _hole_parts():
+    """The four M3 mounting holes. They are not in model.PARTS (nothing to order,
+    no pins, no nets), but the board carries H1..H4 footprints, and without a
+    symbol behind each one every parity check calls them extra footprints and
+    "Update PCB from schematic" offers to delete them."""
+    return [model.Part(f"H{i}", "M3", "Mechanical:MountingHole",
+                       "MountingHole:MountingHole_3.2mm_M3", {}, "power")
+            for i in range(1, 5)]
+
+
 def _sheet_parts(sheet):
     parts = list(model.parts_on(sheet))
     if sheet == "power":
-        parts += _flag_parts()
+        parts += _flag_parts() + _hole_parts()
     return parts
 
 
@@ -376,6 +397,9 @@ def export_netlist():
     r = env.run_cli("sch", "export", "netlist", "--format", "kicadsexpr", "-o", out, root)
     assert r.returncode == 0, r.stderr
     strip_timestamp(out, r'\(date "[^"]*"\)', '(date "")')
+    # the netlist is tracked; kicad-cli writes the schematic's absolute path into
+    # it, which makes the file say who built it and on which machine
+    strip_timestamp(out, r'\(source "[^"]*/([^/"]*)"\)', r'(source "\1")')
     doc = sexp.parse(open(out).read())[0]
     got = {}
     for net in sexp.find(sexp.find1(doc, "nets"), "net"):

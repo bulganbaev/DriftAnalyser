@@ -22,9 +22,12 @@ bottom-left corner as the origin), assemble from `BOM.csv` + `CPL.csv`.
 - `CPL.csv` is in mm with rotations as KiCad has them. Check JLC's preview
   before paying: their library rotates some SOT/SOIC parts 90 or 180 degrees
   from the KiCad convention, and the preview is the only place that shows it.
-- **U2 (BTS7002-1EPP) has an exposed pad** carrying VS - the whole strip
-  current goes through it. It needs paste on the pad, not just the leads; the
-  stencil aperture is already split in the paste layer.
+- **U2 (BTS7002-1EPP) has an exposed pad** (pad 15) carrying VS - the whole
+  strip current goes through it. It needs paste on the pad, not just the leads.
+  What we ship is a **single 2.65 x 4.0 mm aperture**, not a split one; JLC may
+  split the stencil window themselves, and the datasheet (Fig. 39) suggests a
+  split window for a hand-cut stencil. Either is fine - the point is that the
+  pad gets paste.
 - U5 (LSM6DS3TR-C, LGA-14) is the finest pitch on the board (0.5 mm).
 - R31..R36 / D11..D16 have no reference on the silk (no room between the strip
   connectors and the LED legend) - they are the series resistor and the data
@@ -39,19 +42,37 @@ bottom-left corner as the origin), assemble from `BOM.csv` + `CPL.csv`.
 
 `bash gen/build.sh` rebuilds everything here.
 
-The tracked plots are date-free on purpose: the SVGs get a fixed `<title>` and
-`schematic.pdf` a fixed `/CreationDate` (rewritten in place at the same byte
-length, so the xref table still points where it should), and `gerbers.zip` uses a
-fixed entry timestamp. What is left is inside the gerbers themselves - KiCad
-stamps a `CreationDate` into every layer, both drill files and the `.gbrjob`, and
-those are the fab's record of when the files were made, so they stay. The zip's
-bytes therefore still change on every run even when the board does not.
+The tracked build products are date-free on purpose: the SVGs get a fixed
+`<title>`, `schematic.pdf` a fixed `/CreationDate` (rewritten in place at the
+same byte length, so the xref table still points where it should), `netlist.net`
+a repo-relative `(source ...)`, and `gerbers.zip` both a fixed entry timestamp
+and a fixed `TF.CreationDate` in every gerber, drill file and the `.gbrjob`
+inside it. Two exports of the same board file therefore produce a byte-identical
+zip. A full `build.sh` still moves it: `pcbnew` hands every footprint a fresh
+random KIID, that reorders the board file, and the order of the flashes in the
+gerbers follows. The loose files under `fab/gerbers/` keep the real date - they
+are the fab's record of when the files were made - and are not tracked.
 
 The STEP, the 3D PNGs and the inner/bottom plots are not tracked at all - run
 `KICAD_PY -m gen.export` to get them back.
 
+## What the 20 A rating rests on
+
+- Every ampacity number in this board's tests and notes is **IPC-2221** (the
+  external/internal `k` split at a 20 K rise). That is the conservative curve:
+  IPC-2152 rates an internal layer with a solid plane under it considerably
+  higher, so the real margin is better than the numbers say, not worse.
+- **U2 dissipates about 1.1-1.8 W at 20 A** (R_DS(on) 2.8-4.5 mOhm hot). It gets
+  rid of that through its exposed pad into the F.Cu tab pour and the 24 vias
+  that ring the pad in that pour, down into the In2 VBAT plane. **This was not thermally modelled** - it is
+  the standard "pad + via field + plane" construction sized by area, not a
+  simulated junction temperature. If the strips really pull 20 A continuously,
+  measure the tab before trusting it.
+
 ## Hand check before power-up
 
-- 12V IN polarity (silk + / -), then 5 V and 3V3 on the test points of U3 / U4.
+- 12V IN polarity (silk + / -), then the rails. **There are no test points on
+  this board**: probe 5 V across C13 (x 62, y 45) and 3V3 across C15 (x 75,
+  y 48), both 0603 next to their regulator.
 - CAN termination jumper JP1 fitted only if this board is an end of the bus.
 - JP2 (K PULLUP) fitted for K-line, left open on a CAN-only car.

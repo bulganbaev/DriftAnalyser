@@ -2421,6 +2421,105 @@
       )
       (embedded_fonts no)
     )
+    (symbol "Mechanical:MountingHole"
+      (pin_names
+        (offset 1.016)
+      )
+      (exclude_from_sim no)
+      (in_bom no)
+      (on_board yes)
+      (in_pos_files yes)
+      (duplicate_pin_numbers_are_jumpers no)
+      (property "Reference" "H"
+        (at 0 5.08 0)
+        (show_name no)
+        (do_not_autoplace no)
+        (effects
+          (font
+            (size 1.27 1.27)
+          )
+        )
+      )
+      (property "Value" "MountingHole"
+        (at 0 3.175 0)
+        (show_name no)
+        (do_not_autoplace no)
+        (effects
+          (font
+            (size 1.27 1.27)
+          )
+        )
+      )
+      (property "Footprint" ""
+        (at 0 0 0)
+        (show_name no)
+        (do_not_autoplace no)
+        (hide yes)
+        (effects
+          (font
+            (size 1.27 1.27)
+          )
+        )
+      )
+      (property "Datasheet" ""
+        (at 0 0 0)
+        (show_name no)
+        (do_not_autoplace no)
+        (hide yes)
+        (effects
+          (font
+            (size 1.27 1.27)
+          )
+        )
+      )
+      (property "Description" "Mounting Hole without connection"
+        (at 0 0 0)
+        (show_name no)
+        (do_not_autoplace no)
+        (hide yes)
+        (effects
+          (font
+            (size 1.27 1.27)
+          )
+        )
+      )
+      (property "ki_keywords" "mounting hole"
+        (at 0 0 0)
+        (show_name no)
+        (do_not_autoplace no)
+        (hide yes)
+        (effects
+          (font
+            (size 1.27 1.27)
+          )
+        )
+      )
+      (property "ki_fp_filters" "MountingHole*"
+        (at 0 0 0)
+        (show_name no)
+        (do_not_autoplace no)
+        (hide yes)
+        (effects
+          (font
+            (size 1.27 1.27)
+          )
+        )
+      )
+      (symbol "MountingHole_0_1"
+        (circle
+          (center 0 0)
+          (radius 1.27)
+          (stroke
+            (width 1.27)
+            (type default)
+          )
+          (fill
+            (type none)
+          )
+        )
+      )
+      (embedded_fonts no)
+    )
   )
   (symbol
     (lib_id "Connector_Generic:Conn_01x02")
@@ -8603,33 +8702,6 @@
         )
       )
     )
-    (property "LCSC" ""
-      (at 27.94 129.54 0)
-      (hide yes)
-      (effects
-        (font
-          (size 1.27 1.27)
-        )
-      )
-    )
-    (property "MPN" ""
-      (at 27.94 129.54 0)
-      (hide yes)
-      (effects
-        (font
-          (size 1.27 1.27)
-        )
-      )
-    )
-    (property "Manufacturer" ""
-      (at 27.94 129.54 0)
-      (hide yes)
-      (effects
-        (font
-          (size 1.27 1.27)
-        )
-      )
-    )
     (pin "1"
       (uuid "e52838fc-0d05-5e72-8359-2c6852b1a34a")
     )
@@ -8722,33 +8794,6 @@
       )
     )
     (property "Description" ""
-      (at 43.18 129.54 0)
-      (hide yes)
-      (effects
-        (font
-          (size 1.27 1.27)
-        )
-      )
-    )
-    (property "LCSC" ""
-      (at 43.18 129.54 0)
-      (hide yes)
-      (effects
-        (font
-          (size 1.27 1.27)
-        )
-      )
-    )
-    (property "MPN" ""
-      (at 43.18 129.54 0)
-      (hide yes)
-      (effects
-        (font
-          (size 1.27 1.27)
-        )
-      )
-    )
-    (property "Manufacturer" ""
       (at 43.18 129.54 0)
       (hide yes)
       (effects
@@ -8857,33 +8902,6 @@
         )
       )
     )
-    (property "LCSC" ""
-      (at 60.96 129.54 0)
-      (hide yes)
-      (effects
-        (font
-          (size 1.27 1.27)
-        )
-      )
-    )
-    (property "MPN" ""
-      (at 60.96 129.54 0)
-      (hide yes)
-      (effects
-        (font
-          (size 1.27 1.27)
-        )
-      )
-    )
-    (property "Manufacturer" ""
-      (at 60.96 129.54 0)
-      (hide yes)
-      (effects
-        (font
-          (size 1.27 1.27)
-        )
-      )
-    )
     (pin "1"
       (uuid "c2d107c0-7814-5a3e-88a9-f418f60e86c4")
     )
@@ -8976,33 +8994,6 @@
       )
     )
     (property "Description" ""
-      (at 76.2 129.54 0)
-      (hide yes)
-      (effects
-        (font
-          (size 1.27 1.27)
-        )
-      )
-    )
-    (property "LCSC" ""
-      (at 76.2 129.54 0)
-      (hide yes)
-      (effects
-        (font
-          (size 1.27 1.27)
-        )
-      )
-    )
-    (property "MPN" ""
-      (at 76.2 129.54 0)
-      (hide yes)
-      (effects
-        (font
-          (size 1.27 1.27)
-        )
-      )
-    )
-    (property "Manufacturer" ""
       (at 76.2 129.54 0)
       (hide yes)
       (effects
@@ -9111,33 +9102,6 @@
         )
       )
     )
-    (property "LCSC" ""
-      (at 91.44 129.54 0)
-      (hide yes)
-      (effects
-        (font
-          (size 1.27 1.27)
-        )
-      )
-    )
-    (property "MPN" ""
-      (at 91.44 129.54 0)
-      (hide yes)
-      (effects
-        (font
-          (size 1.27 1.27)
-        )
-      )
-    )
-    (property "Manufacturer" ""
-      (at 91.44 129.54 0)
-      (hide yes)
-      (effects
-        (font
-          (size 1.27 1.27)
-        )
-      )
-    )
     (pin "1"
       (uuid "17d62db0-5966-55a2-8349-33a5bd661440")
     )
@@ -9178,6 +9142,258 @@
       (effects
         (font
           (size 1.27 1.27)
+        )
+      )
+    )
+  )
+  (symbol
+    (lib_id "Mechanical:MountingHole")
+    (at 104.14 127.0 0)
+    (unit 1)
+    (body_style 1)
+    (exclude_from_sim no)
+    (in_bom no)
+    (on_board yes)
+    (in_pos_files no)
+    (dnp no)
+    (uuid "14732284-7c86-5f83-ad62-504e57b1447e")
+    (property "Reference" "H1"
+      (at 104.14 130.27 0)
+      (effects
+        (font
+          (size 1.27 1.27)
+        )
+      )
+    )
+    (property "Value" "M3"
+      (at 104.14 133.77 0)
+      (effects
+        (font
+          (size 1.27 1.27)
+        )
+      )
+    )
+    (property "Footprint" "MountingHole:MountingHole_3.2mm_M3"
+      (at 104.14 127.0 0)
+      (hide yes)
+      (effects
+        (font
+          (size 1.27 1.27)
+        )
+      )
+    )
+    (property "Datasheet" ""
+      (at 104.14 127.0 0)
+      (hide yes)
+      (effects
+        (font
+          (size 1.27 1.27)
+        )
+      )
+    )
+    (property "Description" ""
+      (at 104.14 127.0 0)
+      (hide yes)
+      (effects
+        (font
+          (size 1.27 1.27)
+        )
+      )
+    )
+    (instances
+      (project "driftanalyser-v2"
+        (path "/0d6f1c2a-0000-4000-8000-000000000001/0d6f1c2a-0000-4000-8000-000000000010"
+          (reference "H1")
+          (unit 1)
+        )
+      )
+    )
+  )
+  (symbol
+    (lib_id "Mechanical:MountingHole")
+    (at 114.3 127.0 0)
+    (unit 1)
+    (body_style 1)
+    (exclude_from_sim no)
+    (in_bom no)
+    (on_board yes)
+    (in_pos_files no)
+    (dnp no)
+    (uuid "3e8c80da-63ed-514a-bd1c-fca84b55e384")
+    (property "Reference" "H2"
+      (at 114.3 130.27 0)
+      (effects
+        (font
+          (size 1.27 1.27)
+        )
+      )
+    )
+    (property "Value" "M3"
+      (at 114.3 133.77 0)
+      (effects
+        (font
+          (size 1.27 1.27)
+        )
+      )
+    )
+    (property "Footprint" "MountingHole:MountingHole_3.2mm_M3"
+      (at 114.3 127.0 0)
+      (hide yes)
+      (effects
+        (font
+          (size 1.27 1.27)
+        )
+      )
+    )
+    (property "Datasheet" ""
+      (at 114.3 127.0 0)
+      (hide yes)
+      (effects
+        (font
+          (size 1.27 1.27)
+        )
+      )
+    )
+    (property "Description" ""
+      (at 114.3 127.0 0)
+      (hide yes)
+      (effects
+        (font
+          (size 1.27 1.27)
+        )
+      )
+    )
+    (instances
+      (project "driftanalyser-v2"
+        (path "/0d6f1c2a-0000-4000-8000-000000000001/0d6f1c2a-0000-4000-8000-000000000010"
+          (reference "H2")
+          (unit 1)
+        )
+      )
+    )
+  )
+  (symbol
+    (lib_id "Mechanical:MountingHole")
+    (at 124.46 127.0 0)
+    (unit 1)
+    (body_style 1)
+    (exclude_from_sim no)
+    (in_bom no)
+    (on_board yes)
+    (in_pos_files no)
+    (dnp no)
+    (uuid "636f1294-0cff-59d3-88fa-a94c30864e71")
+    (property "Reference" "H3"
+      (at 124.46 130.27 0)
+      (effects
+        (font
+          (size 1.27 1.27)
+        )
+      )
+    )
+    (property "Value" "M3"
+      (at 124.46 133.77 0)
+      (effects
+        (font
+          (size 1.27 1.27)
+        )
+      )
+    )
+    (property "Footprint" "MountingHole:MountingHole_3.2mm_M3"
+      (at 124.46 127.0 0)
+      (hide yes)
+      (effects
+        (font
+          (size 1.27 1.27)
+        )
+      )
+    )
+    (property "Datasheet" ""
+      (at 124.46 127.0 0)
+      (hide yes)
+      (effects
+        (font
+          (size 1.27 1.27)
+        )
+      )
+    )
+    (property "Description" ""
+      (at 124.46 127.0 0)
+      (hide yes)
+      (effects
+        (font
+          (size 1.27 1.27)
+        )
+      )
+    )
+    (instances
+      (project "driftanalyser-v2"
+        (path "/0d6f1c2a-0000-4000-8000-000000000001/0d6f1c2a-0000-4000-8000-000000000010"
+          (reference "H3")
+          (unit 1)
+        )
+      )
+    )
+  )
+  (symbol
+    (lib_id "Mechanical:MountingHole")
+    (at 134.62 127.0 0)
+    (unit 1)
+    (body_style 1)
+    (exclude_from_sim no)
+    (in_bom no)
+    (on_board yes)
+    (in_pos_files no)
+    (dnp no)
+    (uuid "8f3edc1b-3add-5060-8f83-d139f6b9d349")
+    (property "Reference" "H4"
+      (at 134.62 130.27 0)
+      (effects
+        (font
+          (size 1.27 1.27)
+        )
+      )
+    )
+    (property "Value" "M3"
+      (at 134.62 133.77 0)
+      (effects
+        (font
+          (size 1.27 1.27)
+        )
+      )
+    )
+    (property "Footprint" "MountingHole:MountingHole_3.2mm_M3"
+      (at 134.62 127.0 0)
+      (hide yes)
+      (effects
+        (font
+          (size 1.27 1.27)
+        )
+      )
+    )
+    (property "Datasheet" ""
+      (at 134.62 127.0 0)
+      (hide yes)
+      (effects
+        (font
+          (size 1.27 1.27)
+        )
+      )
+    )
+    (property "Description" ""
+      (at 134.62 127.0 0)
+      (hide yes)
+      (effects
+        (font
+          (size 1.27 1.27)
+        )
+      )
+    )
+    (instances
+      (project "driftanalyser-v2"
+        (path "/0d6f1c2a-0000-4000-8000-000000000001/0d6f1c2a-0000-4000-8000-000000000010"
+          (reference "H4")
+          (unit 1)
         )
       )
     )
