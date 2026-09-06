@@ -1,0 +1,8 @@
+(version 1)
+
+# Pad to pad spacing inside a land pattern (LGA-14, USB-C, TSDSO-14, SOT-23-6) is
+# the part maker's, not ours: hold those pairs to the fab floor and keep the
+# netclass clearance for the copper we draw - tracks, vias and zones.
+(rule "land pattern pad spacing"
+	(constraint clearance (min 0.13mm))
+	(condition "A.Type == 'Pad' && B.Type == 'Pad'"))

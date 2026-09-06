@@ -1,5 +1,5 @@
 """Board checks that need pcbnew -> run with KiCad's python: KICAD_PY -m unittest gen.tests.test_pcb_unit"""
-import os, sys, unittest
+import json, os, subprocess, sys, unittest
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 import pcbnew
@@ -14,6 +14,13 @@ def _rect(x0, y0, x1, y1):
     for x, y in ((x0, y0), (x1, y0), (x1, y1), (x0, y1)):
         poly.Append(pcbnew.FromMM(x), pcbnew.FromMM(y))
     return poly
+
+
+def _covers(outer, inner):
+    """True if the inner polygon lies entirely inside the outer one."""
+    rest = pcbnew.SHAPE_POLY_SET()
+    rest.BooleanSubtract(inner, outer)
+    return rest.IsEmpty()
 
 
 def _intersects(a, b):
@@ -89,6 +96,55 @@ class TestPcb(unittest.TestCase):
         for i, a in enumerate(refs):
             for b in refs[i + 1:]:
                 self.assertFalse(_intersects(courts[a], courts[b]), f"{a} overlaps {b}")
+
+    def test_power_zones_exist(self):
+        # ZONE.GetLayerName() answers "F.Cu" for back-side zones in KiCad 10
+        zones = {(z.GetNetname(), self.board.GetLayerName(z.GetLayer()))
+                 for z in self.board.Zones() if not z.GetIsRuleArea()}
+        for want in (("GND", "B.Cu"), ("GND", "F.Cu"), ("12V_LED", "F.Cu"),
+                     ("12V_LED", "B.Cu"), ("VBAT", "F.Cu"), ("VBAT", "B.Cu")):
+            self.assertIn(want, zones)
+
+    def test_zones_filled(self):
+        n = 0
+        for z in self.board.Zones():
+            if z.GetIsRuleArea():
+                continue
+            n += 1
+            self.assertTrue(z.IsFilled(), z.GetNetname())
+            self.assertGreater(z.GetFilledArea(), 0, z.GetNetname())
+        self.assertGreaterEqual(n, 6)
+
+    def test_stitching_vias(self):
+        """Every via we place is a power stitch: one sitting on a foreign pad would
+        silently be swallowed by that pad's net."""
+        vias = [t for t in self.board.Tracks() if t.GetClass() == "PCB_VIA"]
+        self.assertGreaterEqual(len(vias), 40)
+        self.assertEqual({v.GetNetname() for v in vias}, {"GND", "VBAT", "12V_LED"})
+        for v in vias:
+            self.assertEqual(pcbnew.ToMM(v.GetDrillValue()), 0.4)
+            self.assertEqual(pcbnew.ToMM(v.GetWidth()), 0.8)
+
+    def test_antenna_keepout_rule_area(self):
+        """Spec: nothing metallic under the ESP32 antenna, on either copper layer."""
+        x0, y0, x1, y1 = placement.ANTENNA_KEEPOUT
+        want = _rect(max(x0, 0.0), y0, x1, y1)      # the part that is on the board
+        for layer in (pcbnew.F_Cu, pcbnew.B_Cu):
+            hit = [z for z in self.board.Zones()
+                   if z.GetIsRuleArea() and z.IsOnLayer(layer)
+                   and z.GetDoNotAllowZoneFills() and z.GetDoNotAllowTracks()
+                   and z.GetDoNotAllowVias() and _covers(z.Outline(), want)]
+            self.assertTrue(hit, f"no antenna rule area on {pcbnew.LayerName(layer)}")
+
+    def test_drc_no_errors_except_unrouted(self):
+        rpt = os.path.join(env.PROJECT_DIR, "fab", "drc.json")
+        subprocess.run([env.KICAD_CLI, "pcb", "drc", "--format", "json",
+                        "--severity-error", "-o", rpt, PCB],
+                       capture_output=True, text=True)   # exit code = violation count
+        with open(rpt) as f:
+            data = json.load(f)
+        viol = [v for v in data["violations"] if v["type"] != "unconnected_items"]
+        self.assertEqual(viol, [], json.dumps(viol[:5], indent=1))
 
 
 if __name__ == "__main__":
