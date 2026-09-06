@@ -251,5 +251,44 @@ def main():
     print("written:", sorted(os.listdir(OUT)))
 
 
-if __name__ == "__main__":
+if __name__ == "__main__" and "--parts" not in sys.argv:
     main()
+
+
+# ------------------------------------------------ extra: parts for renders
+def make_vh_housing():
+    """JST B3P-VH header body (no 3D model in KiCad): 14.8 x 8.6 x 11.5 mm box with
+    pin-1 at the local origin, pins along +X at 3.96 pitch, wall toward -Y."""
+    body = (cq.Workplane("XY").center(3.96, 0).rect(14.8, 8.6).extrude(11.5)
+            .edges("|Z").fillet(0.6))
+    for i in range(3):
+        body = body.cut(cq.Workplane("XY").center(3.96 * i, 0).rect(2.4, 3.2).extrude(11.5).translate((0, 0, 2.0)))
+    return body
+
+
+def make_missing_connectors():
+    """Bodies for parts KiCad has no 3D model for, in KiCad model space of a footprint
+    at the board origin: X = board x, Y = -board y, Z up from the board top."""
+    def box(x0, x1, y0, y1, h, z0=0.0):
+        return (cq.Workplane("XY").center((x0 + x1) / 2, -(y0 + y1) / 2)
+                .rect(x1 - x0, y1 - y0).extrude(h).translate((0, 0, z0)))
+    j1, _ = placement.PLACE["J1"][:2], None
+    xt60 = box(j1[0] - 8.3, j1[0] + 8.3, j1[1] - 2.6, j1[1] + 15.0, 8.2)      # XT60PW-M, plug toward +y edge
+    j2 = placement.PLACE["J2"]
+    usb = box(j2[0] - 4.5, j2[0] + 4.5, j2[1] - 4.5, j2[1] + 4.2, 3.2)          # USB-C HRO, opening toward +y edge
+    j5 = placement.PLACE["J5"]
+    sd = box(j5[0] - 8.5, j5[0] + 8.5, j5[1] - 7.5, j5[1] + 7.5, 1.9)           # microSD DM3BT
+    return xt60.union(usb).union(sd)
+
+
+def export_render_parts():
+    os.makedirs(OUT, exist_ok=True)
+    cq.exporters.export(make_missing_connectors(), os.path.join(OUT, "connectors.step"))
+    cq.exporters.export(make_base(), os.path.join(OUT, "base.step"))
+    cq.exporters.export(make_lid(), os.path.join(OUT, "lid.step"))
+    cq.exporters.export(make_vh_housing(), os.path.join(OUT, "vh3.step"))
+    print("render parts written")
+
+
+if __name__ == "__main__" and "--parts" in sys.argv:
+    export_render_parts()
