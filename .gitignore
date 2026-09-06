@@ -6,3 +6,5 @@
 .DS_Store
 .vscode
 src/config/secrets.h
+enclosure/.venv/
+enclosure/out/
