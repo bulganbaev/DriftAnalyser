@@ -12,6 +12,15 @@
 	(constraint clearance (min 0.15mm))
 	(condition "A.Type == 'Pad' && B.Type == 'Pad' && A.memberOfFootprint('U5') && B.memberOfFootprint('U5')"))
 
+# Getting a trace out of a 0.5 mm pitch land pattern costs the netclass margin:
+# 0.35 mm pads leave 0.15 mm between them, so a 0.2 mm escape out of one pad runs
+# 0.225 mm from the next. That is still the fab's 2 oz floor (0.2 mm), it is just
+# below the 0.25 mm we ask of ourselves everywhere else, and it is scoped to U5's
+# own pads - the autorouter never sees it, it routes to the netclass.
+(rule "U5 LGA-14 escapes"
+	(constraint clearance (min 0.2mm))
+	(condition "A.Type == 'Pad' && A.memberOfFootprint('U5') && B.Type == 'Track'"))
+
 # The ESP32 module footprint brings its own 0.2 mm heatsink vias. The board minimum
 # stays 0.3 mm: JLCPCB surcharges holes below that, and ours are 0.4 mm.
 (rule "ESP32 module heatsink vias"

@@ -26,7 +26,7 @@ from gen import env, placement
 JAR = os.path.expanduser("~/.local/freerouting/freerouting.jar")
 # Freerouting 2.4.1 wants Java >= 25; macOS /usr/bin/java is usually older or absent
 JAVA = os.environ.get("JAVA", "/opt/homebrew/opt/openjdk/bin/java")
-PASSES = int(os.environ.get("DA2_PASSES", "100"))
+PASSES = int(os.environ.get("DA2_PASSES", "200"))
 
 # The power pours are copper the router must not cut: the VBAT run on B.Cu is the
 # 30 A path to the switch, and one signal crossing it breaks the board. They go
@@ -128,11 +128,29 @@ def split_bus_nets(dsn, nets=BUS):
     return added
 
 
+# The J16 arm of the 12V comb reaches down to U2 across the whole corner where
+# R36, D16 and J16's data pin live, so fencing the pour off there would leave the
+# sixth LED channel with nowhere to go. These two boxes are cut out of the fence:
+# what stays protected is the left 3.5 mm of the arm, which is the current path.
+KEEPOUT_LANES = [(91.0, 9.0, 100.0, 20.0), (93.5, 4.0, 100.0, 9.0)]
+
+
+def _lane_mask():
+    mask = pcbnew.SHAPE_POLY_SET()
+    for x0, y0, x1, y1 in KEEPOUT_LANES:
+        mask.NewOutline()
+        for x, y in ((x0, y0), (x1, y0), (x1, y1), (x0, y1)):
+            mask.Append(pcbnew.FromMM(x), pcbnew.FromMM(y))
+    return mask
+
+
 def bus_keepouts(pcb, dsn, nets=BUS):
-    """Fence the power pours off. KiCad exports zones as nothing at all, so
-    without this the router drives signal traces straight through the 12 mm VBAT
-    run on the back side and cuts the 30 A path into pieces."""
+    """Fence the power pours off. KiCad exports zones as `(plane ...)`, which tells
+    Freerouting the net is connected but not that the copper matters, so without
+    this it drives signal traces straight through the VBAT run on the back side
+    and cuts the 30 A path into pieces."""
     board = pcbnew.LoadBoard(pcb)
+    mask = _lane_mask()
     outs = []
     for z in board.Zones():
         if z.GetIsRuleArea() or z.GetNetname() not in nets:
@@ -140,13 +158,16 @@ def bus_keepouts(pcb, dsn, nets=BUS):
         for layer in (pcbnew.F_Cu, pcbnew.B_Cu):
             if not z.IsOnLayer(layer):
                 continue
-            o = z.Outline().Outline(0)
-            pts = [(pcbnew.ToMM(o.CPoint(k).x), pcbnew.ToMM(o.CPoint(k).y))
-                   for k in range(o.PointCount())]
-            path = "  ".join(f"{round(x * 1000)} {round(-y * 1000)}"
-                             for x, y in pts + pts[:1])
-            outs.append(f'    (keepout "" (polygon {board.GetLayerName(layer)} 0  '
-                        f'{path}))')
+            fence = pcbnew.SHAPE_POLY_SET()
+            fence.BooleanSubtract(z.Outline(), mask)
+            for n in range(fence.OutlineCount()):
+                o = fence.Outline(n)
+                pts = [(pcbnew.ToMM(o.CPoint(k).x), pcbnew.ToMM(o.CPoint(k).y))
+                       for k in range(o.PointCount())]
+                path = "  ".join(f"{round(x * 1000)} {round(-y * 1000)}"
+                                 for x, y in pts + pts[:1])
+                outs.append(f'    (keepout "" (polygon {board.GetLayerName(layer)} 0'
+                            f'  {path}))')
     with open(dsn) as f:
         text = f.read()
     # in after the antenna keep-out, which is the last one in the board scope
@@ -156,6 +177,36 @@ def bus_keepouts(pcb, dsn, nets=BUS):
     with open(dsn, "w") as f:
         f.write(text)
     return len(outs)
+
+
+def drop_gnd_planes(dsn):
+    """Take both ground pours out of the DSN. KiCad exports zones as `(plane ...)`,
+    and a plane tells Freerouting the whole net is already connected, so it routes
+    no GND at all. On two layers that is a lie the moment its own traces cross a
+    pour: with the top plane held back it ties every F.Cu ground pad down to the
+    back plane, and with the back plane held back too it actually routes ground,
+    which is the only way the net comes out in one piece. The pours go back on top
+    of that copper afterwards and only add to it."""
+    with open(dsn) as f:
+        text = f.read()
+    dropped = 0
+    while "(plane GND (polygon" in text:
+        i = text.index("(plane GND (polygon")
+        depth = 0
+        for j in range(i, len(text)):
+            if text[j] == "(":
+                depth += 1
+            elif text[j] == ")":
+                depth -= 1
+                if depth == 0:
+                    break
+        start = text.rindex("\n", 0, i) + 1
+        end = text.index("\n", j) + 1
+        text = text[:start] + text[end:]
+        dropped += 1
+    with open(dsn, "w") as f:
+        f.write(text)
+    return dropped
 
 
 def keepout_layers(dsn):
@@ -188,7 +239,7 @@ def run_freerouting(dsn, ses, passes=PASSES):
         r = subprocess.run([JAVA, f"-Duser.home={workdir}", "-jar", JAR,
                             "-de", dsn, "-do", ses, "-mp", str(passes),
                             "-mt", "1", "-l", "en"],
-                           capture_output=True, text=True, timeout=3600,
+                           capture_output=True, text=True, timeout=7200,
                            cwd=workdir, env={**os.environ, **ROUTER_ENV})
     finally:
         shutil.rmtree(workdir, ignore_errors=True)
@@ -272,61 +323,114 @@ def _spot(island, other, pads, margin, step=0.3):
     return None
 
 
+def _islands(board, net):
+    """[(layer, poly)] for every filled island of the net, both layers."""
+    return [(layer, poly) for layer in (pcbnew.F_Cu, pcbnew.B_Cu)
+            for poly in _fills(board, net, layer)]
+
+
+def _groups(board, net, islands):
+    """Islands grouped into what is actually one piece of copper. Vias tie an
+    island on one layer to the island under them on the other; tracks and
+    through-hole pads tie islands together the same way."""
+    parent = list(range(len(islands)))
+
+    def find(a):
+        while parent[a] != a:
+            parent[a] = parent[parent[a]]
+            a = parent[a]
+        return a
+
+    def union(a, b):
+        if a is None or b is None:
+            return
+        ra, rb = find(a), find(b)
+        parent[ra] = rb
+
+    def which(layer, pos):
+        for i, (lay, poly) in enumerate(islands):
+            if lay == layer and poly.Collide(pos):
+                return i
+        return None
+
+    for t in board.Tracks():
+        if t.GetNetname() != net:
+            continue
+        if t.GetClass() == "PCB_VIA":
+            union(which(pcbnew.F_Cu, t.GetPosition()), which(pcbnew.B_Cu, t.GetPosition()))
+        else:
+            layer = pcbnew.F_Cu if t.IsOnLayer(pcbnew.F_Cu) else pcbnew.B_Cu
+            union(which(layer, t.GetStart()), which(layer, t.GetEnd()))
+    for fp in board.GetFootprints():
+        for pad in fp.Pads():
+            if pad.GetNetname() != net:
+                continue
+            if pad.IsOnLayer(pcbnew.F_Cu) and pad.IsOnLayer(pcbnew.B_Cu):
+                union(which(pcbnew.F_Cu, pad.GetPosition()),
+                      which(pcbnew.B_Cu, pad.GetPosition()))
+    out = {}
+    for i in range(len(islands)):
+        out.setdefault(find(i), []).append(islands[i])
+    return list(out.values())
+
+
+def _add_via(board, net, spot, d, drill):
+    v = pcbnew.PCB_VIA(board)
+    v.SetPosition(MM(*spot))
+    v.SetWidth(pcbnew.FromMM(d))
+    v.SetDrill(pcbnew.FromMM(drill))
+    v.SetViaType(pcbnew.VIATYPE_THROUGH)
+    v.SetLayerPair(pcbnew.F_Cu, pcbnew.B_Cu)
+    v.SetNet(board.FindNet(net))
+    board.Add(v)
+
+
 def stitch_islands(board, nets=POURED):
-    """Signal traces cut the pours into islands; an island with no via is copper
-    the other side never reaches, and the pads on it are dead. Give every island
-    one. Returns (vias added, islands left stranded)."""
+    """Signal traces cut the pours into islands. Anything that is not part of the
+    main body of the pour needs a via into it, or the pads sitting on it have no
+    return path. Returns (vias added, groups left stranded)."""
     pads = [pad for fp in board.GetFootprints() for pad in fp.Pads()]
-    added, stranded = [], []
-    for _ in range(4):
+    added = []
+    for _ in range(6):
         pcbnew.ZONE_FILLER(board).Fill(board.Zones())
         board.BuildConnectivity()
-        todo = []
-        for net in nets:
-            vias = [t for t in board.Tracks()
-                    if t.GetClass() == "PCB_VIA" and t.GetNetname() == net]
-            for layer, other in ((pcbnew.F_Cu, pcbnew.B_Cu), (pcbnew.B_Cu, pcbnew.F_Cu)):
-                far = _fills(board, net, other)
-                for island in _fills(board, net, layer):
-                    if any(island.Collide(v.GetPosition()) for v in vias):
-                        continue
-                    todo.append((net, island, far))
-        if not todo:
-            break
         progress = False
-        for net, island, far in todo:
-            for d, drill, margin in STITCH_VIAS:
-                spot = _spot(island, far, pads, margin)
-                if spot:
-                    break
-            if spot is None:
+        for net in nets:
+            islands = _islands(board, net)
+            groups = _groups(board, net, islands)
+            if len(groups) < 2:
                 continue
-            v = pcbnew.PCB_VIA(board)
-            v.SetPosition(MM(*spot))
-            v.SetWidth(pcbnew.FromMM(d))
-            v.SetDrill(pcbnew.FromMM(drill))
-            v.SetViaType(pcbnew.VIATYPE_THROUGH)
-            v.SetLayerPair(pcbnew.F_Cu, pcbnew.B_Cu)
-            v.SetNet(board.FindNet(net))
-            board.Add(v)
-            added.append((net, spot, d))
-            progress = True
+            groups.sort(key=lambda g: -sum(p.Area() for _, p in g))
+            main = groups[0]
+            for g in groups[1:]:
+                for layer, poly in sorted(g, key=lambda lp: -lp[1].Area()):
+                    far = [p for lay, p in main if lay != layer]
+                    spot = None
+                    for d, drill, margin in STITCH_VIAS:
+                        spot = _spot(poly, far, pads, margin)
+                        if spot:
+                            break
+                    if spot:
+                        _add_via(board, net, spot, d, drill)
+                        added.append((net, spot, d))
+                        progress = True
+                        break
         if not progress:
             break
     pcbnew.ZONE_FILLER(board).Fill(board.Zones())
     board.BuildConnectivity()
+    stranded = []
     for net in nets:
-        vias = [t for t in board.Tracks()
-                if t.GetClass() == "PCB_VIA" and t.GetNetname() == net]
-        for layer in (pcbnew.F_Cu, pcbnew.B_Cu):
-            for island in _fills(board, net, layer):
-                if any(island.Collide(v.GetPosition()) for v in vias):
-                    continue
-                bb = island.BBox()
-                stranded.append((net, board.GetLayerName(layer),
-                                 round(pcbnew.ToMM(bb.GetLeft()), 1),
-                                 round(pcbnew.ToMM(bb.GetTop()), 1),
-                                 round(island.Area() / 1e12, 1)))
+        islands = _islands(board, net)
+        groups = _groups(board, net, islands)
+        groups.sort(key=lambda g: -sum(p.Area() for _, p in g))
+        for g in groups[1:]:
+            layer, poly = max(g, key=lambda lp: lp[1].Area())
+            bb = poly.BBox()
+            stranded.append((net, board.GetLayerName(layer),
+                             round(pcbnew.ToMM(bb.GetLeft()), 1),
+                             round(pcbnew.ToMM(bb.GetTop()), 1),
+                             round(sum(p.Area() for _, p in g) / 1e12, 1)))
     return added, stranded
 
 
@@ -350,9 +454,11 @@ def route(pcb=PCB, dsn=DSN, ses=SES, passes=PASSES):
     kept = protect_existing(dsn)
     split = split_bus_nets(dsn)
     fenced = bus_keepouts(PCB, dsn)
+    planes = drop_gnd_planes(dsn)
     layers = keepout_layers(dsn)
     print(f"dsn: {dsn} ({os.path.getsize(dsn) // 1024} kB), {kept} wires/vias protected, "
           f"{split} bus pads split off, {fenced} pour keep-outs, "
+          f"{planes} GND planes held back, "
           f"antenna keep-out on {sorted(layers)}")
     if layers != {"F.Cu", "B.Cu"}:
         raise RuntimeError("the antenna keep-out is missing from the DSN")

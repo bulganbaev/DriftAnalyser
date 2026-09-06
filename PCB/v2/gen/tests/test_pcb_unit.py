@@ -190,24 +190,37 @@ class TestPcb(unittest.TestCase):
                 n += 1
         self.assertGreaterEqual(n, 18, f"only {n} VBAT vias into U2's tab area")
 
-    def test_every_ground_island_is_stitched(self):
-        """Tracks cut the plane into islands. Each one has to reach the other layer
-        through a via of its own, or the pads sitting on it have no return path."""
+    def test_no_gnd_pad_is_stranded_on_an_island(self):
+        """Signal traces cut the top pour into islands. A ground pad whose only
+        copper is an island the rest of the board never reaches has no return
+        path: the island needs a via of its own, or a track that leaves it."""
         vias = [t for t in self.board.Tracks()
                 if t.GetClass() == "PCB_VIA" and t.GetNetname() == "GND"]
+        runs = [t for t in self.board.Tracks()
+                if t.GetClass() == "PCB_TRACK" and t.GetNetname() == "GND"
+                and t.IsOnLayer(pcbnew.F_Cu)]
+        pads = [(fp.GetReference() + "." + pad.GetNumber(), pad)
+                for fp in self.board.GetFootprints() for pad in fp.Pads()
+                if pad.GetNetname() == "GND" and pad.IsOnLayer(pcbnew.F_Cu)]
         for z in self.board.Zones():
-            if z.GetIsRuleArea() or z.GetNetname() != "GND":
+            if z.GetIsRuleArea() or z.GetNetname() != "GND" or not z.IsOnLayer(pcbnew.F_Cu):
                 continue
-            for layer in (pcbnew.F_Cu, pcbnew.B_Cu):
-                if not z.IsOnLayer(layer):
+            sp = z.GetFilledPolysList(pcbnew.F_Cu)
+            for i in range(sp.OutlineCount()):
+                island = pcbnew.SHAPE_POLY_SET()
+                island.AddOutline(sp.Outline(i))
+                held = [name for name, pad in pads if island.Collide(pad.GetPosition())]
+                if not held:
                     continue
-                sp = z.GetFilledPolysList(layer)
-                for i in range(sp.OutlineCount()):
-                    poly = pcbnew.SHAPE_POLY_SET()
-                    poly.AddOutline(sp.Outline(i))
-                    self.assertTrue(any(poly.Collide(v.GetPosition()) for v in vias),
-                                    f"GND island {i} on {self.board.GetLayerName(layer)} "
-                                    f"has no via to the other side")
+                if any(island.Collide(v.GetPosition()) for v in vias):
+                    continue
+                if any(island.Collide(t.GetStart()) != island.Collide(t.GetEnd())
+                       for t in runs):
+                    continue
+                bb = island.BBox()
+                self.fail(f"{', '.join(held)} sit on an F.Cu island at "
+                          f"{pcbnew.ToMM(bb.GetLeft()):.1f}, {pcbnew.ToMM(bb.GetTop()):.1f} "
+                          f"({island.Area() / 1e12:.1f} mm2) with no via and no track out")
 
     def test_no_copper_in_antenna_keepout(self):
         """The rule area is the intent; this is the filled result."""

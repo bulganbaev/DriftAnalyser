@@ -50,7 +50,12 @@ def write_project_netclasses():
     pro["net_settings"] = {
         "classes": [
             _netclass("Default", 0.2, 0.25, 0.6, 0.3),
-            _netclass("Power", 0.3, 1.0, 0.8, 0.4),
+            # 0.5 mm at 2 oz is ~2.5 A: the 5 V and 3V3 rails carry under 1 A and
+            # BUCK_SW is 3 mm long. 1 mm was unroutable - the autorouter could not
+            # get it into a 0.5 mm pad pitch and gave up on 22 connections.
+            _netclass("Power", 0.25, 0.5, 0.8, 0.4),
+            # only the pre-routed stubs are drawn at this width; the pours carry
+            # the current, so the number is a statement of intent for hand edits
             _netclass("Bus12V", 0.4, 3.0, 1.0, 0.5),
         ],
         "meta": {"version": 4},
@@ -81,6 +86,15 @@ DRU = """(version 1)
 (rule "U5 LGA-14 land pattern"
 \t(constraint clearance (min 0.15mm))
 \t(condition "A.Type == 'Pad' && B.Type == 'Pad' && A.memberOfFootprint('U5') && B.memberOfFootprint('U5')"))
+
+# Getting a trace out of a 0.5 mm pitch land pattern costs the netclass margin:
+# 0.35 mm pads leave 0.15 mm between them, so a 0.2 mm escape out of one pad runs
+# 0.225 mm from the next. That is still the fab's 2 oz floor (0.2 mm), it is just
+# below the 0.25 mm we ask of ourselves everywhere else, and it is scoped to U5's
+# own pads - the autorouter never sees it, it routes to the netclass.
+(rule "U5 LGA-14 escapes"
+	(constraint clearance (min 0.2mm))
+	(condition "A.Type == 'Pad' && A.memberOfFootprint('U5') && B.Type == 'Track'"))
 
 # The ESP32 module footprint brings its own 0.2 mm heatsink vias. The board minimum
 # stays 0.3 mm: JLCPCB surcharges holes below that, and ours are 0.4 mm.
@@ -147,6 +161,13 @@ def _nets(board):
     return out
 
 
+# Pads that take the ground plane solid instead of through thermal spokes. The
+# USB shield's legs and the two debug headers' ground pins sit where routed traces
+# leave the plane in shreds, and a spoke into a shred is a starved thermal relief;
+# all three are 2.54 mm-class pins that still solder by hand off a solid pour.
+SOLID_TO_ZONE = {("J2", "SH"), ("J3", "2"), ("J4", "2")}
+
+
 def _footprints(board, nets):
     for p in model.PARTS:
         libdir, name = libs.footprint_path(p.footprint)
@@ -175,6 +196,11 @@ def _footprints(board, nets):
             # footprints may repeat a pad number (shields, thermal tabs): all get the net
             if p.pins[num] != "NC":
                 pad.SetNet(nets[p.pins[num]])
+            # the USB shield's four through-hole legs are wide and close to the
+            # board edge: routed traces steal the room the thermal spokes need, so
+            # they take the plane solid instead
+            if (p.ref, num) in SOLID_TO_ZONE:
+                pad.SetLocalZoneConnection(pcbnew.ZONE_CONNECTION_FULL)
         board.Add(fp)
 
 
@@ -350,9 +376,11 @@ def _zones(board, nets):
     c1_right = _pad_box(board, "C1", "1")[2]
     bx_l, bx_r = vx0 - 2.0, c1_right + 2.5       # input block, tied through the XT60 /
     by_t, by_b = top, c2_bot + 0.8               # C1 / C2 through holes and a via field
-    # 12 mm corridor = ~31 A at 2 oz / 20 K by IPC-2221; nothing on the board reaches
-    # B.Cu inside it (everything over it is SMD on F.Cu), so it can run full width
-    cy_t, cy_b = 40.0, 52.0
+    # 8 mm corridor = ~20 A at 2 oz / 20 K by IPC-2221, the same ceiling U2's tab
+    # land already sets, so widening it buys nothing. It sits low, between the
+    # buck and the XT60, which keeps B.Cu ground under the IMU and under the
+    # ESP32 module where the return currents want it.
+    cy_t, cy_b = 44.0, 52.0
     vbat_b = [(86.0, 18.0), (tab_right, 18.0), (tab_right, cy_b), (bx_r, cy_b),
               (bx_r, by_b), (bx_l, by_b), (bx_l, by_t), (30.0, by_t),
               (30.0, cy_t), (86.0, cy_t)]
@@ -414,12 +442,12 @@ def _stitch(board, nets, geo):
         _via(board, nets["GND"], x, y)
 
 
-# Short manual runs from a power pad to the nearest copper of its own net. The
-# pours cannot reach these pads (a foreign pad sits in the way, or the pad is on
-# the wrong side of the board) and the autorouter must not try: VBAT is a 3 mm
-# netclass and none of these gaps take 3 mm. Widths are what the gap allows with
-# 0.4 mm (Bus12V) / 0.3 mm (Power) clearance kept to the neighbouring pads.
-# Drawn before the fill so the pours flow around them.
+# Short runs drawn by hand where the autorouter cannot help itself: power pads the
+# pours do not reach (a foreign pad in the way, or the wrong side of the board),
+# and the escapes out of U5's land pattern. Widths are what each gap allows with
+# 0.4 mm (Bus12V) / 0.25 mm (Power) / 0.2 mm (Default) kept to the next pad.
+# Drawn before the fill so the pours flow around them, and exported to Freerouting
+# as protected wiring so it routes up to them instead of over them.
 STUBS = [
     # net, width, points
     # C4's ground pad blocks the way up to the pour, so C4 goes right to C9's
@@ -447,12 +475,33 @@ STUBS = [
                       (96.9, 20.8), (96.2, 21.4)]),
     # U7 pin 19: 0.25 mm of pad pitch either side, the plane cannot get in
     ("GND", 0.3, [(56.3, 19.725), (57.4, 19.725)]),
+    # D1's ground pad sits inside the VBAT pour with the VBAT run underneath it,
+    # so it has neither plane to fall back on: out of the pour to the north, into
+    # the ground above it, and down to the back plane through the via below
+    ("GND", 0.5, [(35.4, 46.0), (35.4, 43.0)]),
+    # U5 is an LGA-14 on a 0.5 mm pitch: the autorouter cannot get a trace out of
+    # the land pattern, so every pad that has to leave gets its own escape. 0.2 mm
+    # is the board minimum and the only width that keeps 0.2 mm to the next pad.
+    # Each escape ends clear of the land pattern, and the ones the router still
+    # could not pick up end on a via, so it can take them on the back side.
+    ("IMU_INT1", 0.2, [(53.9, 32.8), (52.8, 32.8)]),               # pad 4, west
+    ("I2C_SDA", 0.2, [(54.5, 30.9), (54.5, 29.8), (53.6, 29.0)]),  # pad 14, north
+    ("I2C_SCL", 0.2, [(55.0, 30.9), (55.0, 29.8), (56.4, 28.4)]),  # pad 13, north
+    # 3V3 lands on three pads of U5 on three different sides: the rail round the
+    # south-east corner joins them, so the router only has to reach one of them
+    ("3V3", 0.2, [(55.5, 30.9), (55.5, 30.0)]),                    # pad 12, north
+    ("3V3", 0.25, [(55.5, 30.0), (57.3, 29.5), (57.3, 34.4), (54.5, 34.4)]),
+    ("3V3", 0.2, [(54.5, 33.1), (54.5, 34.4)]),                    # pad 5, south
+    ("3V3", 0.2, [(56.3, 32.75), (57.3, 32.75)]),                  # pad 8, east
 ]
 
 # vias that take a stub to the copper on the other side. The GND one is the way
 # out of the pocket C6's detour fences off: C6's ground pad and the strip of plane
 # around it would otherwise be an island the rest of the board never reaches.
-STUB_VIAS = [("VBAT", 85.5, 51.0), ("VBAT", 79.225, 51.4), ("GND", 101.5, 23.9)]
+STUB_VIAS = [("VBAT", 85.5, 51.0), ("VBAT", 79.225, 51.4), ("GND", 101.5, 23.9),
+             ("GND", 35.4, 43.0),
+             ("IMU_INT1", 52.8, 32.8), ("I2C_SDA", 53.6, 29.0),
+             ("I2C_SCL", 56.4, 28.4)]
 
 
 def _track(board, net, layer, a, b, width):
@@ -465,12 +514,13 @@ def _track(board, net, layer, a, b, width):
     board.Add(t)
 
 
-def _power_tracks(board, nets):
+def _stub_tracks(board, nets):
     for name, width, pts in STUBS:
         for a, b in zip(pts, pts[1:]):
             _track(board, nets[name], pcbnew.F_Cu, a, b, width)
     for name, x, y in STUB_VIAS:
-        _via(board, nets[name], x, y)
+        big = name in ("GND", "VBAT", "12V_LED")
+        _via(board, nets[name], x, y, *(0.8, 0.4) if big else (0.6, 0.3))
 
 
 def _fill(board):
@@ -492,7 +542,7 @@ def build(path):
     _footprints(board, nets)
     geo = _zones(board, nets)
     _stitch(board, nets, geo)
-    _power_tracks(board, nets)
+    _stub_tracks(board, nets)
     _fill(board)
     # aSkipSettings=True: a plain SaveBoard() also rewrites the .kicad_pro from the
     # board's empty in-memory project and drops the schematic's sheet list
