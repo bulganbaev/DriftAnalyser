@@ -95,6 +95,9 @@ PLACE = {
     "R42": (80.0, 66.0, 0, "F"), "JP2": (86.5, 64.0, 0, "F"), "D21": (78.0, 71.0, 0, "F"),
     "J6": (92.0, 71.0, 0, "F"),
 
-    # ---- debug / expansion headers, bottom right
-    "J3": (95.0, 56.0, 90, "F"), "J4": (95.0, 62.0, 90, "F"),
+    # ---- debug / expansion headers, standing vertically in the open ground right
+    # of the ESP32's decoupling column. They used to sit in the bottom right corner,
+    # which put every UART and the I2C bus on a 70 mm haul across the board and past
+    # the back-side VBAT run; from here they are all short.
+    "J3": (29.5, 22.0, 0, "F"), "J4": (35.0, 21.0, 0, "F"),
 }

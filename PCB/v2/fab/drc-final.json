@@ -1,7 +1,7 @@
 {
     "$schema": "https://schemas.kicad.org/drc.v1.json",
     "coordinate_units": "mm",
-    "date": "2026-09-06T11:22:03",
+    "date": "2026-09-06T12:57:54",
     "ignored_checks": [
         {
             "description": "Footprint has no courtyard defined",
@@ -35,20 +35,20 @@
             "description": "Missing connection between items",
             "items": [
                 {
-                    "description": "Дорожка [3V3] на F.Cu, длина 1.9092 mm",
+                    "description": "Дорожка [LED_PWR_EN] на F.Cu, длина 6.3480 mm",
                     "pos": {
-                        "x": 85.35,
-                        "y": 44.475
+                        "x": 88.175,
+                        "y": 31.0
                     },
-                    "uuid": "638e19a4-b420-4ed0-8a3d-21af8a62d00b"
+                    "uuid": "b9ba8753-de25-4fb4-bf5c-181a484751e0"
                 },
                 {
-                    "description": "Дорожка [3V3] на F.Cu, длина 0.4687 mm",
+                    "description": "Конт. пл. 2 [LED_PWR_EN] от U2 на F.Cu",
                     "pos": {
-                        "x": 83.7947,
-                        "y": 49.325
+                        "x": 92.7,
+                        "y": 28.85
                     },
-                    "uuid": "2da2da08-f749-4cd9-8ed4-7f7291354a40"
+                    "uuid": "e92547ae-cb10-4641-8e7b-ebb7cf40bc70"
                 }
             ],
             "severity": "error",
@@ -58,20 +58,43 @@
             "description": "Missing connection between items",
             "items": [
                 {
-                    "description": "Конт. пл. 22 [CAN_STB] от U1 на F.Cu",
+                    "description": "Конт. пл. 11 [CAN_TX] от U1 на F.Cu",
+                    "pos": {
+                        "x": 15.44,
+                        "y": 41.75
+                    },
+                    "uuid": "a72c8bc3-3203-4043-9051-552d1d828079"
+                },
+                {
+                    "description": "Конт. пл. 1 [CAN_TX] от U8 на F.Cu",
+                    "pos": {
+                        "x": 65.525,
+                        "y": 58.095
+                    },
+                    "uuid": "967749d6-340e-44e8-8db1-29f8c97870fd"
+                }
+            ],
+            "severity": "error",
+            "type": "unconnected_items"
+        },
+        {
+            "description": "Missing connection between items",
+            "items": [
+                {
+                    "description": "Конт. пл. 23 [CAN_RX] от U1 на F.Cu",
                     "pos": {
                         "x": 20.5,
-                        "y": 31.095
+                        "y": 29.825
                     },
-                    "uuid": "36cd7fa1-d5ab-43a7-ac52-0d8e854ca59e"
+                    "uuid": "e9828278-19fd-49b6-8457-a27cd1912b15"
                 },
                 {
-                    "description": "Конт. пл. 2 [CAN_STB] от R41 на F.Cu",
+                    "description": "Конт. пл. 4 [CAN_RX] от U8 на F.Cu",
                     "pos": {
-                        "x": 63.825,
-                        "y": 55.0
+                        "x": 65.525,
+                        "y": 61.905
                     },
-                    "uuid": "0c0b190e-94c4-47e4-a134-2d3722734510"
+                    "uuid": "9df93c66-339d-4dc3-9de8-b27a916dda08"
                 }
             ],
             "severity": "error",
@@ -81,135 +104,20 @@
             "description": "Missing connection between items",
             "items": [
                 {
-                    "description": "Конт. пл. 1 [LED6_OUT] от R36 на F.Cu",
-                    "pos": {
-                        "x": 92.175,
-                        "y": 14.0
-                    },
-                    "uuid": "e4b2e2c2-e786-4206-99b6-07fc486e09e5"
-                },
-                {
-                    "description": "Конт. пл. 13 [LED6_OUT] от U7 на F.Cu",
-                    "pos": {
-                        "x": 55.8625,
-                        "y": 23.625
-                    },
-                    "uuid": "f99d944f-d5f0-48df-9c5d-ec440203a3ca"
-                }
-            ],
-            "severity": "error",
-            "type": "unconnected_items"
-        },
-        {
-            "description": "Missing connection between items",
-            "items": [
-                {
-                    "description": "Конт. пл. 2 [SD_D2] от R19 на F.Cu",
+                    "description": "Конт. пл. 2 [SD_CD] от R21 на F.Cu",
                     "pos": {
                         "x": 84.0,
-                        "y": 44.175
+                        "y": 51.175
                     },
-                    "uuid": "4e47f506-841d-4a27-8033-0be7c9a0e27d"
+                    "uuid": "7427c0c1-184d-4604-8af8-15fa9a52a420"
                 },
                 {
-                    "description": "Конт. пл. 1 [SD_D2] от J5 на F.Cu",
+                    "description": "Дорожка [SD_CD] на F.Cu, длина 2.6662 mm",
                     "pos": {
-                        "x": 88.375,
-                        "y": 47.775
+                        "x": 87.3483,
+                        "y": 36.4588
                     },
-                    "uuid": "fdc6e221-8e63-4f5a-8c92-508cbe900496"
-                }
-            ],
-            "severity": "error",
-            "type": "unconnected_items"
-        },
-        {
-            "description": "Missing connection between items",
-            "items": [
-                {
-                    "description": "Конт. пл. 19 [STATUS_LED] от U1 на F.Cu",
-                    "pos": {
-                        "x": 20.5,
-                        "y": 34.905
-                    },
-                    "uuid": "464059b7-172f-4bfb-82ac-f0806bd0f669"
-                },
-                {
-                    "description": "Конт. пл. 1 [STATUS_LED] от R13 на F.Cu",
-                    "pos": {
-                        "x": 71.175,
-                        "y": 70.5
-                    },
-                    "uuid": "a435f7b2-4f5c-4958-9b9b-3be39301eef2"
-                }
-            ],
-            "severity": "error",
-            "type": "unconnected_items"
-        },
-        {
-            "description": "Missing connection between items",
-            "items": [
-                {
-                    "description": "Конт. пл. 28 [UART2_TX] от U1 на F.Cu",
-                    "pos": {
-                        "x": 17.98,
-                        "y": 24.25
-                    },
-                    "uuid": "ada5762c-4e5f-42c2-8e09-195bb02e7873"
-                },
-                {
-                    "description": "PTH конт. пл. 3 [UART2_TX] у J4",
-                    "pos": {
-                        "x": 100.08,
-                        "y": 62.0
-                    },
-                    "uuid": "140cacd8-d8c8-44bf-b78c-27039a04969d"
-                }
-            ],
-            "severity": "error",
-            "type": "unconnected_items"
-        },
-        {
-            "description": "Missing connection between items",
-            "items": [
-                {
-                    "description": "Дорожка [I2C_SDA] на B.Cu, длина 0.8381 mm",
-                    "pos": {
-                        "x": 57.0663,
-                        "y": 37.0794
-                    },
-                    "uuid": "0b921ab4-4fcb-4fce-87c1-681c80015a52"
-                },
-                {
-                    "description": "PTH конт. пл. 5 [I2C_SDA] у J4",
-                    "pos": {
-                        "x": 105.16,
-                        "y": 62.0
-                    },
-                    "uuid": "f79cfeac-8a43-474a-89cb-f5f3f052ed78"
-                }
-            ],
-            "severity": "error",
-            "type": "unconnected_items"
-        },
-        {
-            "description": "Missing connection between items",
-            "items": [
-                {
-                    "description": "Дорожка [I2C_SCL] на F.Cu, длина 1.0656 mm",
-                    "pos": {
-                        "x": 55.825,
-                        "y": 38.5
-                    },
-                    "uuid": "0c6e7ef1-81cc-4df0-844a-ce6a06fa6321"
-                },
-                {
-                    "description": "PTH конт. пл. 6 [I2C_SCL] у J4",
-                    "pos": {
-                        "x": 107.7,
-                        "y": 62.0
-                    },
-                    "uuid": "bf356027-64fb-49c8-af52-60e4374be14c"
+                    "uuid": "1ec36e9d-cb2f-44fd-89e9-ad6d8fac8a84"
                 }
             ],
             "severity": "error",

@@ -47,6 +47,11 @@ class TestPcb(unittest.TestCase):
         # the routed board is the artifact under test - only rebuild on demand
         if os.environ.get("DA2_REBUILD") == "1" or not os.path.exists(PCB):
             pcb_builder.build(PCB)
+        # sch_writer (and kicad-cli) rewrite the .kicad_pro without the board's
+        # netclasses; put them back or DRC checks this board against KiCad's
+        # defaults and every number in these tests means something else
+        pcb_builder.write_project_netclasses()
+        pcb_builder.write_design_rules()
         cls.board = pcbnew.LoadBoard(PCB)
 
     @classmethod
@@ -132,6 +137,24 @@ class TestPcb(unittest.TestCase):
             for b in refs[i + 1:]:
                 self.assertFalse(_intersects(courts[a], courts[b]), f"{a} overlaps {b}")
 
+    def test_project_carries_the_netclasses(self):
+        """kicad-cli rewrites the .kicad_pro whenever it loads it and throws away
+        what it does not recognise. If that ever wins, DRC quietly starts checking
+        the board against KiCad's defaults instead of ours."""
+        with open(os.path.join(env.PROJECT_DIR, env.PROJECT_NAME + ".kicad_pro")) as f:
+            pro = json.load(f)
+        classes = {c["name"]: (c["clearance"], c["track_width"])
+                   for c in pro["net_settings"]["classes"]}
+        self.assertEqual(classes, {"Default": (0.2, 0.25), "Power": (0.25, 0.5),
+                                   "Bus12V": (0.4, 3.0)})
+        patterns = {p["pattern"]: p["netclass"]
+                    for p in pro["net_settings"]["netclass_patterns"]}
+        self.assertEqual(patterns.get("VBAT"), "Bus12V")
+        self.assertEqual(patterns.get("GND"), "Power")
+        rules = pro["board"]["design_settings"]["rules"]
+        self.assertEqual(rules["min_copper_edge_clearance"], 0.3)
+        self.assertEqual(rules["min_track_width"], 0.2)
+
     def test_power_zones_exist(self):
         # ZONE.GetLayerName() answers "F.Cu" for back-side zones in KiCad 10
         zones = {(z.GetNetname(), self.board.GetLayerName(z.GetLayer()))
@@ -178,6 +201,30 @@ class TestPcb(unittest.TestCase):
                               f"{pcbnew.ToMM(p.y):.2f} is on {ref} pad "
                               f"{pad.GetNumber()} [{pad.GetNetname()}]")
 
+    def test_vbat_corridor_carries_the_current(self):
+        """The back-side VBAT run is the path to the switch, and it is two bands
+        with a channel between them so signals can cross the board at all. What has
+        to hold is the copper that adds up (8 mm, ~20 A at 2 oz) and the channel."""
+        for x in (45.0, 60.0, 75.0):
+            probe = _rect(x - 0.1, 0.0, x + 0.1, placement.BOARD_H)
+            copper = pcbnew.SHAPE_POLY_SET()
+            for z in self.board.Zones():
+                if (z.GetIsRuleArea() or z.GetNetname() != "VBAT"
+                        or not z.IsOnLayer(pcbnew.B_Cu)):
+                    continue
+                copper.BooleanAdd(z.GetFilledPolysList(pcbnew.B_Cu))
+            cut = pcbnew.SHAPE_POLY_SET()
+            cut.BooleanIntersection(copper, probe)
+            width = cut.Area() / 1e12 / 0.2
+            self.assertGreaterEqual(width, 8.0,
+                                    f"only {width:.1f} mm of VBAT copper at x = {x}")
+            bands = sorted((pcbnew.ToMM(cut.Outline(i).BBox().GetTop()),
+                            pcbnew.ToMM(cut.Outline(i).BBox().GetBottom()))
+                           for i in range(cut.OutlineCount()))
+            gaps = [b[0] - a[1] for a, b in zip(bands, bands[1:])]
+            self.assertTrue(any(g >= 2.0 for g in gaps),
+                            f"no channel through the VBAT run at x = {x}: {bands}")
+
     def test_vbat_tab_via_field(self):
         """U2's tab is fed only through vias out of the back-side VBAT run."""
         tab = (86.0, 22.0, 101.0, 31.0)
@@ -193,15 +240,19 @@ class TestPcb(unittest.TestCase):
     def test_no_gnd_pad_is_stranded_on_an_island(self):
         """Signal traces cut the top pour into islands. A ground pad whose only
         copper is an island the rest of the board never reaches has no return
-        path: the island needs a via of its own, or a track that leaves it."""
+        path: the island needs a via or a through-hole pad of its own, or a track
+        that leaves it."""
         vias = [t for t in self.board.Tracks()
                 if t.GetClass() == "PCB_VIA" and t.GetNetname() == "GND"]
+        vias = list(vias)
         runs = [t for t in self.board.Tracks()
                 if t.GetClass() == "PCB_TRACK" and t.GetNetname() == "GND"
                 and t.IsOnLayer(pcbnew.F_Cu)]
         pads = [(fp.GetReference() + "." + pad.GetNumber(), pad)
                 for fp in self.board.GetFootprints() for pad in fp.Pads()
                 if pad.GetNetname() == "GND" and pad.IsOnLayer(pcbnew.F_Cu)]
+        # a through-hole pad is itself the way to the other layer
+        holes = [pad for _, pad in pads if pad.IsOnLayer(pcbnew.B_Cu)]
         for z in self.board.Zones():
             if z.GetIsRuleArea() or z.GetNetname() != "GND" or not z.IsOnLayer(pcbnew.F_Cu):
                 continue
@@ -212,7 +263,7 @@ class TestPcb(unittest.TestCase):
                 held = [name for name, pad in pads if island.Collide(pad.GetPosition())]
                 if not held:
                     continue
-                if any(island.Collide(v.GetPosition()) for v in vias):
+                if any(island.Collide(v.GetPosition()) for v in vias + holes):
                     continue
                 if any(island.Collide(t.GetStart()) != island.Collide(t.GetEnd())
                        for t in runs):

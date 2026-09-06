@@ -376,16 +376,28 @@ def _zones(board, nets):
     c1_right = _pad_box(board, "C1", "1")[2]
     bx_l, bx_r = vx0 - 2.0, c1_right + 2.5       # input block, tied through the XT60 /
     by_t, by_b = top, c2_bot + 0.8               # C1 / C2 through holes and a via field
-    # 8 mm corridor = ~20 A at 2 oz / 20 K by IPC-2221, the same ceiling U2's tab
-    # land already sets, so widening it buys nothing. It sits low, between the
-    # buck and the XT60, which keeps B.Cu ground under the IMU and under the
-    # ESP32 module where the return currents want it.
-    cy_t, cy_b = 44.0, 52.0
-    vbat_b = [(86.0, 18.0), (tab_right, 18.0), (tab_right, cy_b), (bx_r, cy_b),
+    # The corridor is 8 mm of copper - ~20 A at 2 oz / 20 K by IPC-2221, the same
+    # ceiling U2's tab land already sets - but split into two 4.2 mm bands (the
+    # filler gives back a hair less than the outline) with a 2.5 mm channel, because a solid 8 mm wall across the back side
+    # is a wall for signals too and everything on the right of the board has to
+    # cross it. Both bands run from the input block to the riser.
+    cy_t, cy_b = 42.3, 46.5
+    band_t, band_b = 49.0, 53.2
+    # A notch out of the top of the riser, between its two via columns: it puts
+    # back-side ground under U2's control row, and without it every signal in that
+    # cluster is stuck on one layer with no room to cross.
+    vbat_b = [(86.0, 18.0), (91.6, 18.0), (91.6, 36.0), (96.0, 36.0), (96.0, 18.0),
+              (tab_right, 18.0), (tab_right, cy_b), (bx_r, cy_b),
               (bx_r, by_b), (bx_l, by_b), (bx_l, by_t), (30.0, by_t),
               (30.0, cy_t), (86.0, cy_t)]
     _zone(board, nets["VBAT"], pcbnew.B_Cu, vbat_b, priority=1, clearance=BUS_CLEAR,
           connection=pcbnew.ZONE_CONNECTION_FULL)
+    # the second band, drawn as its own zone so both keep a simple outline: it
+    # overlaps the input block on the left and the riser on the right
+    # priority 3: it deliberately overlaps the input block and the riser at its two
+    # ends, and KiCad wants a winner wherever two zones share copper
+    _zone(board, nets["VBAT"], pcbnew.B_Cu, _rect(30.0, band_t, 90.0, band_b),
+          priority=3, clearance=BUS_CLEAR, connection=pcbnew.ZONE_CONNECTION_FULL)
     return {"bus": bus_geo, "arm": (ox0, ox1, oy1),
             "tab": (tab_left, tab_right, leg_l, leg_r, bar_top, leg_bot),
             "cap_gnd": (gnd_x, col_x, c1_gnd[3], _pad_box(board, "C2", "2")[1])}
@@ -437,7 +449,7 @@ def _stitch(board, nets, geo):
     for x in (gnd_x + 1.5, gnd_x + 4.0):
         for y in (c1_bot + 2.25, c1_bot + 5.25):
             _via(board, nets["GND"], x, y)
-    for x, y in ((30.0, 24.0), (40.0, 30.0), (52.0, 38.0), (70.0, 20.0),
+    for x, y in ((44.0, 24.0), (40.0, 30.0), (52.0, 38.0), (70.0, 20.0),
                  (75.0, 30.0), (8.0, 65.0), (105.0, 60.0)):
         _via(board, nets["GND"], x, y)
 
@@ -479,6 +491,16 @@ STUBS = [
     # so it has neither plane to fall back on: out of the pour to the north, into
     # the ground above it, and down to the back plane through the via below
     ("GND", 0.5, [(35.4, 46.0), (35.4, 43.0)]),
+    # U2's ground pin and R1's pull-down sit between the tab via field and the
+    # control row with the VBAT run underneath: no plane on either side, and the
+    # router keeps fencing them in. Tie them to C7's ground pad by hand.
+    # U2's ground pin only has to reach the back plane, which the notch in the
+    # VBAT riser now puts right underneath it - 0.75 mm of track and a via
+    ("GND", 0.3, [(92.05, 29.3), (92.05, 30.05)]),
+    # U7's supply pin has its ground pin 0.25 mm away: every time the router got
+    # itself into that gap it broke the clearance, so the decoupling loop to C22
+    # is drawn here instead.
+    ("5V", 0.3, [(56.3, 19.075), (58.0, 19.075), (58.0, 22.775), (58.9, 22.775)]),
     # U5 is an LGA-14 on a 0.5 mm pitch: the autorouter cannot get a trace out of
     # the land pattern, so every pad that has to leave gets its own escape. 0.2 mm
     # is the board minimum and the only width that keeps 0.2 mm to the next pad.
@@ -500,6 +522,7 @@ STUBS = [
 # around it would otherwise be an island the rest of the board never reaches.
 STUB_VIAS = [("VBAT", 85.5, 51.0), ("VBAT", 79.225, 51.4), ("GND", 101.5, 23.9),
              ("GND", 35.4, 43.0),
+             ("GND", 92.05, 30.05),
              ("IMU_INT1", 52.8, 32.8), ("I2C_SDA", 53.6, 29.0),
              ("I2C_SCL", 56.4, 28.4)]
 

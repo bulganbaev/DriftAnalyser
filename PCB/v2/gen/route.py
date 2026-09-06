@@ -21,7 +21,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import pcbnew
 from pcbnew import VECTOR2I_MM as MM
 
-from gen import env, placement
+from gen import env, pcb_builder, placement
 
 JAR = os.path.expanduser("~/.local/freerouting/freerouting.jar")
 # Freerouting 2.4.1 wants Java >= 25; macOS /usr/bin/java is usually older or absent
@@ -132,12 +132,19 @@ def split_bus_nets(dsn, nets=BUS):
 # R36, D16 and J16's data pin live, so fencing the pour off there would leave the
 # sixth LED channel with nowhere to go. These two boxes are cut out of the fence:
 # what stays protected is the left 3.5 mm of the arm, which is the current path.
-KEEPOUT_LANES = [(91.0, 9.0, 100.0, 20.0), (93.5, 4.0, 100.0, 9.0)]
+KEEPOUT_LANES = [(91.0, 9.0, 100.0, 20.0, None), (93.5, 4.0, 100.0, 9.0, None),
+                 # and a slit across the protected part, or the sixth channel's
+                 # series resistor can only be reached the long way round. Front
+                 # only: a trace may cut the front pour there because the arm's
+                 # back-side copper and the vias down it carry the current.
+                 (87.0, 15.0, 91.0, 18.0, "F.Cu")]
 
 
-def _lane_mask():
+def _lane_mask(layer):
     mask = pcbnew.SHAPE_POLY_SET()
-    for x0, y0, x1, y1 in KEEPOUT_LANES:
+    for x0, y0, x1, y1, only in KEEPOUT_LANES:
+        if only and only != layer:
+            continue
         mask.NewOutline()
         for x, y in ((x0, y0), (x1, y0), (x1, y1), (x0, y1)):
             mask.Append(pcbnew.FromMM(x), pcbnew.FromMM(y))
@@ -150,7 +157,6 @@ def bus_keepouts(pcb, dsn, nets=BUS):
     this it drives signal traces straight through the VBAT run on the back side
     and cuts the 30 A path into pieces."""
     board = pcbnew.LoadBoard(pcb)
-    mask = _lane_mask()
     outs = []
     for z in board.Zones():
         if z.GetIsRuleArea() or z.GetNetname() not in nets:
@@ -159,7 +165,7 @@ def bus_keepouts(pcb, dsn, nets=BUS):
             if not z.IsOnLayer(layer):
                 continue
             fence = pcbnew.SHAPE_POLY_SET()
-            fence.BooleanSubtract(z.Outline(), mask)
+            fence.BooleanSubtract(z.Outline(), _lane_mask(board.GetLayerName(layer)))
             for n in range(fence.OutlineCount()):
                 o = fence.Outline(n)
                 pts = [(pcbnew.ToMM(o.CPoint(k).x), pcbnew.ToMM(o.CPoint(k).y))
@@ -442,8 +448,12 @@ def import_ses(pcb, ses):
     n = strip_keepout(board)
     board.BuildConnectivity()
     added, stranded = stitch_islands(board)
-    # aSkipSettings=True, same reason as in pcb_builder: keep the .kicad_pro
+    # aSkipSettings=True, same reason as in pcb_builder: keep the .kicad_pro.
+    # kicad-cli normalises that file when it loads it and drops netclasses it does
+    # not recognise, so write ours back - DRC after routing has to see them.
     pcbnew.SaveBoard(pcb, board, True)
+    pcb_builder.write_project_netclasses()
+    pcb_builder.write_design_rules()
     tracks = [t for t in board.Tracks() if t.GetClass() == "PCB_TRACK"]
     vias = [t for t in board.Tracks() if t.GetClass() == "PCB_VIA"]
     return n, len(vias), len(tracks), added, stranded
