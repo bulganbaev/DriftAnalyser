@@ -2,7 +2,7 @@
 	(version "E")
 	(design
 		(source "/Users/bulganbaev/Documents/Code/DriftAnalyser/PCB/v2/driftanalyser-v2.kicad_sch")
-		(date "2026-09-06T05:22:13")
+		(date "2026-09-06T05:41:12")
 		(tool "Eeschema 10.0.6")
 		(sheet
 			(number "1")

@@ -49,7 +49,9 @@ PLACE = {
     "C18": (25.0, 35.0, 0, "F"), "R12": (25.0, 38.0, 0, "F"),
     "SW1": (10.0, 47.0, 0, "F"), "SW2": (21.0, 47.0, 0, "F"),
 
-    # ---- IMU in the middle of the board
+    # ---- IMU in the middle of the board. LGA-14 pad 1 is the top-left pad at rot 0,
+    # which is the datasheet top view, so the sensor +X points at the board's right
+    # edge (+x) and +Y at the top edge (-y); +Z is out of the front copper.
     "U5": (55.0, 32.0, 0, "F"), "C20": (50.5, 32.0, 90, "F"), "C21": (59.5, 32.0, 90, "F"),
     "R22": (55.0, 36.0, 0, "F"), "R23": (55.0, 38.5, 0, "F"),
 
@@ -65,12 +67,16 @@ PLACE = {
     "R7": (42.0, 45.0, 0, "F"), "R8": (42.0, 48.0, 0, "F"), "C8": (42.0, 51.0, 0, "F"),
 
     # ---- 12V -> 5V buck
-    "C3": (42.0, 55.5, 90, "F"), "C4": (42.0, 60.5, 90, "F"), "C9": (42.0, 65.5, 90, "F"),
+    "C3": (42.0, 55.5, 90, "F"), "C4": (42.0, 60.5, 90, "F"),
     "R9": (42.0, 70.0, 0, "F"),
-    "U3": (47.5, 57.0, 0, "F"), "C10": (47.5, 61.0, 0, "F"),
-    "R3": (47.5, 64.0, 0, "F"), "R4": (47.5, 67.0, 0, "F"),
+    "U3": (47.5, 57.0, 0, "F"),
+    # C9 is the buck's own input cap: its pads sit ~1 mm under U3 pin 3 (VBAT) and
+    # pin 4 (GND), keeping the hot loop short. C10 is the bootstrap cap.
+    "C9": (46.8, 60.6, 0, "F"), "C10": (47.5, 53.5, 0, "F"),
+    "R3": (51.0, 51.0, 0, "F"), "R4": (51.0, 48.5, 0, "F"),
     "R10": (47.5, 70.0, 0, "F"), "D5": (47.5, 73.0, 0, "F"),
-    "L1": (55.0, 52.0, 0, "F"), "C11": (52.0, 58.5, 0, "F"), "C12": (56.5, 58.5, 0, "F"),
+    # L1 pin 1 lands 2.78 mm from U3 pin 5 (BUCK_SW), the switching node
+    "L1": (53.5, 57.0, 0, "F"), "C11": (59.3, 55.0, 0, "F"), "C12": (59.3, 58.5, 0, "F"),
 
     # ---- 5V rail merge + 3V3 LDO
     "D3": (66.0, 41.0, 0, "F"), "D4": (75.0, 41.0, 0, "F"),

@@ -36,10 +36,11 @@ def write_project_netclasses():
     with open(_pro_path()) as f:
         pro = json.load(f)
     pro.setdefault("board", {})["design_settings"] = {
-        "rules": {"min_clearance": 0.15, "min_track_width": 0.15, "min_via_diameter": 0.5,
+        # JLCPCB 2 oz capability, not the KiCad defaults
+        "rules": {"min_clearance": 0.2, "min_track_width": 0.2, "min_via_diameter": 0.6,
                   "min_via_annular_width": 0.15, "min_through_hole_diameter": 0.3,
                   "min_copper_edge_clearance": 0.3,
-                  "solder_mask_clearance": 0.0, "solder_mask_min_width": 0.0},
+                  "solder_mask_clearance": 0.0, "solder_mask_min_width": 0.1},
         "defaults": {"board_outline_line_width": 0.1, "copper_line_width": 0.2,
                      "silk_line_width": 0.15, "silk_text_size_h": 1.0,
                      "silk_text_size_v": 1.0, "silk_text_thickness": 0.15},
@@ -97,7 +98,8 @@ def _holes(board):
     libdir = os.path.join(env.FOOTPRINT_DIR, "MountingHole.pretty")
     for i, (x, y) in enumerate(placement.HOLES, 1):
         fp = pcbnew.FootprintLoad(libdir, "MountingHole_3.2mm_M3")
-        assert fp is not None, "MountingHole_3.2mm_M3"
+        if fp is None:
+            raise RuntimeError(f"MountingHole_3.2mm_M3 not found in {libdir}")
         fp.SetReference(f"H{i}")
         fp.SetValue("M3")
         fp.SetPosition(MM(x, y))
@@ -119,14 +121,16 @@ def _footprints(board, nets):
     for p in model.PARTS:
         libdir, name = libs.footprint_path(p.footprint)
         fp = pcbnew.FootprintLoad(libdir, name)
-        assert fp is not None, f"{p.ref}: {p.footprint}"
+        if fp is None:
+            raise RuntimeError(f"{p.ref}: footprint {p.footprint} not found in {libdir}")
         fp.SetReference(p.ref)
         fp.SetValue(p.value)
-        if p.lcsc and hasattr(fp, "SetField"):
+        if p.lcsc and hasattr(fp, "SetField") and hasattr(fp, "GetField"):
             fp.SetField("LCSC", p.lcsc)
             f = fp.GetField("LCSC")         # lands visible on F.SilkS otherwise
-            f.SetLayer(pcbnew.F_Fab)
-            f.SetVisible(False)
+            if f is not None:
+                f.SetLayer(pcbnew.F_Fab)
+                f.SetVisible(False)
         x, y, rot, side = placement.PLACE[p.ref]
         fp.SetPosition(MM(x, y))
         fp.SetOrientationDegrees(rot)

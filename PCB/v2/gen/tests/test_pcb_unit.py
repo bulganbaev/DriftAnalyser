@@ -8,6 +8,20 @@ from gen import env, model, placement, pcb_builder
 PCB = os.path.join(env.PROJECT_DIR, env.PROJECT_NAME + ".kicad_pcb")
 
 
+def _rect(x0, y0, x1, y1):
+    poly = pcbnew.SHAPE_POLY_SET()
+    poly.NewOutline()
+    for x, y in ((x0, y0), (x1, y0), (x1, y1), (x0, y1)):
+        poly.Append(pcbnew.FromMM(x), pcbnew.FromMM(y))
+    return poly
+
+
+def _intersects(a, b):
+    out = pcbnew.SHAPE_POLY_SET()
+    out.BooleanIntersection(a, b)
+    return not out.IsEmpty()
+
+
 class TestPcb(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -48,6 +62,33 @@ class TestPcb(unittest.TestCase):
             self.assertLessEqual(pcbnew.ToMM(c.GetRight()), placement.BOARD_W + 0.5, ref)
             self.assertGreaterEqual(pcbnew.ToMM(c.GetTop()), -0.5, ref)
             self.assertLessEqual(pcbnew.ToMM(c.GetBottom()), placement.BOARD_H + 0.5, ref)
+
+    def test_antenna_keepout_is_clear(self):
+        """Nothing but bare board inside the ESP32 module's own antenna keep-out."""
+        keepout = _rect(*placement.ANTENNA_KEEPOUT)
+        for fp in self.board.GetFootprints():
+            if fp.GetReference() == "U1":       # the keep-out belongs to U1
+                continue
+            court = fp.GetCourtyard(pcbnew.F_CrtYd)
+            if not court.OutlineCount():
+                bb = fp.GetBoundingBox(False, False)
+                court = _rect(*(pcbnew.ToMM(v) for v in
+                                (bb.GetLeft(), bb.GetTop(), bb.GetRight(), bb.GetBottom())))
+            self.assertFalse(_intersects(court, keepout),
+                             f"{fp.GetReference()} is inside the antenna keep-out")
+
+    def test_no_courtyard_overlaps(self):
+        """No two footprints share any area. U1's courtyard is L-shaped (module +
+        antenna keep-out), so this has to be a polygon boolean, not a bounding box."""
+        courts = {}
+        for fp in self.board.GetFootprints():
+            poly = fp.GetCourtyard(pcbnew.F_CrtYd)
+            self.assertTrue(poly.OutlineCount(), f"{fp.GetReference()} has no F.CrtYd")
+            courts[fp.GetReference()] = poly
+        refs = sorted(courts)
+        for i, a in enumerate(refs):
+            for b in refs[i + 1:]:
+                self.assertFalse(_intersects(courts[a], courts[b]), f"{a} overlaps {b}")
 
 
 if __name__ == "__main__":
