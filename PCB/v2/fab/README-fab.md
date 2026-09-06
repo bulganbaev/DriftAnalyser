@@ -37,11 +37,18 @@ bottom-left corner as the origin), assemble from `BOM.csv` + `CPL.csv`.
 
 ## Regenerating
 
-`bash gen/build.sh` rebuilds everything here. `gerbers.zip` uses a fixed entry
-timestamp, but KiCad stamps a `CreationDate` into every gerber, the drill files
-and the `.gbrjob`, so the zip's bytes still change on each run even when the
-board does not. The STEP, the 3D PNGs and the inner/bottom plots are not tracked
-at all - run `KICAD_PY -m gen.export` to get them back.
+`bash gen/build.sh` rebuilds everything here.
+
+The tracked plots are date-free on purpose: the SVGs get a fixed `<title>` and
+`schematic.pdf` a fixed `/CreationDate` (rewritten in place at the same byte
+length, so the xref table still points where it should), and `gerbers.zip` uses a
+fixed entry timestamp. What is left is inside the gerbers themselves - KiCad
+stamps a `CreationDate` into every layer, both drill files and the `.gbrjob`, and
+those are the fab's record of when the files were made, so they stay. The zip's
+bytes therefore still change on every run even when the board does not.
+
+The STEP, the 3D PNGs and the inner/bottom plots are not tracked at all - run
+`KICAD_PY -m gen.export` to get them back.
 
 ## Hand check before power-up
 

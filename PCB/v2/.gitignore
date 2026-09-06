@@ -13,3 +13,4 @@ fab/driftanalyser-v2.step
 fab/render-3d-*.png
 fab/render-bottom.svg
 fab/render-in*.svg
+fab/lib-preview/

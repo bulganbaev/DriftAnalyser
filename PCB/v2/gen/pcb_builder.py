@@ -453,13 +453,15 @@ def _zones(board, nets):
                   (teeth[-1][0], 0.5, teeth[-1][1], IN2_ARM_BOT)]),
           priority=3, clearance=BUS_CLEAR, connection=pcbnew.ZONE_CONNECTION_FULL)
 
-    # ---- VBAT input copper on F.Cu: the TVS, the bulk caps and the buck input
-    # caps. J1 pin 1 is GND (pin 2, 7.2 mm west of it, is the XT60's positive
-    # contact - see the note on J1 in the model), so the pour runs around the
-    # ground barrel with the filler's clearance ring instead of onto it; the 20 A
-    # itself does not come through here at all, the barrel of pin 2 lands on the
-    # In2 plane solid. The notch keeps the R7 / R8 / C8 sense divider out of it.
-    vx0, _, _, _ = _pad_box(board, "J1", "1")
+    # ---- VBAT input copper on F.Cu: the input barrel, the TVS, the bulk caps
+    # and the buck input caps. It starts 0.5 mm west of J1 pin 2 - the XT60's
+    # positive contact, see the note on J1 in the model - so the barrel pours
+    # into the top layer as well as into the In2 plane; on In2 alone the first
+    # 6 mm east of it was a 29 mm cut of one layer, 18.7 A, under the 20 the
+    # switch is rated for. Pin 1, the ground barrel, is 7.2 mm east of it inside
+    # this pour and keeps the filler's clearance ring.
+    # The notch keeps the R7 / R8 / C8 sense divider out of it.
+    vx0, _, _, _ = _pad_box(board, "J1", "2")
     d1_top = _pad_box(board, "D1", "1")[1]
     col_x = _pad_box(board, "R7", "1")[0] - 0.6
     mid_y = _pad_box(board, "C8", "1")[3] + 0.5

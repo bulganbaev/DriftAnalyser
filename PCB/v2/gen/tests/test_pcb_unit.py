@@ -356,8 +356,16 @@ class TestPcb(unittest.TestCase):
                                 f"riser: {worst[0]:.1f} A at y = {worst[1]} "
                                 f"({worst[2]} mm In2 + {worst[3]} mm F.Cu)")
 
-        worst, x = (999.0, None, 0, 0), 24.0      # east of the XT60's own barrel
-        while x <= 99.0:                          # ... to the tab
+        # from the XT60's own input barrel east to the tab. It used to start at
+        # x = 24, east of the connector, and that is exactly where a hole hides:
+        # when VBAT moved to J1 pin 2 the input pad ended up 5.7 mm west of the
+        # F.Cu pour and the first cut east of it was 18.7 A on In2 alone.
+        x = pcbnew.ToMM(self.board.FindFootprintByReference("J1")
+                        .FindPadByNumber("2").GetPosition().x)
+        self.assertEqual(self.board.FindFootprintByReference("J1")
+                         .FindPadByNumber("2").GetNetname(), "VBAT")
+        worst = (999.0, None, 0, 0)
+        while x <= 99.0:
             a = _across(inner, x, 30.0, H, w=0.1)[0]
             b = _across(outer, x, 30.0, H, w=0.1)[0]
             worst = min(worst, (_amps(a, b), round(x, 2), round(a, 2), round(b, 2)))

@@ -621,7 +621,11 @@ def drop_foreign_pad_wires(board):
     cannot be asked again without redrawing the whole board, so the replay drops
     those wires and says so - DRC then has to still come back with nothing
     unconnected, which is what says the copper was redundant."""
-    pads = [pad for fp in board.GetFootprints() for pad in fp.Pads()]
+    # a plated pad only: an NPTH slot or a mounting hole is a drilled hole with
+    # no copper on it, and a wire crossing one is the board outline's problem,
+    # not a short
+    pads = [pad for fp in board.GetFootprints() for pad in fp.Pads()
+            if pad.GetAttribute() != pcbnew.PAD_ATTRIB_NPTH and pad.IsOnCopperLayer()]
     doomed, dropped = [], []
     for t in board.Tracks():                    # scan first: removing mid-walk
         if t.GetClass() != "PCB_TRACK":         # leaves board.Tracks() unusable
@@ -638,7 +642,9 @@ def drop_foreign_pad_wires(board):
                 break
     for t in doomed:
         board.RemoveNative(t)       # Remove() hands the C++ object to Python and
-    return dropped                  # freeing it here leaves board.Tracks() broken
+    for net, pad, x, y in dropped:  # freeing it here leaves board.Tracks() broken
+        print(f"dropped a replayed [{net}] wire off {pad} at {x}, {y}")
+    return dropped
 
 
 def import_ses(pcb, ses):

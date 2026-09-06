@@ -103,11 +103,48 @@ VIEWS = (("render-bottom.svg", "B.Cu,B.SilkS,B.Mask,Edge.Cuts", True),
          ("render-in2.svg", "In2.Cu,Edge.Cuts", False))
 
 
+# KiCad stamps the time of day into everything it plots. The gerbers keep theirs
+# (rewriting a fab file's own date would be a lie about when it was made), but the
+# plots that are tracked here get a fixed one, or every rebuild is a diff.
+SVG_TITLE = re.compile(r"<title>SVG Image created as [^<]*</title>")
+PDF_DATE = re.compile(rb"(/(?:CreationDate|ModDate)\s*\()([^)]*)(\))")
+FIXED_PDF_DATE = b"D:2026:01:01:00:00:00"
+
+
+def _fix_svg_date(path):
+    with open(path) as f:
+        text = f.read()
+    text, n = SVG_TITLE.subn(f"<title>{os.path.basename(path)}</title>", text)
+    if n:
+        with open(path, "w") as f:
+            f.write(text)
+    return n
+
+
+def _fix_pdf_dates(path):
+    """Same length in, same length out: a PDF's xref table is byte offsets."""
+    with open(path, "rb") as f:
+        data = f.read()
+
+    def fixed(m):
+        old = m.group(2)
+        return m.group(1) + FIXED_PDF_DATE[:len(old)].ljust(len(old), b"0") + m.group(3)
+
+    out, n = PDF_DATE.subn(fixed, data)
+    if len(out) != len(data):
+        raise RuntimeError(f"{path}: date rewrite changed the file length")
+    if n:
+        with open(path, "wb") as f:
+            f.write(out)
+    return n
+
+
 def _svg(name, layers, mirror):
+    out = os.path.join(FAB, name)
     _cli("pcb", "export", "svg", "--mode-single", "--layers", layers,
          "--page-size-mode", "2", "--exclude-drawing-sheet",
-         *(["--mirror"] if mirror else []),
-         "-o", os.path.join(FAB, name), PCB)
+         *(["--mirror"] if mirror else []), "-o", out, PCB)
+    _fix_svg_date(out)
 
 
 def renders():
@@ -118,7 +155,9 @@ def renders():
              "--rotate", "-55,0,-35" if side == "top" else "55,0,-35",
              "--zoom", "0.85", "--background", "opaque", "-w", "1800", "-h", "1200",
              "--side", side, "-o", os.path.join(FAB, f"render-3d-{side}.png"), PCB)
-    _cli("sch", "export", "pdf", "-o", os.path.join(FAB, "schematic.pdf"), SCH)
+    pdf = os.path.join(FAB, "schematic.pdf")
+    _cli("sch", "export", "pdf", "-o", pdf, SCH)
+    _fix_pdf_dates(pdf)
 
 
 def step():
@@ -169,11 +208,18 @@ bottom-left corner as the origin), assemble from `BOM.csv` + `CPL.csv`.
 
 ## Regenerating
 
-`bash gen/build.sh` rebuilds everything here. `gerbers.zip` uses a fixed entry
-timestamp, but KiCad stamps a `CreationDate` into every gerber, the drill files
-and the `.gbrjob`, so the zip's bytes still change on each run even when the
-board does not. The STEP, the 3D PNGs and the inner/bottom plots are not tracked
-at all - run `KICAD_PY -m gen.export` to get them back.
+`bash gen/build.sh` rebuilds everything here.
+
+The tracked plots are date-free on purpose: the SVGs get a fixed `<title>` and
+`schematic.pdf` a fixed `/CreationDate` (rewritten in place at the same byte
+length, so the xref table still points where it should), and `gerbers.zip` uses a
+fixed entry timestamp. What is left is inside the gerbers themselves - KiCad
+stamps a `CreationDate` into every layer, both drill files and the `.gbrjob`, and
+those are the fab's record of when the files were made, so they stay. The zip's
+bytes therefore still change on every run even when the board does not.
+
+The STEP, the 3D PNGs and the inner/bottom plots are not tracked at all - run
+`KICAD_PY -m gen.export` to get them back.
 
 ## Hand check before power-up
 
@@ -198,6 +244,11 @@ def export_fab():
     bom()
     cpl()
     _svg(*TOP_VIEW)
+    # a plot from an earlier round that nothing regenerates any more, and it is
+    # tracked: take its date out too, once
+    routed = os.path.join(FAB, "render-routed.svg")
+    if os.path.exists(routed):
+        _fix_svg_date(routed)
     readme()
 
 
