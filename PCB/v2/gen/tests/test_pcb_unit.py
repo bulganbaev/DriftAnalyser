@@ -23,6 +23,11 @@ def _covers(outer, inner):
     return rest.IsEmpty()
 
 
+def _inside(box, x, y):
+    x0, y0, x1, y1 = box
+    return x0 <= x <= x1 and y0 <= y <= y1
+
+
 def _intersects(a, b):
     out = pcbnew.SHAPE_POLY_SET()
     out.BooleanIntersection(a, b)
@@ -123,7 +128,59 @@ class TestPcb(unittest.TestCase):
         self.assertEqual({v.GetNetname() for v in vias}, {"GND", "VBAT", "12V_LED"})
         for v in vias:
             self.assertEqual(pcbnew.ToMM(v.GetDrillValue()), 0.4)
-            self.assertEqual(pcbnew.ToMM(v.GetWidth()), 0.8)
+            for layer in (pcbnew.F_Cu, pcbnew.B_Cu):
+                self.assertEqual(pcbnew.ToMM(v.GetWidth(layer)), 0.8)
+
+    def test_vbat_tab_via_field(self):
+        """U2's tab is fed only through vias out of the back-side VBAT run."""
+        tab = (86.0, 22.0, 101.0, 31.0)
+        n = 0
+        for t in self.board.Tracks():
+            if t.GetClass() != "PCB_VIA" or t.GetNetname() != "VBAT":
+                continue
+            p = t.GetPosition()
+            if _inside(tab, pcbnew.ToMM(p.x), pcbnew.ToMM(p.y)):
+                n += 1
+        self.assertGreaterEqual(n, 18, f"only {n} VBAT vias into U2's tab area")
+
+    def test_ground_plane_has_no_floating_island(self):
+        """A GND island that no track reaches is a pad with no return path."""
+        for z in self.board.Zones():
+            if z.GetIsRuleArea() or z.GetNetname() != "GND":
+                continue
+            for layer in (pcbnew.F_Cu, pcbnew.B_Cu):
+                if not z.IsOnLayer(layer):
+                    continue
+                n = z.GetFilledPolysList(layer).OutlineCount()
+                self.assertEqual(n, 1, f"GND on {self.board.GetLayerName(layer)} "
+                                       f"fills as {n} disconnected pieces")
+
+    def test_no_copper_in_antenna_keepout(self):
+        """The rule area is the intent; this is the filled result."""
+        x0, y0, x1, y1 = placement.ANTENNA_KEEPOUT
+        box = (max(x0, 0.0), y0, x1, y1)
+        keepout = _rect(*box)
+        for layer in (pcbnew.F_Cu, pcbnew.B_Cu):
+            poured = pcbnew.SHAPE_POLY_SET()
+            for z in self.board.Zones():
+                if z.GetIsRuleArea() or not z.IsOnLayer(layer):
+                    continue
+                poured.BooleanAdd(z.GetFilledPolysList(layer))
+            hit = pcbnew.SHAPE_POLY_SET()
+            hit.BooleanIntersection(poured, keepout)
+            self.assertTrue(hit.IsEmpty(),
+                            f"copper poured into the antenna keep-out on "
+                            f"{self.board.GetLayerName(layer)}")
+        for t in self.board.Tracks():
+            p = t.GetPosition()
+            self.assertFalse(_inside(box, pcbnew.ToMM(p.x), pcbnew.ToMM(p.y)),
+                             f"{t.GetClass()} inside the antenna keep-out")
+        for fp in self.board.GetFootprints():
+            for pad in fp.Pads():
+                p = pad.GetPosition()
+                self.assertFalse(_inside(box, pcbnew.ToMM(p.x), pcbnew.ToMM(p.y)),
+                                 f"{fp.GetReference()} pad {pad.GetNumber()} "
+                                 f"inside the antenna keep-out")
 
     def test_antenna_keepout_rule_area(self):
         """Spec: nothing metallic under the ESP32 antenna, on either copper layer."""
@@ -138,9 +195,13 @@ class TestPcb(unittest.TestCase):
 
     def test_drc_no_errors_except_unrouted(self):
         rpt = os.path.join(env.PROJECT_DIR, "fab", "drc.json")
-        subprocess.run([env.KICAD_CLI, "pcb", "drc", "--format", "json",
-                        "--severity-error", "-o", rpt, PCB],
-                       capture_output=True, text=True)   # exit code = violation count
+        if os.path.exists(rpt):        # never let a stale report pass the test
+            os.remove(rpt)
+        r = subprocess.run([env.KICAD_CLI, "pcb", "drc", "--format", "json",
+                            "--severity-error", "-o", rpt, PCB],
+                           capture_output=True, text=True)
+        # 0 = clean, 5 = kicad-cli's "DRC violations found"
+        self.assertIn(r.returncode, (0, 5), r.stdout[-800:] + r.stderr[-800:])
         with open(rpt) as f:
             data = json.load(f)
         viol = [v for v in data["violations"] if v["type"] != "unconnected_items"]

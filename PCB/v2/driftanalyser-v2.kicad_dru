@@ -1,8 +1,19 @@
 (version 1)
 
-# Pad to pad spacing inside a land pattern (LGA-14, USB-C, TSDSO-14, SOT-23-6) is
-# the part maker's, not ours: hold those pairs to the fab floor and keep the
-# netclass clearance for the copper we draw - tracks, vias and zones.
-(rule "land pattern pad spacing"
-	(constraint clearance (min 0.13mm))
-	(condition "A.Type == 'Pad' && B.Type == 'Pad'"))
+# Pad to pad spacing inside a land pattern is the part maker's, not ours. Measured
+# gaps: U5 (LGA-14) 0.15 mm, J2 (USB-C) and U2 (TSDSO-14) 0.20, U7 0.25, U3 0.35 -
+# only U5 is under JLCPCB's 2 oz floor of 0.2 mm. Both rules are scoped to pads of
+# one footprint, so the netclass clearance still governs everything we draw.
+(rule "same footprint pad spacing"
+	(constraint clearance (min 0.2mm))
+	(condition "A.Type == 'Pad' && B.Type == 'Pad' && A.Reference == B.Reference"))
+
+(rule "U5 LGA-14 land pattern"
+	(constraint clearance (min 0.15mm))
+	(condition "A.Type == 'Pad' && B.Type == 'Pad' && A.memberOfFootprint('U5') && B.memberOfFootprint('U5')"))
+
+# The ESP32 module footprint brings its own 0.2 mm heatsink vias. The board minimum
+# stays 0.3 mm: JLCPCB surcharges holes below that, and ours are 0.4 mm.
+(rule "ESP32 module heatsink vias"
+	(constraint hole_size (min 0.2mm))
+	(condition "A.memberOfFootprint('U1')"))

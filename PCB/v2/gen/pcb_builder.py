@@ -37,11 +37,10 @@ def write_project_netclasses():
         pro = json.load(f)
     pro.setdefault("board", {})["design_settings"] = {
         # JLCPCB 2 oz capability, not the KiCad defaults
-        # 0.13 clearance / 0.2 hole are JLCPCB's 2 layer floor: the fine pitch land
-        # patterns (LGA-14, USB-C, TSDSO-14) and the ESP32 module's own thermal vias
-        # need them. What we draw ourselves keeps the netclass clearance.
-        "rules": {"min_clearance": 0.13, "min_track_width": 0.2, "min_via_diameter": 0.6,
-                  "min_via_annular_width": 0.15, "min_through_hole_diameter": 0.2,
+        # 0.15 mm is below JLCPCB's 2 oz floor (0.2 mm) but only U5's LGA-14 land
+        # pattern needs it; see the .kicad_dru, which scopes the exception to U5.
+        "rules": {"min_clearance": 0.15, "min_track_width": 0.2, "min_via_diameter": 0.6,
+                  "min_via_annular_width": 0.15, "min_through_hole_diameter": 0.3,
                   "min_copper_edge_clearance": 0.3,
                   "solder_mask_clearance": 0.0, "solder_mask_min_width": 0.1},
         "defaults": {"board_outline_line_width": 0.1, "copper_line_width": 0.2,
@@ -71,12 +70,23 @@ def write_project_netclasses():
 
 DRU = """(version 1)
 
-# Pad to pad spacing inside a land pattern (LGA-14, USB-C, TSDSO-14, SOT-23-6) is
-# the part maker's, not ours: hold those pairs to the fab floor and keep the
-# netclass clearance for the copper we draw - tracks, vias and zones.
-(rule "land pattern pad spacing"
-	(constraint clearance (min 0.13mm))
-	(condition "A.Type == 'Pad' && B.Type == 'Pad'"))
+# Pad to pad spacing inside a land pattern is the part maker's, not ours. Measured
+# gaps: U5 (LGA-14) 0.15 mm, J2 (USB-C) and U2 (TSDSO-14) 0.20, U7 0.25, U3 0.35 -
+# only U5 is under JLCPCB's 2 oz floor of 0.2 mm. Both rules are scoped to pads of
+# one footprint, so the netclass clearance still governs everything we draw.
+(rule "same footprint pad spacing"
+\t(constraint clearance (min 0.2mm))
+\t(condition "A.Type == 'Pad' && B.Type == 'Pad' && A.Reference == B.Reference"))
+
+(rule "U5 LGA-14 land pattern"
+\t(constraint clearance (min 0.15mm))
+\t(condition "A.Type == 'Pad' && B.Type == 'Pad' && A.memberOfFootprint('U5') && B.memberOfFootprint('U5')"))
+
+# The ESP32 module footprint brings its own 0.2 mm heatsink vias. The board minimum
+# stays 0.3 mm: JLCPCB surcharges holes below that, and ours are 0.4 mm.
+(rule "ESP32 module heatsink vias"
+\t(constraint hole_size (min 0.2mm))
+\t(condition "A.memberOfFootprint('U1')"))
 """
 
 
@@ -303,22 +313,35 @@ def _zones(board, nets):
     c2_bot = _pad_box(board, "C2", "1")[3]
     sw = _fp_pads_box(board, ("SW1", "SW2"))
     sw_x, sw_y = sw[2] + 0.75, sw[3] + 0.4      # the boot / reset buttons sit in the way
+    # C1 / C2 are SMD cans: their GND pads only exist on F.Cu, so the pour has to leave
+    # them a lane to the ground plane instead of burying them (a 30 A bulk cap return)
+    c1_gnd = _pad_box(board, "C1", "2")
+    gnd_x, gnd_y = c1_gnd[0] - 0.45, c1_gnd[1] - 0.4
+    # The lobe that reaches C3 stops above C4's ground pad: only 0.45 mm of copper fits
+    # between C1's and C4's GND pads, and burying either of those two SMD ground pads
+    # costs more than the short VBAT track C4 needs instead.
+    lobe_r = c34[2] + 0.4                       # C3's GND pad grounds through this edge
+    lobe_b = _pad_box(board, "C4", "2")[1] - 0.4
     left, top, bot = vx0 - 0.5, d1_top - 0.4, c2_bot + 0.4
     vbat_f = [(sw_x, top), (col_x, top), (col_x, mid_y),
-              (c34[2] + 0.4, mid_y), (c34[2] + 0.4, c34[3] + 0.5),
-              (col_x, c34[3] + 0.5), (col_x, bot), (left, bot), (left, sw_y), (sw_x, sw_y)]
+              (lobe_r, mid_y), (lobe_r, lobe_b), (col_x, lobe_b),
+              (col_x, gnd_y), (gnd_x, gnd_y), (gnd_x, bot),
+              (left, bot), (left, sw_y), (sw_x, sw_y)]
     _zone(board, nets["VBAT"], pcbnew.F_Cu, vbat_f, priority=1, clearance=BUS_CLEAR,
           connection=pcbnew.ZONE_CONNECTION_FULL)
 
     # ---- VBAT copper around U2's tab on F.Cu: an L that clears the OUT row above
     # and the control row below, widening to the right of U2 for the stitching vias
-    tab_x0 = _pad_box(board, "U2", "15")[0]
-    ctl_top = _pads_box(board, [("U2", n) for n in "1234567"])[1]
+    ctl = _pads_box(board, [("U2", n) for n in "1234567"])
     r5_top = _pad_box(board, "R5", "1")[1]
-    tab_right = ox1 + 3.8                    # stops 0.4+ short of C6's pads
-    vbat_tab = [(tab_x0 - 0.5, oy1 + 0.5), (tab_right, oy1 + 0.5),
-                (tab_right, r5_top - 0.5), (ox1 + 0.45, r5_top - 0.5),
-                (ox1 + 0.45, ctl_top - 0.5), (tab_x0 - 0.5, ctl_top - 0.5)]
+    c5_right = _pad_box(board, "C5", "1")[2]
+    tab_left, tab_right = c5_right + 0.45, ox1 + 3.8   # 0.4+ clear of C5's and C6's pads
+    bar_top, bar_bot = oy1 + 0.45, ctl[1] - 0.5        # between U2's OUT and control rows
+    leg_l, leg_r = ctl[0] - 0.425, ctl[2] + 0.45       # legs skirt the control row
+    leg_bot = r5_top - 0.5
+    vbat_tab = [(tab_left, bar_top), (tab_right, bar_top), (tab_right, leg_bot),
+                (leg_r, leg_bot), (leg_r, bar_bot), (leg_l, bar_bot),
+                (leg_l, leg_bot), (tab_left, leg_bot)]
     _zone(board, nets["VBAT"], pcbnew.F_Cu, vbat_tab, priority=1, clearance=BUS_CLEAR,
           connection=pcbnew.ZONE_CONNECTION_FULL)
 
@@ -327,13 +350,17 @@ def _zones(board, nets):
     c1_right = _pad_box(board, "C1", "1")[2]
     bx_l, bx_r = vx0 - 2.0, c1_right + 2.5       # input block, tied through the XT60 /
     by_t, by_b = top, c2_bot + 0.8               # C1 / C2 through holes and a via field
-    cy_t, cy_b = 43.5, 49.5                      # corridor: only SMD parts sit over it
+    # 12 mm corridor = ~31 A at 2 oz / 20 K by IPC-2221; nothing on the board reaches
+    # B.Cu inside it (everything over it is SMD on F.Cu), so it can run full width
+    cy_t, cy_b = 40.0, 52.0
     vbat_b = [(86.0, 18.0), (tab_right, 18.0), (tab_right, cy_b), (bx_r, cy_b),
-              (bx_r, by_b), (bx_l, by_b), (bx_l, sw_y), (sw_x, sw_y), (sw_x, by_t),
-              (30.0, by_t), (30.0, cy_t), (86.0, cy_t)]
+              (bx_r, by_b), (bx_l, by_b), (bx_l, by_t), (30.0, by_t),
+              (30.0, cy_t), (86.0, cy_t)]
     _zone(board, nets["VBAT"], pcbnew.B_Cu, vbat_b, priority=1, clearance=BUS_CLEAR,
           connection=pcbnew.ZONE_CONNECTION_FULL)
-    return {"bus": bus_geo, "arm": (ox0, ox1, oy1)}
+    return {"bus": bus_geo, "arm": (ox0, ox1, oy1),
+            "tab": (tab_left, tab_right, leg_l, leg_r, bar_top, leg_bot),
+            "cap_gnd": (gnd_x, col_x, c1_gnd[3], _pad_box(board, "C2", "2")[1])}
 
 
 def _via(board, net, x, y, d=0.8, drill=0.4):
@@ -349,13 +376,18 @@ def _via(board, net, x, y, d=0.8, drill=0.4):
 
 def _stitch(board, nets, geo):
     ox0, ox1, oy1 = geo["arm"]
-    # VBAT: next to U2's tab, never under it (no via in pad, JLC assembles this)
-    for x in (ox1 + 1.4, ox1 + 2.9):
-        for y in (oy1 + 1.1, oy1 + 2.6, oy1 + 4.1, oy1 + 5.6):
-            _via(board, nets["VBAT"], x, y)
-    # VBAT: F <-> B in the gap between the TVS and the bulk caps
+    # VBAT: a leg of vias either side of U2's control row, never under the tab itself
+    # (no via in pad, JLC assembles this board). 24 x 0.8/0.4 ~= 40 A.
+    tab_left, tab_right, leg_l, leg_r, bar_top, leg_bot = geo["tab"]
+    cols = [leg_l - 0.6 - 1.2 * k for k in range(3)]
+    cols += [leg_r + 0.575 + 1.15 * k for k in range(3)]
+    for x in cols:
+        for k in range(4):
+            _via(board, nets["VBAT"], x, bar_top + 0.6 + 1.5 * k)
+    # VBAT: F <-> B under the XT60, between the TVS and the bulk caps. The XT60's own
+    # barrel is worth about five of these; the pour above them is the 30 A input.
     for x in [19.5 + 2.0 * i for i in range(8)]:
-        for y in (51.0, 53.0):
+        for y in (51.0, 53.0, 54.8):
             _via(board, nets["VBAT"], x, y)
     # 12V_LED: F <-> B along the run at the top edge
     bx0, bx1, band_bot = geo["bus"]
@@ -371,6 +403,12 @@ def _stitch(board, nets, geo):
     for i in range(1, 7):
         pin3 = _pad_box(board, f"J1{i}", "3")
         _via(board, nets["GND"], (pin3[0] + pin3[2]) / 2, pin3[3] + 2.15)
+    # GND: in the lane the VBAT pour leaves open for C1 / C2's SMD ground pads, so the
+    # bulk cap return reaches the back-side plane too
+    gnd_x, gnd_r, c1_bot, c2_top = geo["cap_gnd"]
+    for x in (gnd_x + 1.5, gnd_x + 4.0):
+        for y in (c1_bot + 2.25, c1_bot + 5.25):
+            _via(board, nets["GND"], x, y)
     for x, y in ((30.0, 24.0), (40.0, 30.0), (52.0, 38.0), (70.0, 20.0),
                  (75.0, 30.0), (8.0, 65.0), (105.0, 60.0)):
         _via(board, nets["GND"], x, y)
