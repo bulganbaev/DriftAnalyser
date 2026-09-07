@@ -83,17 +83,24 @@ def _refkey(ref):
 
 
 def bom():
-    """One line per orderable part, JLCPCB's column names."""
+    """One line per orderable part. BOM.csv uses JLCPCB's column names plus an explicit
+    per-board Quantity (the domestic jlc.com side and human assemblers ask for it);
+    BOM-cn.csv is the same table with Chinese headers and MPN/manufacturer columns."""
     rows = {}
     for p in model.PARTS:
-        rows.setdefault((p.value, p.footprint.split(":")[1], p.lcsc), []).append(p.ref)
+        rows.setdefault((p.value, p.footprint.split(":")[1], p.lcsc, p.mpn, p.mfr), []).append(p.ref)
+    ordered = sorted(rows.items(), key=lambda kv: _refkey(sorted(kv[1], key=_refkey)[0]))
     out = os.path.join(FAB, "BOM.csv")
     with open(out, "w", newline="") as f:
         w = csv.writer(f)
-        w.writerow(["Comment", "Designator", "Footprint", "LCSC Part #"])
-        for (val, fp, lcsc), refs in sorted(rows.items(),
-                                            key=lambda kv: _refkey(sorted(kv[1], key=_refkey)[0])):
-            w.writerow([val, ",".join(sorted(refs, key=_refkey)), fp, lcsc])
+        w.writerow(["Comment", "Designator", "Footprint", "Quantity", "LCSC Part #"])
+        for (val, fp, lcsc, mpn, mfr), refs in ordered:
+            w.writerow([val, ",".join(sorted(refs, key=_refkey)), fp, len(refs), lcsc])
+    with open(os.path.join(FAB, "BOM-cn.csv"), "w", newline="", encoding="utf-8-sig") as f:
+        w = csv.writer(f)
+        w.writerow(["型号/值", "位号", "封装", "单套数量", "立创编号", "厂家型号", "厂家"])
+        for (val, fp, lcsc, mpn, mfr), refs in ordered:
+            w.writerow([val, ",".join(sorted(refs, key=_refkey)), fp, len(refs), lcsc, mpn, mfr])
     return out
 
 

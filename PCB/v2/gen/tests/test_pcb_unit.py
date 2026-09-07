@@ -647,7 +647,8 @@ class TestPcb(unittest.TestCase):
             self.assertTrue([n for n in names if want in n], f"{want} missing from gerbers.zip")
 
         bom = list(csv.DictReader(open(path("BOM.csv"))))
-        self.assertEqual(list(bom[0].keys()), ["Comment", "Designator", "Footprint", "LCSC Part #"])
+        self.assertEqual(list(bom[0].keys()), ["Comment", "Designator", "Footprint", "Quantity", "LCSC Part #"])
+        self.assertEqual(sum(int(r["Quantity"]) for r in bom), len(model.PARTS))
         refs = [r for row in bom for r in row["Designator"].split(",")]
         self.assertEqual(sorted(refs), sorted(p.ref for p in model.PARTS))
         self.assertEqual([r for r in bom if not r["LCSC Part #"]], [])
