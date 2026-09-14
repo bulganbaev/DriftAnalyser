@@ -64,9 +64,9 @@ _add(
     # (C284071), same SMC(DO-214AB) package, same 18V standoff - see README BOM sources.
     Part("D1", "SMDJ18A", "Device:D_Zener", "Diode_SMD:D_SMC",
          {"1": "VBAT", "2": "GND"}, "power", lcsc="C284071", mpn="5.0SMDJ18A", mfr="DOWO"),
-    Part("C1", "100uF 35V", "Device:C_Polarized", "Capacitor_SMD:CP_Elec_8x10.5",
+    Part("C1", "100uF 50V", "Device:C_Polarized", "Capacitor_SMD:CP_Elec_8x10.5",
          {"1": "VBAT", "2": "GND"}, "power", lcsc="C2983550", mpn="GVZ1H107M0810CNVC", mfr="HRK"),
-    Part("C2", "100uF 35V", "Device:C_Polarized", "Capacitor_SMD:CP_Elec_8x10.5",
+    Part("C2", "100uF 50V", "Device:C_Polarized", "Capacitor_SMD:CP_Elec_8x10.5",
          {"1": "VBAT", "2": "GND"}, "power", lcsc="C2983550", mpn="GVZ1H107M0810CNVC", mfr="HRK"),
     C("C3", "10uF 50V", "VBAT", "GND", "power", "1210", lcsc="C2918502", mpn="CS3225X7R106K500NRL", mfr="SAMWHA"),
     C("C4", "10uF 50V", "VBAT", "GND", "power", "1210", lcsc="C2918502", mpn="CS3225X7R106K500NRL", mfr="SAMWHA"),

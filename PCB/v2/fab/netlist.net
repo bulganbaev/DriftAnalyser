@@ -248,7 +248,7 @@
 	(components
 		(comp
 			(ref "C1")
-			(value "100uF 35V")
+			(value "100uF 50V")
 			(footprint "Capacitor_SMD:CP_Elec_8x10.5")
 			(fields
 				(field
@@ -320,7 +320,7 @@
 		)
 		(comp
 			(ref "C2")
-			(value "100uF 35V")
+			(value "100uF 50V")
 			(footprint "Capacitor_SMD:CP_Elec_8x10.5")
 			(fields
 				(field

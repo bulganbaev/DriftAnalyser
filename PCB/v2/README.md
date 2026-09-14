@@ -274,7 +274,7 @@ lookup time and will drift.
 |---|---|---|---|---|---|---|
 | J1 | XT60PW-M | XT60PW-M | C98732 | Extended | 27,130 | 2026-09-06 |
 | D1 | SMDJ18A | 5.0SMDJ18A (DOWO) | C284071 | Extended | 2,925 | 2026-09-06 |
-| C1, C2 | 100uF 35V | GVZ1H107M0810CNVC (HRK) | C2983550 | Extended | 66,426 | 2026-09-06 |
+| C1, C2 | 100uF 50V | GVZ1H107M0810CNVC (HRK) | C2983550 | Extended | 66,426 | 2026-09-06 |
 | C3, C4, C5, C6, C9 | 10uF 50V | CS3225X7R106K500NRL (SAMWHA) | C2918502 | Extended | 114,648 | 2026-09-06 |
 | U2 | BTS7002-1EPP | BTS70021EPPXUMA1 (Infineon) | C2680407 | Extended | 273 | 2026-09-06 |
 | U2 fallback | BTS7004-1EPP | BTS7004-1EPP (Infineon) | C534825 | Extended | 3,100 (4.4mOhm, 15A, same TSDSO-14 pkg/pinout, drop-in if 7002 out at order time) | 2026-09-06 |

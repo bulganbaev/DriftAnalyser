@@ -2860,7 +2860,7 @@
         )
       )
     )
-    (property "Value" "100uF 35V"
+    (property "Value" "100uF 50V"
       (at 86.36 52.02 0)
       (effects
         (font
@@ -3020,7 +3020,7 @@
         )
       )
     )
-    (property "Value" "100uF 35V"
+    (property "Value" "100uF 50V"
       (at 101.6 52.02 0)
       (effects
         (font
