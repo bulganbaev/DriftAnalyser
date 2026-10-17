@@ -8,7 +8,7 @@ def test_each_strip_has_its_own_channel():
     for i in range(1, 9):
         refs = {r for r, _ in n[f"LED{i}_12V"]}
         assert len(refs & SWITCHES) == 1, i
-        # J1 assertion added in Task 7 (model.J1_PIN appears there)
+        assert ("J1", model.J1_PIN[f"LED{i}_12V"]) in n[f"LED{i}_12V"], i
 
 
 def test_switch_controls_pulled_down():

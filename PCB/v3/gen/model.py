@@ -366,3 +366,18 @@ for _i in range(1, 4):
         _rk("10k", f"IN{_i}_SENSE", "GND", **_R10K),
         _rk("10k", f"IN{_i}_PULL", f"IN{_i}_SENSE", **_R10K),
     )
+
+# ---------------- J1 harness connector (comms sheet) ----------------
+# TE 6437288-1 Superseal 1.0, 34 pos, rows 1-9 / 10-17 / 18-25 / 26-34. Key -> pin; "*_GND" keys sit on net GND.
+# Strip triplets are 12V | DO | GND so the data line runs between its own supply and return.
+# Power in rows 1, 2 (first half) and 4; signals in rows 2-3, each IN / 5V_SENS beside a signal GND.
+J1_PIN = {
+    **{f"LED{i}_{s}": str(3 * (i - 1) + k + 1) for i in range(1, 6) for k, s in enumerate(("12V", "DO", "GND"))},
+    "CANH": "16", "CANL": "17", "KLINE": "18", "IGN": "19", "SIG1_GND": "20", "5V_SENS": "21",
+    "IN1": "22", "IN2": "23", "SIG2_GND": "24", "IN3": "25",
+    **{f"LED{i}_{s}": str(26 + 3 * (i - 6) + k) for i in range(6, 9) for k, s in enumerate(("12V", "DO", "GND"))},
+}
+
+_add(Part("J1", "6437288-1", "da3:TE_6437288-1", "da3:TE_6437288-1",
+          {p: ("GND" if k.endswith("_GND") else k) for k, p in J1_PIN.items()},
+          "comms", mpn="6437288-1", mfr="TE Connectivity"))
