@@ -109,3 +109,18 @@ def footprint_pad_names(fp_id):
     """Non-empty pad names of a footprint."""
     root = sexp.parse(_footprint_text(fp_id))[0]
     return {p[1] for p in sexp.find(root, "pad") if p[1]}
+
+
+def symbol_pin_names(lib_id):
+    """{pin number: pin name}"""
+    return {n: v[3] for n, v in symbol_pins(lib_id).items()}
+
+
+def custom_symbol_footprints():
+    """(lib_id, Footprint property) for every symbol in the da3 library."""
+    out = []
+    for node in sexp.find(_lib("da3"), "symbol"):
+        for p in sexp.find(node, "property"):
+            if p[1] == "Footprint" and p[2]:
+                out.append((node[1], p[2]))
+    return out

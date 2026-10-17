@@ -47,3 +47,16 @@ def test_pin_counts():
     assert len(libs.symbol_pins("da3:BTS7008-2EPA")) == 15
     assert len(libs.symbol_pins("da3:LM74700-Q1")) == 8
     assert len(libs.symbol_pins("da3:PCA9555")) == 24
+
+
+def test_lm74700_pinout_per_datasheet():
+    assert libs.symbol_pin_names("da3:LM74700-Q1") == {
+        "1": "EN", "2": "GND", "3": "N.C.", "4": "VCAP",
+        "5": "ANODE", "6": "GATE", "7": "N.C.", "8": "CATHODE"}
+
+
+def test_da3_symbol_footprints_resolve():
+    syms = libs.custom_symbol_footprints()
+    assert len(syms) >= 6
+    bad = [(s, fp) for s, fp in syms if not libs.footprint_exists(fp)]
+    assert bad == []
