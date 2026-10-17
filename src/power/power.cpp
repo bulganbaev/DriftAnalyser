@@ -45,7 +45,8 @@ void powerTick() {
     float vbat = vbatFromAdc(analogReadMilliVolts(VBAT_SENSE_PIN) / 1000.0f);
     power.isVolts = analogReadMilliVolts(LED_ISENSE_PIN) / 1000.0f;
     power.vbat += (vbat - power.vbat) * SMOOTH;
-    power.ledAmps += (isVoltsToAmps(power.isVolts) - power.ledAmps) * SMOOTH;
+    float cal = constrain(savedData.currentCal, 0.3f, 3.0f);
+    power.ledAmps += (isVoltsToAmps(power.isVolts) * cal - power.ledAmps) * SMOOTH;
 
     if (power.on) {
         PowerLatch::Trip t = latch.update(now, power.ledAmps, power.isVolts, drive.ledMaxAmps);

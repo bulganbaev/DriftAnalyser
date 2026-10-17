@@ -40,6 +40,7 @@ struct SavedData {
     int canMode;
     DriveSettings drive;
     Preset presets[NUM_PRESETS];
+    float currentCal;     // LED current = IS reading * this; appended so old files keep their data
 };
 
 extern SavedData savedData;

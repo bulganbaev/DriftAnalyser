@@ -365,8 +365,9 @@ static void buildSystem(gh::Builder& b) {
     }
     {
         gh::Row r(b);
-        b.Spinner(&drive.ledMaxAmps).label(F("LED max current, A")).size(3).range(0.5f, 25.0f, 0.5f);
-        if (b.Button().label("Reset power latch").size(3).click()) {
+        b.Spinner(&drive.ledMaxAmps).label(F("LED max current, A")).size(2).range(0.5f, 25.0f, 0.5f);
+        b.Spinner(&savedData.currentCal).label(F("Current cal (PSU A / shown A)")).size(2).range(0.3f, 3.0f, 0.01f);
+        if (b.Button().label("Reset power latch").size(2).click()) {
             powerResetLatch();
             hub.sendRefresh();
         }
