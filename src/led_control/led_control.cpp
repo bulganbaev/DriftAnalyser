@@ -404,6 +404,7 @@ void runAnimations() {
     FastLED.setBrightness(mapBrightness(brightness));
     FastLED.show();
     frameShown = true;
+    powerSampleAdc();
 }
 
 // Flash writes (settings, log, OTA) must not overlap RMT output. The LED task holds
@@ -445,6 +446,7 @@ static void ledTask(void*) {
 
 void startLedTask() {
     ensureMutex();
-    // same core as loop(): show() sleeps on the RMT semaphore, so the hub gets that time
+    // core 1 alone: loop() runs on core 0 (ARDUINO_RUNNING_CORE), so nothing here delays the
+    // RMT refill interrupt, which is allocated on this core at the first show()
     xTaskCreatePinnedToCore(ledTask, "leds", 6144, nullptr, 1, nullptr, 1);
 }

@@ -12,6 +12,22 @@ static PowerLatch latch;
 static unsigned long lastTick = 0;
 const unsigned long POWER_INTERVAL = 10;
 const float SMOOTH = 0.1f;
+const unsigned long SAMPLE_STALE = 100;  // LED task paused or not running yet: read from powerTick
+
+static volatile float sampleVbat = 0, sampleIs = 0;
+static volatile unsigned long sampleAt = 0;
+static volatile bool sampleNew = false;
+
+static void readAdc() {
+    sampleVbat = vbatFromAdc(analogReadMilliVolts(VBAT_SENSE_PIN) / 1000.0f);
+    sampleIs = analogReadMilliVolts(LED_ISENSE_PIN) / 1000.0f;
+    sampleAt = millis();
+    sampleNew = true;
+}
+
+void powerSampleAdc() {
+    if (millis() - sampleAt >= POWER_INTERVAL) readAdc();
+}
 
 static void setSwitch(bool on) {
     if (on == power.on) return;
@@ -43,20 +59,23 @@ void powerTick() {
     if (now - lastTick < POWER_INTERVAL) return;
     lastTick = now;
 
-    float vbat = vbatFromAdc(analogReadMilliVolts(VBAT_SENSE_PIN) / 1000.0f);
-    power.isVolts = analogReadMilliVolts(LED_ISENSE_PIN) / 1000.0f;
-    power.vbat += (vbat - power.vbat) * SMOOTH;
-    float cal = constrain(savedData.currentCal, 0.3f, 3.0f);
-    power.ledAmps += (isVoltsToAmps(power.isVolts) * cal - power.ledAmps) * SMOOTH;
+    if ((long)(now - sampleAt) > (long)SAMPLE_STALE) readAdc();  // signed: the LED task may sample after "now"
+    if (sampleNew) {
+        sampleNew = false;
+        power.isVolts = sampleIs;
+        power.vbat += (sampleVbat - power.vbat) * SMOOTH;
+        float cal = constrain(savedData.currentCal, 0.3f, 3.0f);
+        power.ledAmps += (isVoltsToAmps(power.isVolts) * cal - power.ledAmps) * SMOOTH;
 
-    if (power.on) {
-        PowerLatch::Trip t = latch.update(now, power.ledAmps, power.isVolts, drive.ledMaxAmps);
-        if (t != PowerLatch::NONE) {
-            power.latched = true;
-            power.reason = t == PowerLatch::FAULT ? "switch fault, IS " + String(power.isVolts, 2) + " V"
-                                                  : "overcurrent " + String(power.ledAmps, 1) + " A";
-            setSwitch(false);
-            sysLog("LED power off: " + power.reason);
+        if (power.on) {
+            PowerLatch::Trip t = latch.update(now, power.ledAmps, power.isVolts, drive.ledMaxAmps);
+            if (t != PowerLatch::NONE) {
+                power.latched = true;
+                power.reason = t == PowerLatch::FAULT ? "switch fault, IS " + String(power.isVolts, 2) + " V"
+                                                      : "overcurrent " + String(power.ledAmps, 1) + " A";
+                setSwitch(false);
+                sysLog("LED power off: " + power.reason);
+            }
         }
     }
     // first frame is black, so the strips never wake up on stale data
