@@ -284,6 +284,8 @@ def keepout_layers(dsn):
     with open(dsn) as f:
         text = f.read()
     structure = text.split("(placement", 1)[0]     # board scope only, not the images
+    if not placement.ANTENNA_KEEPOUT:              # WROOM-1U: u.FL, no antenna box
+        return set()
     x0, y0, x1, y1 = placement.ANTENNA_KEEPOUT
     want = (max(x0, 0.0) * 1000, -y1 * 1000, x1 * 1000, -y0 * 1000)
     found = set()
@@ -335,6 +337,8 @@ def strip_keepout(board):
     """Anything the router put under the ESP32 antenna, gone. The DSN carries the
     keep-out, so this should never find work; it is here because a track there
     would be a radio problem long before DRC noticed it."""
+    if not placement.ANTENNA_KEEPOUT:
+        return 0
     x0, y0, x1, y1 = placement.ANTENNA_KEEPOUT
     x0 = max(x0, 0.0)
     box = pcbnew.BOX2I(MM(x0, y0), pcbnew.VECTOR2I(pcbnew.FromMM(x1 - x0),
@@ -694,7 +698,7 @@ def route(pcb=PCB, dsn=DSN, ses=SES, passes=PASSES, reroute=REROUTE):
           f"{inner} inner layers marked as power planes, "
           f"{len(planes)} planes: {planes}, "
           f"antenna keep-out on {sorted(layers)}")
-    if layers != set(INNER) | {"F.Cu", "B.Cu"}:
+    if placement.ANTENNA_KEEPOUT and layers != set(INNER) | {"F.Cu", "B.Cu"}:
         raise RuntimeError("the antenna keep-out is missing from the DSN")
     if reroute or not os.path.exists(ses):
         secs, log = run_freerouting(dsn, ses, passes)

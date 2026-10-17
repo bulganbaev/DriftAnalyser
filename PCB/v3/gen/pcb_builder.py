@@ -1,7 +1,7 @@
-"""Build driftanalyser-v2.kicad_pcb from the model + the placement table.
+"""Build driftanalyser-v3.kicad_pcb from the model + the placement table.
 
 Needs pcbnew, so run it with KiCad's python:
-    KICAD_PY -m gen.pcb_builder        (cwd = PCB/v2)
+    KICAD_PY -m gen.pcb_builder        (cwd = PCB/v3)
 """
 import json
 import math
@@ -16,6 +16,10 @@ from pcbnew import VECTOR2I_MM as MM
 from gen import env, libs, model, placement, sch_writer
 
 EDGE_W = pcbnew.FromMM(0.1)
+
+# The pours, stitching, stubs and ground ties below are still v2's, laid out on
+# v2 coordinates. Off until Task 11 redoes them for v3: placement only for now.
+COPPER = False
 
 # F.Cu / In1.Cu (solid GND) / In2.Cu (VBAT + 12V_LED + GND) / B.Cu, in stack order.
 # pcbnew numbers them 0, 4, 6, 2 - never assume the ids are ordered.
@@ -43,7 +47,7 @@ def write_project_netclasses():
     pro.setdefault("board", {})["design_settings"] = {
         # JLCPCB 4 layer, 1 oz on all four layers - the inner weight is an
         # order option, not JLC's stock 0.5 oz - not the KiCad defaults. 0.15 mm clearance is above that process' floor (0.127 mm); it
-        # is only U5's LGA-14 land pattern that ever needs to go that low.
+        # is only U3 (IMU)'s LGA-14 land pattern that ever needs to go that low.
         "rules": {"min_clearance": 0.15, "min_track_width": 0.2, "min_via_diameter": 0.6,
                   "min_via_annular_width": 0.15, "min_through_hole_diameter": 0.3,
                   "min_copper_edge_clearance": 0.3,
@@ -81,7 +85,7 @@ def write_project_netclasses():
 DRU = """(version 1)
 
 # Pad to pad spacing inside a land pattern is the part maker's, not ours. Measured
-# gaps: U5 (LGA-14) 0.15 mm, J2 (USB-C) and U2 (TSDSO-14) 0.20, U7 0.25, U3 0.35 -
+# gaps (measured on v2, refs there differ): LGA-14 0.15 mm, USB-C and TSDSO-14 0.20, buck 0.25 -
 # all of them clear JLCPCB's 4 layer 1 oz floor (0.127 mm), none of them clear the
 # 0.25 mm we ask of our own copper. Both rules are scoped to pads of one footprint,
 # so the netclass clearance still governs everything we draw.
@@ -89,18 +93,18 @@ DRU = """(version 1)
 \t(constraint clearance (min 0.2mm))
 \t(condition "A.Type == 'Pad' && B.Type == 'Pad' && A.Reference == B.Reference"))
 
-(rule "U5 LGA-14 land pattern"
+(rule "U3 LGA-14 land pattern"
 \t(constraint clearance (min 0.15mm))
-\t(condition "A.Type == 'Pad' && B.Type == 'Pad' && A.memberOfFootprint('U5') && B.memberOfFootprint('U5')"))
+\t(condition "A.Type == 'Pad' && B.Type == 'Pad' && A.memberOfFootprint('U3') && B.memberOfFootprint('U3')"))
 
 # Getting a trace out of a 0.5 mm pitch land pattern costs the netclass margin:
 # 0.35 mm pads leave 0.15 mm between them, so a 0.2 mm escape out of one pad runs
 # 0.225 mm from the next. That is well clear of the fab's floor (0.127 mm), it is
 # just below the 0.25 mm we ask of ourselves everywhere else, and it is scoped to
-# U5's own pads - the autorouter never sees it, it routes to the netclass.
-(rule "U5 LGA-14 escapes"
+# U3's own pads - the autorouter never sees it, it routes to the netclass.
+(rule "U3 LGA-14 escapes"
 	(constraint clearance (min 0.2mm))
-	(condition "A.Type == 'Pad' && A.memberOfFootprint('U5') && B.Type == 'Track'"))
+	(condition "A.Type == 'Pad' && A.memberOfFootprint('U3') && B.Type == 'Track'"))
 
 # The ESP32 module footprint brings its own 0.2 mm heatsink vias. The board minimum
 # stays 0.3 mm: JLCPCB surcharges holes below that, and ours are 0.4 mm.
@@ -237,15 +241,11 @@ def _nets(board):
 
 
 # Pads that take the ground plane solid instead of through thermal spokes. The
-# USB shield's legs and the two debug headers' ground pins sit where routed traces
-# leave the plane in shreds, and a spoke into a shred is a starved thermal relief;
-# all three are 2.54 mm-class pins that still solder by hand off a solid pour.
-SOLID_TO_ZONE = {("J2", "SH"), ("J3", "2"), ("J4", "2"),
-                 # and the XT60's ground pin: it is the return of the whole 20 A
-                 # the board can draw, so it takes the plane solid. Four thermal
-                 # spokes into a 2.7 mm barrel is both a starved relief here and
-                 # the wrong thing electrically.
-                 ("J1", "1")}
+# USB shield's legs and the UART header's ground pin sit where routed traces
+# leave the plane in shreds, and a spoke into a shred is a starved thermal relief.
+SOLID_TO_ZONE = {("J3", "SH"), ("J4", "2"),
+                 # and the stud: the whole board current comes in through it
+                 ("J2", "1")}
 
 
 def _footprints(board, nets):
@@ -443,8 +443,9 @@ def _zones(board, nets):
     # ---- nothing metallic under the ESP32 antenna, on either layer. U1's own
     # footprint carries the same keep-out; this is the board's statement of it,
     # clipped to the board (the module hangs over the left edge).
-    ax0, ay0, ax1, ay1 = placement.ANTENNA_KEEPOUT
-    _rule_area(board, _rect(max(ax0, 0.0), ay0, ax1, ay1))
+    if placement.ANTENNA_KEEPOUT:
+        ax0, ay0, ax1, ay1 = placement.ANTENNA_KEEPOUT
+        _rule_area(board, _rect(max(ax0, 0.0), ay0, ax1, ay1))
 
     # ---- GND over the whole board on every layer, lowest priority: everything
     # else cuts into it. In1.Cu is the point of the four layer stack - nothing
@@ -753,7 +754,7 @@ def _gnd_ties(board, nets):
     the VBAT or 12V_LED pours, whose copper is worth more than the tie."""
     r = TIE_D / 2
     reach = pcbnew.FromMM(r + TIE_CLEAR)
-    ax0, ay0, ax1, ay1 = placement.ANTENNA_KEEPOUT
+    ax0, ay0, ax1, ay1 = placement.ANTENNA_KEEPOUT or (0.0, 0.0, 0.0, 0.0)
     # only the F.Cu pours: a tie via inside one of those eats pad-level power
     # copper, but inside an In2 plane it is one anti-pad in 1500 mm2
     power = [z for z in board.Zones()
@@ -951,27 +952,18 @@ SILK_EDGE_KEEP = 0.4
 REF_SIZE = 0.8
 REF_THICK = 0.12
 
-# mounting holes: their references sit off the board edge and say nothing.
-# The LED strip row is the one place with no legible spot left: 1.8 mm between
-# the connector silk and the resistor row goes to the pin legend, the rest to
-# LED1..LED6. R31..R36 / D11..D16 are a repeating pair per strip and are on the
-# CPL, so they lose their reference rather than the legend losing its place.
+# mounting holes: their references say nothing. The switch control rows and
+# the 33R / clamp pairs are a repeating pattern packed edge to edge with no spot
+# left for a legible reference; they are on the CPL, so they lose it.
 REF_HIDE = (("H1", "H2", "H3", "H4")
-            + tuple(f"R{30 + i}" for i in range(1, 7))
-            + tuple(f"D{10 + i}" for i in range(1, 7)))
+            + tuple(f"R{n}" for n in range(20, 49))
+            + tuple(f"C{n}" for n in range(20, 32))
+            + tuple(f"R{n}" for n in range(54, 62))
+            + tuple(f"D{n}" for n in range(11, 19)))
 
 # references the stock offset drops on a neighbour's pad or silk. Absolute mm,
 # text unrotated - the free spot was picked off the silk + pad map of the board.
-REF_AT = {
-    "J1": (6.5, 62.0),          # was off the bottom edge
-    "U1": (11.0, 22.0),         # was on SW2 and on the module's own pad row
-    "SW1": (4.6, 51.6), "SW2": (27.5, 51.6),   # the row under the buttons says EN / BOOT
-    "R22": (58.0, 36.0), "R23": (58.0, 38.5),
-    "C9": (46.8, 63.6), "U3": (45.5, 51.0),
-    "R3": (54.0, 51.0), "R2": (91.5, 32.6),
-    "J4": (35.0, 36.3),
-    "R40": (61.5, 65.0), "R14": (61.0, 63.5), "R15": (65.0, 63.5),
-}
+REF_AT = {}
 
 
 def _text(board, s, x, y, size=1.0, rot=0, bold=False, layer=pcbnew.F_SilkS):
@@ -1020,50 +1012,29 @@ def _arrow(board, x0, y0, x1, y1, head=0.8):
 
 def _silk(board):
     """Everything a person needs to wire the board up without the schematic."""
-    _text(board, "DriftAnalyser v2", 72.0, 28.0, size=1.5, bold=True)
-    _text(board, "2026-09", 72.0, 30.5, size=1.0)
+    W = placement.BOARD_W
+    # the strips beside J1's body are the only free silk on the board: name and
+    # date on the left, the jumper legend on the right (no room beside them)
+    _text(board, "DriftAnalyser v3", 1.6, 13.0, size=1.3, rot=90, bold=True)
+    _text(board, "2026-10", 3.4, 13.0, size=0.8, rot=90)
+    _text(board, "JP1 K-LINE", W - 3.4, 13.0, size=0.8, rot=90, bold=True)
+    _text(board, "JP2 CAN TERM", W - 1.8, 13.0, size=0.8, rot=90, bold=True)
 
-    # ---- LED strip connectors: pin 1 (12V) is the left one of the three
-    for i in range(1, 7):
-        cx = placement._strip_x(i) + 3.96          # over pin 2, the middle pin
-        _text(board, "12V DATA GND", cx, 12.3, size=0.8)
-        _text(board, f"LED{i}", cx, 17.0, size=1.4, bold=True)
+    # ---- J1 pin 1 (LED1 12V): its own dot sits on U10, so mark it inside the body
+    jx, jy = placement.J1_AT
+    _text(board, "1", jx + 12.0 + 2.3, jy + 14.5, size=1.2, bold=True)
 
-    # ---- power in. J1 pin 2 is the XT60's positive contact and sits at x 13.8
-    # (the connector is rot 180), pin 1 is GND at x 21 - each mark goes over its
-    # own hole. The footprint brings its own "+"/"-" pair, on the other pads;
-    # _fields() deletes those so there is exactly one of each on the board.
-    _text(board, "EN", 10.0, 51.6, size=1.2, bold=True)
-    _text(board, "BOOT", 21.5, 51.6, size=1.2, bold=True)
-    _text(board, "+", 13.8, 53.7, size=1.3, bold=True)
-    _text(board, "12V IN", 17.4, 53.7, size=0.9, bold=True)
-    _text(board, "-", 21.0, 53.7, size=1.3, bold=True)
+    # ---- stud: the only power input
+    sx, sy, _, _ = placement.PLACE["J2"]
+    _text(board, "+12V", 1.8, sy, size=1.4, rot=90, bold=True)
 
-    _text(board, "USB", 57.0, 63.5, size=1.2, bold=True)
-
-    # ---- OBD side: the header names the connector, each pin name stands over
-    # its own pin (2.5 mm pitch, so they run up the board rather than across)
-    _text(board, "OBD", 95.75, 62.0, size=1.1, bold=True)
-    for name, px in zip(("CANH", "CANL", "K", "GND"), (92.0, 94.5, 97.0, 99.5)):
-        _text(board, name, px, 65.6, size=0.8, rot=90)
-    _text(board, "CAN TERM", 72.6, 58.6, size=0.8, rot=90)
-    _text(board, "K PULLUP", 85.1, 58.6, size=0.8, rot=90)
-
-    # ---- debug + expansion headers. The legend runs down the header, pin 1
-    # first, and a dot sits beside pin 1; 0.8 mm is the fab's floor for silk, so
-    # neither string fits the 1.25 mm gap left of J3 - UART0 goes between them.
-    _text(board, "UART0: 3V3 GND TX RX", 32.25, 27.0, size=0.8, rot=-90)
-    _dot(board, 26.9, 22.0, d=0.5)
-    _text(board, "EXT: 3V3 GND TX2 RX2 SDA SCL", 38.6, 27.5, size=0.8, rot=-90)
-    _dot(board, 37.25, 21.0, d=0.5)
-
-    # ---- IMU axes. U5 sits at rot 0, so the sensor's +X points at the board's
-    # right edge and +Y at the top edge; the firmware calls +X the car's nose.
-    _arrow(board, 46.0, 39.0, 50.5, 39.0)
-    _text(board, "X", 51.8, 39.0, size=1.0, bold=True)
-    _arrow(board, 46.0, 39.0, 46.0, 34.5)
-    _text(board, "Y", 46.0, 33.3, size=1.0, bold=True)
-    _text(board, "nose = +X", 48.3, 41.5, size=0.8)
+    # ---- buttons and USB: their bodies cover their own footprints, so beside them
+    x, y, _, _ = placement.PLACE["SW1"]
+    _text(board, "BOOT", x - 5.75, y, size=0.8, rot=90, bold=True)
+    x, y, _, _ = placement.PLACE["SW2"]
+    _text(board, "EN", x - 5.9, y + 1.2, size=1.0, rot=90, bold=True)
+    x, y, _, _ = placement.PLACE["J3"]
+    _text(board, "USB", x - 6.4, y, size=1.0, rot=90, bold=True)
 
 
 def _clip_silk(board):
@@ -1094,10 +1065,10 @@ def _clip_silk(board):
     return n
 
 
-# footprint-native silk text we draw ourselves instead: the XT60's "+" / "-" pair
-# sits beside the wrong pads for this board's netlist, and two of each on one
-# connector is how a board gets wired backwards
-DROP_FP_TEXT = {"J1": ("+", "-")}
+# footprint-native silk text we draw ourselves instead (none on v3 so far)
+DROP_FP_TEXT = {}
+# footprint-native pin-1 dots that land on a neighbour: J1's sits on U10's pads
+DROP_FP_DOT = ("J1",)
 
 
 def _fields(board):
@@ -1107,6 +1078,9 @@ def _fields(board):
         for it in list(fp.GraphicalItems()):
             if isinstance(it, pcbnew.PCB_TEXT) and it.GetLayer() == pcbnew.F_SilkS \
                     and it.GetText() in DROP_FP_TEXT.get(ref, ()):
+                fp.Remove(it)
+            elif ref in DROP_FP_DOT and isinstance(it, pcbnew.PCB_SHAPE) \
+                    and it.GetLayer() == pcbnew.F_SilkS and it.GetShape() == pcbnew.SHAPE_T_CIRCLE:
                 fp.Remove(it)
         fp.Value().SetVisible(False)
         f = fp.Reference()
@@ -1136,17 +1110,19 @@ def build(path):
     _holes(board)
     nets = _nets(board)
     _footprints(board, nets)
-    geo = _zones(board, nets)
-    _stitch(board, nets, geo)
-    _stub_tracks(board, nets)
-    ties = _gnd_ties(board, nets)
-    kept = _vbat_spread(board, nets)
+    if COPPER:
+        geo = _zones(board, nets)
+        _stitch(board, nets, geo)
+        _stub_tracks(board, nets)
+        ties = _gnd_ties(board, nets)
+        kept = _vbat_spread(board, nets)
     _silk(board)
     _fields(board)
     _clip_silk(board)
-    _fill(board)
-    print(f"{len(ties)} ground pads tied to the In1 plane by their own via, "
-          f"{kept} untied ones kept clear of the F.Cu VBAT spread")
+    if COPPER:
+        _fill(board)
+        print(f"{len(ties)} ground pads tied to the In1 plane by their own via, "
+              f"{kept} untied ones kept clear of the F.Cu VBAT spread")
     # aSkipSettings=True: a plain SaveBoard() also rewrites the .kicad_pro from the
     # board's empty in-memory project and drops the schematic's sheet list
     pcbnew.SaveBoard(path, board, True)

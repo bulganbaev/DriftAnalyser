@@ -1,11 +1,118 @@
 """Where every part sits on the board.
 
 Origin is the board's top-left corner, x right, y down (KiCad convention), mm.
-Rotation is KiCad's: degrees CCW on screen.
+Rotation is KiCad's: degrees CCW on screen, so a point (x, y) of the footprint
+lands at (x*cos + y*sin, -x*sin + y*cos) -> rot 90 maps +x to -y and +y to +x.
+
+J1 (Superseal 34) sits on the top short edge, mating face out through the case
+end wall. Right under it the four high-side switches, then their control
+passives, the expander and the data buffers. Below that the board splits:
+power on the left (stud in the bottom-left corner, ideal diode above it, buck
+and LDO above that), logic on the right (ESP32 in the bottom-right corner, u.FL
+toward the right wall), comms between them.
 """
 
-BOARD_W, BOARD_H = 55.0, 75.0
+BOARD_W, BOARD_H = 55.0, 100.0
 CORNER_R = 3.0
-HOLES = []
 
-PLACE = {}
+# M3, 3.2 mm. The top pair sits below J1's body: the connector's courtyard is
+# 46.5 mm of the 55 mm edge, which leaves no room for a hole beside it.
+HOLES = [(3.8, 27.4), (51.2, 27.4), (3.8, BOARD_H - 3.8), (51.2, BOARD_H - 3.8)]
+
+# WROOM-1U has a u.FL, not a PCB antenna: no keep-out on this board.
+ANTENNA_KEEPOUT = None
+
+# J1 at rot 180: footprint y = +6 (the flange, "board edge <= here") lands on y = 0.
+J1_AT = (27.5, 6.0)
+
+# ---- the four BTS7008-2EPA, rot 90 turns OUT0/OUT1 (pins 8..14) toward J1.
+# x of each switch, left to right; ordered so each sits under its strips' J1 pins.
+SW_Y = 27.7
+SW_X = {"U13": 13.1, "U11": 22.7, "U12": 32.3, "U10": 41.9}
+ROW_A, ROW_B = 33.6, 36.8              # series 4.7k row, pull-down / VS cap row
+_DX = (-2.55, -0.85, 0.85, 2.55)       # under pins IN0, DEN, DSEL, IN1
+
+
+def _switch(u):
+    k = int(u[1:]) - 9                  # U10 -> 1
+    a, b = 2 * k - 1, 2 * k             # LEDa on OUT0 (left), LEDb on OUT1 (right)
+    x = SW_X[u]
+    out = {u: (x, SW_Y, 90, "F"),
+           # 10 nF per output, beside its own output pins
+           f"C{21 + 3 * (k - 1)}": (x - 3.65, SW_Y, 90, "F"),
+           f"C{22 + 3 * (k - 1)}": (x + 3.65, SW_Y, 90, "F")}
+    series = (f"R{19 + 2 * a}", f"R{38 + 3 * (k - 1)}", f"R{39 + 3 * (k - 1)}", f"R{19 + 2 * b}")
+    pulls = (f"R{18 + 2 * a}", f"R{37 + 3 * (k - 1)}", f"R{18 + 2 * b}", f"C{20 + 3 * (k - 1)}")
+    for dx, s, p in zip(_DX, series, pulls):
+        out[s] = (x + dx, ROW_A, 90, "F")
+        out[p] = (x + dx, ROW_B, 90, "F")
+    return out
+
+
+PLACE = {
+    "J1": (*J1_AT, 180, "F"),
+    **{k: v for u in SW_X for k, v in _switch(u).items()},
+
+    # ---- shared current sense + DSEL pull-down + I2C pull-ups, left of the control rows
+    "D10": (2.6, 33.0, 0, "F"), "R49": (5.6, 33.4, 90, "F"), "R50": (7.4, 33.4, 90, "F"),
+    "R36": (5.6, 36.8, 90, "F"), "C32": (7.4, 36.8, 90, "F"),
+    "R52": (2.0, 35.8, 0, "F"), "R53": (2.0, 37.5, 0, "F"),
+    # K-line and input clamps, right of the control rows: as close to J1 as it gets
+    "D21": (51.2, 33.0, 0, "F"), "D24": (51.2, 36.75, 0, "F"),
+    "D22": (51.2, 40.6, 0, "F"), "D23": (51.2, 44.4, 0, "F"),
+
+    # ---- data buffers, series 33R + clamp per line, expander
+    "U15": (6.0, 42.8, 0, "F"), "C34": (10.75, 40.4, 90, "F"),
+    "U16": (17.0, 42.8, 0, "F"), "C35": (21.95, 40.4, 90, "F"),
+    **{f"R{53 + i}": (24.9 + 6.7 * ((i - 1) // 4), 40.0 + 2.1 * ((i - 1) % 4), 0, "F") for i in range(1, 9)},
+    **{f"D{10 + i}": (28.3 + 6.7 * ((i - 1) // 4), 40.0 + 2.1 * ((i - 1) % 4), 0, "F") for i in range(1, 9)},
+    "U14": (41.6, 43.0, 0, "F"), "C33": (46.6, 40.0, 90, "F"), "R51": (46.6, 45.5, 90, "F"),
+
+    # ---- buck 12 -> 5.4 V, top of the power column
+    "U7": (7.9, 51.6, 0, "F"), "C7": (1.9, 51.0, 90, "F"), "C37": (2.0, 55.7, 90, "F"),
+    "C8": (12.95, 49.1, 90, "F"), "C38": (7.9, 55.9, 0, "F"),
+    "L1": (17.5, 51.6, 0, "F"), "C9": (22.4, 50.2, 90, "F"), "C10": (24.6, 50.2, 90, "F"),
+    "R9": (13.0, 56.1, 0, "F"), "R10": (13.0, 57.9, 0, "F"),
+    "D6": (19.4, 57.0, 0, "F"), "C11": (24.4, 57.2, 90, "F"),
+
+    # ---- bulk, TVS, ideal diode, just above the stud
+    "C3": (6.5, 64.0, 0, "F"), "D1": (16.4, 64.2, 90, "F"), "C4": (21.9, 64.0, 90, "F"),
+    "Q1": (4.12, 73.5, 0, "F"), "Q2": (11.52, 73.5, 0, "F"),
+    "U2": (17.9, 72.0, 0, "F"), "C1": (22.5, 70.6, 0, "F"), "C2": (22.5, 72.4, 0, "F"),
+    "J2": (13.5, BOARD_H - 13.5, 0, "F"),
+
+    # ---- IMU near the board centre, LDO, sensor 5 V switch, wake: middle column
+    "U3": (29.8, 49.3, 0, "F"), "C19": (26.6, 49.3, 90, "F"), "C36": (33.0, 49.3, 90, "F"),
+    "U8": (30.2, 55.0, 0, "F"), "C12": (27.4, 59.8, 0, "F"), "C13": (32.0, 59.8, 0, "F"),
+    "U6": (27.0, 63.0, 0, "F"), "D7": (30.0, 66.8, 0, "F"),
+    "R11": (30.3, 63.0, 90, "F"), "R12": (32.0, 63.0, 90, "F"), "R13": (33.7, 63.0, 90, "F"),
+    "C14": (25.4, 66.8, 90, "F"), "C15": (34.4, 66.8, 90, "F"),
+    "R5": (25.4, 70.4, 90, "F"), "R6": (27.1, 70.4, 90, "F"), "R7": (28.8, 70.4, 90, "F"),
+    "R8": (30.5, 70.4, 90, "F"), "R19": (32.2, 70.4, 90, "F"),
+    "D4": (19.8, 75.4, 0, "F"), "D5": (22.9, 75.4, 0, "F"),
+
+    # ---- ESP32 in the bottom-right corner, u.FL (module top right) at the right wall
+    "U1": (44.75, BOARD_H - 17.65, 0, "F"),
+    "R14": (26.1, 72.9, 0, "F"), "C18": (29.4, 72.9, 0, "F"), "C17": (32.7, 72.9, 0, "F"),
+    "SW2": (29.6, 78.0, 0, "F"),
+    "D8": (28.5, 83.6, 0, "F"), "C16": (33.9, 83.6, 90, "F"),
+    "U9": (27.0, 87.8, 0, "F"), "R17": (30.5, 87.9, 90, "F"), "R18": (32.2, 87.9, 90, "F"),
+    "R15": (33.9, 87.9, 90, "F"),
+    "J3": (29.6, BOARD_H - 4.4, 0, "F"),
+    "SW1": (41.4, BOARD_H - 3.7, 0, "F"),
+
+    # ---- CAN, K-line, battery / ignition sense, input dividers, headers: above the ESP32
+    "U4": (39.4, 50.6, 0, "F"), "C40": (44.2, 49.3, 90, "F"), "C41": (45.9, 49.3, 90, "F"),
+    "R70": (44.2, 52.5, 90, "F"),
+    "R71": (39.4, 55.0, 0, "F"), "D20": (45.2, 56.0, 0, "F"),
+    "U5": (39.4, 60.0, 0, "F"), "C42": (44.2, 59.6, 90, "F"), "R72": (45.9, 59.6, 90, "F"),
+    "JP2": (49.3, 49.3, 0, "F"), "JP1": (53.05, 49.3, 0, "F"),
+    "R73": (49.25, 58.4, 90, "F"), "J4": (53.1, 57.4, 0, "F"),
+    "D9": (52.2, 69.7, 90, "F"), "R16": (53.9, 69.7, 90, "F"),
+    "R1": (36.4, 64.6, 90, "F"), "R2": (38.1, 64.6, 90, "F"), "C5": (39.8, 64.6, 90, "F"),
+    "R3": (41.5, 64.6, 90, "F"), "R4": (36.4, 67.8, 90, "F"), "C6": (38.1, 67.8, 90, "F"),
+    "D2": (45.3, 63.6, 0, "F"), "D3": (45.3, 67.4, 0, "F"),
+    **{f"R{74 + i}": (48.4 + 1.7 * (i % 2), 64.0 + 3.2 * (i // 2), 90, "F") for i in range(6)},
+    "R80": (39.8, 67.8, 90, "F"), "R81": (41.5, 67.8, 90, "F"),
+    **{f"R{82 + i}": (36.4 + 1.7 * i, 70.9, 90, "F") for i in range(4)},
+}

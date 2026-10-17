@@ -1,0 +1,29 @@
+(version 1)
+
+# Pad to pad spacing inside a land pattern is the part maker's, not ours. Measured
+# gaps (measured on v2, refs there differ): LGA-14 0.15 mm, USB-C and TSDSO-14 0.20, buck 0.25 -
+# all of them clear JLCPCB's 4 layer 1 oz floor (0.127 mm), none of them clear the
+# 0.25 mm we ask of our own copper. Both rules are scoped to pads of one footprint,
+# so the netclass clearance still governs everything we draw.
+(rule "same footprint pad spacing"
+	(constraint clearance (min 0.2mm))
+	(condition "A.Type == 'Pad' && B.Type == 'Pad' && A.Reference == B.Reference"))
+
+(rule "U3 LGA-14 land pattern"
+	(constraint clearance (min 0.15mm))
+	(condition "A.Type == 'Pad' && B.Type == 'Pad' && A.memberOfFootprint('U3') && B.memberOfFootprint('U3')"))
+
+# Getting a trace out of a 0.5 mm pitch land pattern costs the netclass margin:
+# 0.35 mm pads leave 0.15 mm between them, so a 0.2 mm escape out of one pad runs
+# 0.225 mm from the next. That is well clear of the fab's floor (0.127 mm), it is
+# just below the 0.25 mm we ask of ourselves everywhere else, and it is scoped to
+# U3's own pads - the autorouter never sees it, it routes to the netclass.
+(rule "U3 LGA-14 escapes"
+	(constraint clearance (min 0.2mm))
+	(condition "A.Type == 'Pad' && A.memberOfFootprint('U3') && B.Type == 'Track'"))
+
+# The ESP32 module footprint brings its own 0.2 mm heatsink vias. The board minimum
+# stays 0.3 mm: JLCPCB surcharges holes below that, and ours are 0.4 mm.
+(rule "ESP32 module heatsink vias"
+	(constraint hole_size (min 0.2mm))
+	(condition "A.memberOfFootprint('U1')"))
