@@ -1,0 +1,16 @@
+*.kicad_prl
+*-backups/
+fab/*-backups/
+fab/route.dsn
+__pycache__/
+.pytest_cache/
+.DS_Store
+.history/
+~*.lck
+fab/gerbers/
+fab/pos.csv
+fab/driftanalyser-v3.step
+fab/render-3d-*.png
+fab/render-bottom.svg
+fab/render-in*.svg
+fab/lib-preview/

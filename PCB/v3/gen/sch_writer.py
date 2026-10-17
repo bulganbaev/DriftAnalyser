@@ -34,7 +34,7 @@ LABEL_PAD = 4.0     # global label leader/box around the text
 PAPERS = [("A4", 297.0, 210.0), ("A3", 420.0, 297.0), ("A2", 594.0, 420.0),
           ("A1", 841.0, 594.0), ("A0", 1189.0, 841.0)]
 
-SHEETS = ["power", "mcu", "leds", "comms"]
+SHEETS = ["power", "outputs", "mcu", "comms"]
 ROOT_UUID = "0d6f1c2a-0000-4000-8000-000000000001"
 SHEET_UUID = {s: f"0d6f1c2a-0000-4000-8000-00000000001{i}" for i, s in enumerate(SHEETS)}
 DOC_UUID = {s: f"0d6f1c2a-0000-4000-8000-00000000002{i}" for i, s in enumerate(SHEETS)}
