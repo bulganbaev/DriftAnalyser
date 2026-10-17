@@ -46,27 +46,20 @@ void init(int index) {
 
 void initializeLEDStrips() {
     FastLED.setDither(0);  // temporal dither shows as flicker at low frame rates
-    // strip 6 connector is chosen at boot (LED6 / SPST_1 / SPST_2), a change needs a reboot
-    int strip6Sel = constrain(drive.strip6Out, 0, 2);
     for (int i = 0; i < NUM_STRIPS; i++) {
         leds[i] = new CRGB[MAX_LEDS];
         out[i] = new CRGB[MAX_LEDS];
         fill_solid(leds[i], MAX_LEDS, CRGB::Black);
         fill_solid(out[i], MAX_LEDS, CRGB::Black);
 
-        int pin = (i == 5 && strip6Sel == 1) ? SPST1_PIN : (i == 5 && strip6Sel == 2) ? SPST2_PIN : ledPins[i];
-        Serial.printf("Initializing strip %d with pin %d and %d LEDs\n", i + 1, pin, numLedsPerStrip[i]);
+        Serial.printf("Initializing strip %d with pin %d and %d LEDs\n", i + 1, ledPins[i], numLedsPerStrip[i]);
         switch (ledPins[i]) {
             case LED_PIN_1: controllers[i] = &FastLED.addLeds<WS2812B, LED_PIN_1, RGB>(out[i], numLedsPerStrip[i]); break;
             case LED_PIN_2: controllers[i] = &FastLED.addLeds<WS2812B, LED_PIN_2, RGB>(out[i], numLedsPerStrip[i]); break;
             case LED_PIN_3: controllers[i] = &FastLED.addLeds<WS2812B, LED_PIN_3, RGB>(out[i], numLedsPerStrip[i]); break;
             case LED_PIN_4: controllers[i] = &FastLED.addLeds<WS2812B, LED_PIN_4, RGB>(out[i], numLedsPerStrip[i]); break;
             case LED_PIN_5: controllers[i] = &FastLED.addLeds<WS2812B, LED_PIN_5, RGB>(out[i], numLedsPerStrip[i]); break;
-            case LED_PIN_6:
-                if (strip6Sel == 1)      controllers[i] = &FastLED.addLeds<WS2812B, SPST1_PIN, RGB>(out[i], numLedsPerStrip[i]);
-                else if (strip6Sel == 2) controllers[i] = &FastLED.addLeds<WS2812B, SPST2_PIN, RGB>(out[i], numLedsPerStrip[i]);
-                else                     controllers[i] = &FastLED.addLeds<WS2812B, LED_PIN_6, RGB>(out[i], numLedsPerStrip[i]);
-                break;
+            case LED_PIN_6: controllers[i] = &FastLED.addLeds<WS2812B, LED_PIN_6, RGB>(out[i], numLedsPerStrip[i]); break;
         }
         init(i);
     }
@@ -383,7 +376,7 @@ void runAnimations() {
 
     if (drive.powerLimitMa != lastPowerLimit) {
         lastPowerLimit = drive.powerLimitMa;
-        FastLED.setMaxPowerInVoltsAndMilliamps(5, drive.powerLimitMa > 0 ? drive.powerLimitMa : 100000);
+        FastLED.setMaxPowerInVoltsAndMilliamps(12, drive.powerLimitMa > 0 ? drive.powerLimitMa : 100000);
     }
 
     int brightness = can_setting.brightess;

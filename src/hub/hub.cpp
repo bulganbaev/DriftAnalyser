@@ -156,10 +156,6 @@ static void buildLeds(gh::Builder& b, bool& forceSave) {
         b.Spinner(&numLedsPerStrip[selectedStrip]).label(F("LED count")).size(3).range(1, MAX_LEDS, 1);
         b.Select(&st.colorOrder).label(F("Color order")).size(3).text("RGB;GRB;BGR;RBG;GBR;BRG");
     }
-    if (selectedStrip == 5) {
-        gh::Row r(b);
-        b.Select(&drive.strip6Out).label(F("Strip 6 output connector (reboot to apply)")).size(6).text("LED6 (GPIO42);SPST_1 (GPIO39);SPST_2 (GPIO38)");
-    }
     if (st.mode > 0) {
         gh::Row r(b);
         b.Switch(&st.bottom).label(F("Grow from middle")).size(3);
@@ -203,7 +199,7 @@ static void buildLeds(gh::Builder& b, bool& forceSave) {
     }
     {
         gh::Row r(b);
-        b.Spinner(&drive.powerLimitMa).label(F("Power limit mA (0 = off)")).size(6).range(0, 30000, 500);
+        b.Spinner(&drive.powerLimitMa).label(F("Power limit mA at 12V (0 = off)")).size(6).range(0, 30000, 500);
     }
     b.Title(F("Presets"));
     {

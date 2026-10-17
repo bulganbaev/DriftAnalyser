@@ -9,7 +9,7 @@ SavedData savedData;
 DriveSettings& drive = savedData.drive;
 
 // key doubles as layout version: bump when SavedData changes
-static FileData fileData(&LittleFS, "/settings.dat", 'B', &savedData, sizeof(savedData));
+static FileData fileData(&LittleFS, "/settings.dat", 'C', &savedData, sizeof(savedData));
 static bool writePending = false;
 static unsigned long writeRequestedAt = 0;
 const unsigned long WRITE_DELAY = 1500;  // coalesce bursts of changes
@@ -30,6 +30,7 @@ static void setDefaults() {
         savedData.stripSettings[i].enabled = true;
         savedData.stripSettings[i].color = 0xFF0000;
         savedData.stripSettings[i].brightness = 100;
+        savedData.stripSettings[i].colorOrder = 1;  // GRB, WS2815
     }
     strlcpy(savedData.wifiSsid, netDefaultSsid(), sizeof(savedData.wifiSsid));
     strlcpy(savedData.wifiPass, netDefaultPass(), sizeof(savedData.wifiPass));
@@ -46,7 +47,7 @@ static void setDefaults() {
     d.maxSpeed = 200;
     d.maxLateralG = 1.0f;
     d.maxYawRate = 60.0f;
-    d.strip6Out = 0;
+    d.ledMaxAmps = 15.0f;
 }
 
 static void pushLive() {
@@ -55,7 +56,7 @@ static void pushLive() {
         stripSettings[i] = savedData.stripSettings[i];
         numLedsPerStrip[i] = savedData.numLeds[i];
     }
-    canMode = constrain(savedData.canMode, 0, 2);
+    canMode = constrain(savedData.canMode, 0, 3);
     savedData.wifiSsid[sizeof(savedData.wifiSsid) - 1] = 0;
     savedData.wifiPass[sizeof(savedData.wifiPass) - 1] = 0;
     wifiSsid = savedData.wifiSsid;

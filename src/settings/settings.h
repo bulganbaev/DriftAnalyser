@@ -12,7 +12,7 @@ struct DriveSettings {
     uint32_t shiftColor;
     int engineOff;        // when no data / rpm 0: 0 keep, 1 dim, 2 off
     int engineOffDim;     // brightness % used for engineOff == 1
-    int powerLimitMa;     // FastLED power cap at 5V, 0 = off
+    int powerLimitMa;     // FastLED power cap at 12V, 0 = off
     int lateralAxis;      // 0 +X, 1 -X, 2 +Y, 3 -Y, 4 +Z, 5 -Z
     int yawAxis;          // same encoding, gyro axis for yaw rate
     int maxSpeed;         // km/h full scale for speed source
@@ -20,7 +20,7 @@ struct DriveSettings {
     float maxYawRate;     // deg/s full scale for yaw source
     float accOff[3];      // calibration offsets
     float gyrOff[3];
-    int strip6Out;        // 0 LED6 connector, 1 SPST_1, 2 SPST_2
+    float ledMaxAmps;     // LED supply switch cuts above this
 };
 
 struct Preset {
