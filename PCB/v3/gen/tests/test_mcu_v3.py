@@ -7,9 +7,17 @@ def test_mcu_pins_follow_pinmap():
         assert u1.pins[pinmap.module_pin(gpio)] == net, (gpio, net)
 
 
-def test_can_terminator_switched():
-    n = model.nets()
-    assert "CAN_TERM_EN" in n and any(r.startswith("Q") for r, _ in n["CAN_TERM_EN"])
+def test_can_terminator_on_jumper():
+    jp2 = model.by_ref("JP2")
+    assert sorted(jp2.pins.values()) == ["CANL", "CAN_TERM"]
+    r = [p for p in model.PARTS if p.symbol == "Device:R" and sorted(p.pins.values()) == ["CANH", "CAN_TERM"]]
+    assert r and r[0].value == "120"
+
+
+def test_can_silent_pin_pulled_up():
+    assert model.by_ref("U4").pins["8"] == "CAN_S"
+    assert any(p.symbol == "Device:R" and sorted(p.pins.values()) == ["3V3", "CAN_S"] for p in model.PARTS)
+    assert "CAN_TERM_EN" not in model.nets()
 
 
 def test_inputs_protected():

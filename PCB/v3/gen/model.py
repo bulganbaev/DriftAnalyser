@@ -312,21 +312,20 @@ def _ck(value, n1, n2, **kw):
     return C(f"C{next(_cc)}", value, n1, n2, "comms", "0603", **kw)
 
 # CAN, v2 U8. Interface_CAN_LIN:TJA1051T-3: 1 TXD, 2 GND, 3 VCC, 4 RXD, 5 VIO, 6 CANL, 7 CANH, 8 S.
-# No GPIO left for STB: S tied to GND = normal mode (NXP TJA1051 Table: S low -> normal). Unpowered
-# (5V off in sleep) the TJA1051 is passive on the bus.
+# S on PCA9555 P15 (CAN_S) with 10k pull-up: high = silent / listen-only (TJA1051 datasheet: S high -> silent
+# mode, transmitter off), so the board never drives a car bus until firmware pulls S low for normal mode.
+# Unpowered (5V off in sleep) the TJA1051 is passive on the bus.
 _add(
     Part("U4", "TJA1051T/3", "Interface_CAN_LIN:TJA1051T-3", "Package_SO:SOIC-8_3.9x4.9mm_P1.27mm",
-         {"1": "CAN_TX", "2": "GND", "3": "5V", "4": "CAN_RX", "5": "3V3", "6": "CANL", "7": "CANH", "8": "GND"},
+         {"1": "CAN_TX", "2": "GND", "3": "5V", "4": "CAN_RX", "5": "3V3", "6": "CANL", "7": "CANH", "8": "CAN_S"},
          "comms", lcsc="C58988", mpn="TJA1051T/3,118", mfr="NXP"),
     _ck("100nF", "5V", "GND", **_C100N),
     _ck("100nF", "3V3", "GND", **_C100N),
-    # switchable 120R: CANH - R - Q3 drain, source on CANL. 2N7002 (Transistor_FET:2N7002): 1 G, 2 S, 3 D.
-    # Body diode CANL -> CAN_TERM is reverse biased while CANH >= CANL. Gate from PCA9555 P15;
-    # 10k pull-down (Task 5 ruling: PCA9555 reset pull-up >= 55k) -> terminator off until firmware.
+    _rk("10k", "CAN_S", "3V3", **_R10K),
+    # 120R terminator through jumper JP2 (v2 R40 + JP1).
     _rk("120", "CANH", "CAN_TERM", "1206", lcsc="C17909", mpn="1206W4F1200T5E", mfr="UNI-ROYAL"),
-    Part("Q3", "2N7002", "Transistor_FET:2N7002", "Package_TO_SOT_SMD:SOT-23",
-         {"1": "CAN_TERM_EN", "2": "CANL", "3": "CAN_TERM"}, "comms", mpn="2N7002", mfr="Nexperia"),
-    _rk("10k", "CAN_TERM_EN", "GND", **_R10K),
+    Part("JP2", "CAN TERM", "Connector_Generic:Conn_01x02", "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical",
+         {"1": "CAN_TERM", "2": "CANL"}, "comms", lcsc="C492401", mpn="PZ254V-11-02P", mfr="XFCN"),
     # PESD1CAN as v2 D20: Device:D_TVS_Dual_AAC, 1 A1, 2 A2, 3 common.
     Part("D20", "PESD1CAN", "Device:D_TVS_Dual_AAC", "Package_TO_SOT_SMD:SOT-23",
          {"1": "CANH", "2": "CANL", "3": "GND"}, "comms", lcsc="C15771", mpn="PESD1CAN,215", mfr="Nexperia"),
@@ -349,16 +348,16 @@ _add(
          {"1": "KLINE", "2": "GND"}, "comms", lcsc="C148222", mpn="SMAJ24A", mfr="Littelfuse"),
 )
 
-# Universal inputs IN1..IN3: J1 - TVS SMAJ18A to GND - 10k series - INn_DIV - 22k - INn_SENSE - 10k - GND.
+# Universal inputs IN1..IN3: J1 - TVS SMAJ24A to GND - 10k series - INn_DIV - 33k - INn_SENSE - 10k - GND.
 # INn_PULL (GPIO) - 10k - INn_DIV: output 1 = pull-up to 3V3, 0 = pull-down, input = none.
-# Hi-Z: 16 V -> 3.81 V, 12 V -> 2.86 V, 5 V -> 1.19 V on the ADC (11 dB range ~3.1 V -> ~13 V usable).
-# Pull-up, IN open / IN to GND: 0.79 / 0.34 V. Pull-down, IN 12 V: 1.62 V.
+# SMAJ24A (not 18A): stays off at a 24 V jump start. Hi-Z: 16 V -> 3.02 V, 12 V -> 2.26 V, 5 V -> 0.94 V
+# on the ADC (11 dB). Pull-up, IN open / IN to GND: 0.62 / 0.34 V. Pull-down, IN 12 V: 1.25 V.
 for _i in range(1, 4):
     _add(
-        Part(f"D{21 + _i}", "SMAJ18A", "Device:D_TVS", "Diode_SMD:D_SMA",
-             {"1": f"IN{_i}", "2": "GND"}, "comms", mpn="SMAJ18A", mfr="Littelfuse"),
+        Part(f"D{21 + _i}", "SMAJ24A", "Device:D_TVS", "Diode_SMD:D_SMA",
+             {"1": f"IN{_i}", "2": "GND"}, "comms", lcsc="C148222", mpn="SMAJ24A", mfr="Littelfuse"),
         _rk("10k", f"IN{_i}", f"IN{_i}_DIV", **_R10K),
-        _rk("22k", f"IN{_i}_DIV", f"IN{_i}_SENSE", lcsc="C31850", mpn="0603WAF2202T5E", mfr="UNI-ROYAL"),
+        _rk("33k", f"IN{_i}_DIV", f"IN{_i}_SENSE", mpn="0603WAF3302T5E", mfr="UNI-ROYAL"),
         _rk("10k", f"IN{_i}_SENSE", "GND", **_R10K),
         _rk("10k", f"IN{_i}_PULL", f"IN{_i}_DIV", **_R10K),
     )

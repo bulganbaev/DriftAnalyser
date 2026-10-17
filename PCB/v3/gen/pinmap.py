@@ -39,7 +39,7 @@ EXP: dict[str, str] = {
     **{f"P0{i}": f"LED{i + 1}_IN" for i in range(8)},
     **{f"P1{i}": f"DEN{i + 1}" for i in range(4)},
     "P14": "DSEL",
-    "P15": "CAN_TERM_EN",
+    "P15": "CAN_S",
     "P16": "STATUS_LED",
     "P17": "SENS_5V_EN",
 }
