@@ -4981,7 +4981,16 @@
         )
       )
     )
-    (property "MPN" "BTS70082EPAXUMA1"
+    (property "LCSC" "C534830"
+      (at 238.76 22.86 0)
+      (hide yes)
+      (effects
+        (font
+          (size 1.27 1.27)
+        )
+      )
+    )
+    (property "MPN" "BTS7008-2EPA"
       (at 238.76 22.86 0)
       (hide yes)
       (effects
@@ -6180,7 +6189,7 @@
         )
       )
     )
-    (property "MPN" "CL10B103KB8NNNC"
+    (property "MPN" "0603B103K500NT"
       (at 325.12 33.02 0)
       (hide yes)
       (effects
@@ -6189,7 +6198,7 @@
         )
       )
     )
-    (property "Manufacturer" "Samsung Electro-Mechanics"
+    (property "Manufacturer" "FH"
       (at 325.12 33.02 0)
       (hide yes)
       (effects
@@ -6340,7 +6349,7 @@
         )
       )
     )
-    (property "MPN" "CL10B103KB8NNNC"
+    (property "MPN" "0603B103K500NT"
       (at 340.36 33.02 0)
       (hide yes)
       (effects
@@ -6349,7 +6358,7 @@
         )
       )
     )
-    (property "Manufacturer" "Samsung Electro-Mechanics"
+    (property "Manufacturer" "FH"
       (at 340.36 33.02 0)
       (hide yes)
       (effects
@@ -6491,7 +6500,16 @@
         )
       )
     )
-    (property "MPN" "BTS70082EPAXUMA1"
+    (property "LCSC" "C534830"
+      (at 386.08 22.86 0)
+      (hide yes)
+      (effects
+        (font
+          (size 1.27 1.27)
+        )
+      )
+    )
+    (property "MPN" "BTS7008-2EPA"
       (at 386.08 22.86 0)
       (hide yes)
       (effects
@@ -7690,7 +7708,7 @@
         )
       )
     )
-    (property "MPN" "CL10B103KB8NNNC"
+    (property "MPN" "0603B103K500NT"
       (at 472.44 33.02 0)
       (hide yes)
       (effects
@@ -7699,7 +7717,7 @@
         )
       )
     )
-    (property "Manufacturer" "Samsung Electro-Mechanics"
+    (property "Manufacturer" "FH"
       (at 472.44 33.02 0)
       (hide yes)
       (effects
@@ -7850,7 +7868,7 @@
         )
       )
     )
-    (property "MPN" "CL10B103KB8NNNC"
+    (property "MPN" "0603B103K500NT"
       (at 490.22 33.02 0)
       (hide yes)
       (effects
@@ -7859,7 +7877,7 @@
         )
       )
     )
-    (property "Manufacturer" "Samsung Electro-Mechanics"
+    (property "Manufacturer" "FH"
       (at 490.22 33.02 0)
       (hide yes)
       (effects
@@ -8001,7 +8019,16 @@
         )
       )
     )
-    (property "MPN" "BTS70082EPAXUMA1"
+    (property "LCSC" "C534830"
+      (at 535.94 22.86 0)
+      (hide yes)
+      (effects
+        (font
+          (size 1.27 1.27)
+        )
+      )
+    )
+    (property "MPN" "BTS7008-2EPA"
       (at 535.94 22.86 0)
       (hide yes)
       (effects
@@ -9200,7 +9227,7 @@
         )
       )
     )
-    (property "MPN" "CL10B103KB8NNNC"
+    (property "MPN" "0603B103K500NT"
       (at 53.34 91.44 0)
       (hide yes)
       (effects
@@ -9209,7 +9236,7 @@
         )
       )
     )
-    (property "Manufacturer" "Samsung Electro-Mechanics"
+    (property "Manufacturer" "FH"
       (at 53.34 91.44 0)
       (hide yes)
       (effects
@@ -9360,7 +9387,7 @@
         )
       )
     )
-    (property "MPN" "CL10B103KB8NNNC"
+    (property "MPN" "0603B103K500NT"
       (at 68.58 91.44 0)
       (hide yes)
       (effects
@@ -9369,7 +9396,7 @@
         )
       )
     )
-    (property "Manufacturer" "Samsung Electro-Mechanics"
+    (property "Manufacturer" "FH"
       (at 68.58 91.44 0)
       (hide yes)
       (effects
@@ -9511,7 +9538,16 @@
         )
       )
     )
-    (property "MPN" "BTS70082EPAXUMA1"
+    (property "LCSC" "C534830"
+      (at 114.3 81.28 0)
+      (hide yes)
+      (effects
+        (font
+          (size 1.27 1.27)
+        )
+      )
+    )
+    (property "MPN" "BTS7008-2EPA"
       (at 114.3 81.28 0)
       (hide yes)
       (effects
@@ -10710,7 +10746,7 @@
         )
       )
     )
-    (property "MPN" "CL10B103KB8NNNC"
+    (property "MPN" "0603B103K500NT"
       (at 200.66 91.44 0)
       (hide yes)
       (effects
@@ -10719,7 +10755,7 @@
         )
       )
     )
-    (property "Manufacturer" "Samsung Electro-Mechanics"
+    (property "Manufacturer" "FH"
       (at 200.66 91.44 0)
       (hide yes)
       (effects
@@ -10870,7 +10906,7 @@
         )
       )
     )
-    (property "MPN" "CL10B103KB8NNNC"
+    (property "MPN" "0603B103K500NT"
       (at 218.44 91.44 0)
       (hide yes)
       (effects
@@ -10879,7 +10915,7 @@
         )
       )
     )
-    (property "Manufacturer" "Samsung Electro-Mechanics"
+    (property "Manufacturer" "FH"
       (at 218.44 91.44 0)
       (hide yes)
       (effects
@@ -11350,7 +11386,7 @@
         )
       )
     )
-    (property "MPN" "CL10B103KB8NNNC"
+    (property "MPN" "0603B103K500NT"
       (at 256.54 93.98 0)
       (hide yes)
       (effects
@@ -11359,7 +11395,7 @@
         )
       )
     )
-    (property "Manufacturer" "Samsung Electro-Mechanics"
+    (property "Manufacturer" "FH"
       (at 256.54 93.98 0)
       (hide yes)
       (effects
@@ -11501,7 +11537,16 @@
         )
       )
     )
-    (property "MPN" "BAT54S"
+    (property "LCSC" "C47546"
+      (at 284.48 71.12 0)
+      (hide yes)
+      (effects
+        (font
+          (size 1.27 1.27)
+        )
+      )
+    )
+    (property "MPN" "BAT54S,215"
       (at 284.48 71.12 0)
       (hide yes)
       (effects
@@ -11679,6 +11724,15 @@
       )
     )
     (property "Description" ""
+      (at 342.9 106.68 0)
+      (hide yes)
+      (effects
+        (font
+          (size 1.27 1.27)
+        )
+      )
+    )
+    (property "LCSC" "C128392"
       (at 342.9 106.68 0)
       (hide yes)
       (effects

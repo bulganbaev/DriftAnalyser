@@ -3567,6 +3567,15 @@
         )
       )
     )
+    (property "LCSC" "C3013945"
+      (at 48.26 53.34 0)
+      (hide yes)
+      (effects
+        (font
+          (size 1.27 1.27)
+        )
+      )
+    )
     (property "MPN" "ESP32-S3-WROOM-1U-N16R2"
       (at 48.26 53.34 0)
       (hide yes)

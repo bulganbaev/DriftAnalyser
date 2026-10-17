@@ -55,11 +55,11 @@ _FET = dict(symbol="Transistor_FET:Q_NMOS_SSSGD_AvalancheRated", footprint="Pack
 _add(
     # Wurth 7461059 M6 stud, single pad = +12 V in. GND returns through J1 (Task 7).
     Part("J2", "Stud_M6", "Connector_Generic:Conn_01x01", "da3:Stud_M6",
-         {"1": "VIN"}, "power", mpn="7461059", mfr="Wurth"),
+         {"1": "VIN"}, "power", mpn="7461059 (hand-fit)", mfr="Wurth"),  # JLC C5525467 has 0 stock (2026-10-18): we fit it
     # Bidirectional TVS per LM74700-Q1 SNOSD17G Fig 10-2 (12 V battery, single bi-dir TVS).
     # SMCJ24CA: VBR 26.7 V min > 24 V jump start; 1500 W SMC.
     Part("D1", "SMCJ24CA", "Device:D_TVS", "Diode_SMD:D_SMC",
-         {"1": "VIN", "2": "GND"}, "power", mpn="SMCJ24CA", mfr="Littelfuse"),
+         {"1": "VIN", "2": "GND"}, "power", lcsc="C151279", mpn="SMCJ24CA", mfr="Littelfuse"),
     C("C1", "100nF 50V", "VIN", "GND", "power", "0603", lcsc="C14663", mpn="CC0603KRX7R9BB104", mfr="YAGEO"),  # CIN >= 22 nF (SNOSD17G 10.1.1.2.3)
 
     # LM74700-Q1 (TI SNOSD17G, Dec 2020), DDF SOT-23-8: 1 EN, 2 GND, 3 NC, 4 VCAP, 5 ANODE,
@@ -67,19 +67,19 @@ _add(
     Part("U2", "LM74700-Q1", "da3:LM74700-Q1", "Package_TO_SOT_SMD:SOT-23-8",
          {"1": "VIN", "2": "GND", "3": "NC", "4": "LM_VCAP", "5": "VIN", "6": "LM_GATE",
           "7": "NC", "8": "VBUS"},
-         "power", mpn="LM74700QDDFRQ1", mfr="Texas Instruments"),
+         "power", lcsc="C3236229", mpn="LM74700QDDFRQ1", mfr="Texas Instruments"),
     # VCAP >= 10 x Ciss (SNOSD17G 10.1.1.2.3): 2 x 5.2 nF typ / 6.5 nF max (BSC016N06NS)
     # -> >= 130 nF worst case, use 220 nF. Cap sits VCAP-ANODE (VCAP-ANODE abs max 15 V).
-    C("C2", "220nF 25V", "LM_VCAP", "VIN", "power", "0603"),
+    C("C2", "220nF 25V", "LM_VCAP", "VIN", "power", "0603", lcsc="C21120", mpn="CL10B224KA8NNNC", mfr="Samsung Electro-Mechanics"),
     # BSC016N06NS (Infineon OptiMOS 5, datasheet Rev 2.6 2025-05-11): 60 V (TI SNOSD17G
     # 10.1.1.2.2 recommends 60 V: ISO 7637 pulse 1 puts TVS clamp + VBUS ~55 V across the FET),
     # RDS(on) 1.4/1.6 mOhm @10 V, 1.9/2.4 mOhm @6 V, VGS +-20 V (LM74700 drives <= 13 V),
     # Vth 2.1/2.8/3.3 V, Ciss 5.2 nF typ, PG-TDSON-8. Pins 1-3 S, 4 G, 5-8 + tab D -> KiCad
     # TDSON-8-1 pad 5 = drain. Source on VIN (anode), drain on VBUS (cathode); two in parallel.
     Part("Q1", "BSC016N06NS", pins={"1": "VIN", "2": "VIN", "3": "VIN", "4": "LM_GATE", "5": "VBUS"},
-         sheet="power", mpn="BSC016N06NSATMA1", mfr="Infineon", **_FET),
+         sheet="power", lcsc="C454269", mpn="BSC016N06NS", mfr="Infineon", **_FET),
     Part("Q2", "BSC016N06NS", pins={"1": "VIN", "2": "VIN", "3": "VIN", "4": "LM_GATE", "5": "VBUS"},
-         sheet="power", mpn="BSC016N06NSATMA1", mfr="Infineon", **_FET),
+         sheet="power", lcsc="C454269", mpn="BSC016N06NS", mfr="Infineon", **_FET),
     # COUT: 47 uF typ in Fig 10-2; v2 bulk + MLCC.
     Part("C3", "100uF 50V", "Device:C_Polarized", "Capacitor_SMD:CP_Elec_8x10.5",
          {"1": "VBUS", "2": "GND"}, "power", lcsc="C2983550", mpn="GVZ1H107M0810CNVC", mfr="HRK"),
@@ -91,7 +91,7 @@ _add(
     C("C5", "100nF", "VBAT_SENSE", "GND", "power", "0603", lcsc="C14663", mpn="CC0603KRX7R9BB104", mfr="YAGEO"),
     # BAT54S (KiCad Diode:BAT54S, SOT-23): 1 = A of lower diode, 2 = K of upper diode, 3 = common.
     Part("D2", "BAT54S", "Diode:BAT54S", "Package_TO_SOT_SMD:SOT-23",
-         {"1": "GND", "2": "3V3", "3": "VBAT_SENSE"}, "power", mpn="BAT54S", mfr="Nexperia"),
+         {"1": "GND", "2": "3V3", "3": "VBAT_SENSE"}, "power", lcsc="C47546", mpn="BAT54S,215", mfr="Nexperia"),
 
     # ignition detect (GPIO40, digital): 100k/47k -> 9 V = 2.88 V > VIH 2.475 V (0.75 x 3.3 V,
     # ESP32-S3 datasheet DC characteristics); higher IGN clamped by BAT54S to 3V3 / GND.
@@ -99,14 +99,17 @@ _add(
     R("R4", "47k", "IGN_DET", "GND", "power", "0603", lcsc="C25819", mpn="0603WAF4702T5E", mfr="UNI-ROYAL"),
     C("C6", "100nF", "IGN_DET", "GND", "power", "0603", lcsc="C14663", mpn="CC0603KRX7R9BB104", mfr="YAGEO"),
     Part("D3", "BAT54S", "Diode:BAT54S", "Package_TO_SOT_SMD:SOT-23",
-         {"1": "GND", "2": "3V3", "3": "IGN_DET"}, "power", mpn="BAT54S", mfr="Nexperia"),
+         {"1": "GND", "2": "3V3", "3": "IGN_DET"}, "power", lcsc="C47546", mpn="BAT54S,215", mfr="Nexperia"),
 
     # wake: PWR_EN = (IGN via 100k/33k) OR HOLD, each through a BAT54W.
-    # AP63200 (Diodes DS41322): EN abs max 35 V, VEN_H 1.18 V typ / 1.23 V max, internal 1.5 uA pull-up.
+    # LMR36520 (TI SNVSBF0C, Nov 2025, 6.1/6.5): EN abs max 70.3 V, VEN-VOUT-H 1.157/1.231/1.3 V,
+    # EN leakage 2.7 nA (no internal pull-up), EN must not exceed VIN + 0.3 V (6.3 note 2).
     # With R7 100k load: IGN 9 V -> EN ~1.6 V (on), 24 V -> ~4.6 V; HOLD 3.3 V -> ~3.0 V.
-    # 1.5 uA x 100k = 0.15 V < VEN_L 1.05 V, so with IGN off and HOLD low the buck is off (ISHDN 1 uA).
+    # IGN off and HOLD low: R7 holds EN at 0 V < VEN-VCC-L 0.3 V -> shutdown, ISD 5.3 uA typ.
+    # R19 in series: on USB-only power HOLD can sit at 3 V with VIN ~0 V; 10k caps what EN
+    # pushes into VIN at ~0.25 mA. 2.7 nA EN leakage -> no threshold shift. Firmware: keep HOLD low without VBAT.
     R("R5", "100k", "IGN", "IGN_EN", "power", "0603", lcsc="C25803", mpn="0603WAF1003T5E", mfr="UNI-ROYAL"),
-    R("R6", "33k", "IGN_EN", "GND", "power", "0603"),
+    R("R6", "33k", "IGN_EN", "GND", "power", "0603", lcsc="C4216", mpn="0603WAF3302T5E", mfr="UNI-ROYAL"),
     # BAT54W (KiCad Diode:BAT54W, SOT-323): 1 A, 2 NC, 3 K - as v2 D2.
     Part("D4", "BAT54W", "Diode:BAT54W", "Package_TO_SOT_SMD:SOT-323_SC-70",
          {"1": "IGN_EN", "2": "NC", "3": "PWR_EN"}, "power", lcsc="C77328", mpn="BAT54W", mfr="JSCJ"),
@@ -114,20 +117,35 @@ _add(
          {"1": "HOLD", "2": "NC", "3": "PWR_EN"}, "power", lcsc="C77328", mpn="BAT54W", mfr="JSCJ"),
     R("R7", "100k", "PWR_EN", "GND", "power", "0603", lcsc="C25803", mpn="0603WAF1003T5E", mfr="UNI-ROYAL"),
     R("R8", "100k", "HOLD", "GND", "power", "0603", lcsc="C25803", mpn="0603WAF1003T5E", mfr="UNI-ROYAL"),  # blank flash -> HOLD low -> sleep
+    R("R19", "10k", "PWR_EN", "BUCK_EN", "power", "0603", lcsc="C25804", mpn="0603WAF1002T5E", mfr="UNI-ROYAL"),
 
-    # logic buck 12 V -> 5.4 V: v2 U3 design unchanged (AP63200WU-7, symbol pins 1 FB, 2 EN,
-    # 3 IN, 4 GND, 5 SW, 6 BST; FB 57.6k/10k), EN now from PWR_EN.
-    Part("U7", "AP63200WU-7", "Regulator_Switching:AP63200WU", "Package_TO_SOT_SMD:TSOT-23-6",
-         {"1": "BUCK_FB", "2": "PWR_EN", "3": "VBUS", "4": "GND", "5": "BUCK_SW", "6": "BUCK_BST"},
-         "power", lcsc="C2071868", mpn="AP63200WU-7", mfr="Diodes Incorporated"),
+    # logic buck 12 V -> 5.4 V: LMR36520ADDAR (TI SNVSBF0C, Nov 2025), VIN 4.2-65 V, abs max 70 V
+    # (6.1) - above the SMCJ24CA clamp (38.9 V at Ipp) on VBUS; 2 A, 400 kHz, PFM (A variant).
+    # DDA HSOIC-8 per Fig 5-1 / Table 5-1: 1 PGND, 2 VIN, 3 EN, 4 PG, 5 FB, 6 VCC, 7 BOOT, 8 SW, 9 PAD.
+    # External parts per Fig 8-1 / Table 8-1 (5 V row) and 8.2.1.2: PG unused, left open (Table 5-1).
+    Part("U7", "LMR36520ADDAR", "da3:LMR36520ADDA",
+         "Package_SO:Texas_HTSOP-8-1EP_3.9x4.9mm_P1.27mm_EP2.95x4.9mm_Mask2.4x3.1mm_ThermalVias",
+         {"1": "GND", "2": "VBUS", "3": "BUCK_EN", "4": "NC", "5": "BUCK_FB", "6": "BUCK_VCC",
+          "7": "BUCK_BST", "8": "BUCK_SW", "9": "GND"},
+         "power", lcsc="C2879422", mpn="LMR36520ADDAR", mfr="Texas Instruments"),
+    # CIN: >= 4.7 uF ceramic rated >= max VIN (8.2.1.2.5; Table 8-1 2 x 4.7 uF) + 220 nF 100 V X7R
+    # next to the pin. 10 uF 50 V 1210 > 38.9 V clamp.
     C("C7", "10uF 50V", "VBUS", "GND", "power", "1210", lcsc="C2918502", mpn="CS3225X7R106K500NRL", mfr="SAMWHA"),
+    C("C37", "220nF 100V", "VBUS", "GND", "power", "0805", lcsc="C513710", mpn="CC0805KKX7R0BB224", mfr="YAGEO"),
+    # CBOOT 100 nF >= 16 V BOOT-SW (8.2.1.2.6); CVCC 1 uF >= 16 V VCC-PGND (8.2.1.2.7).
     C("C8", "100nF", "BUCK_SW", "BUCK_BST", "power", "0603", lcsc="C14663", mpn="CC0603KRX7R9BB104", mfr="YAGEO"),
-    Part("L1", "6.8uH", "Device:L", "Inductor_SMD:L_Bourns_SRN6045TA",
-         {"1": "BUCK_SW", "2": "5V_BUCK"}, "power", lcsc="C341066", mpn="YNR6045-6R8M", mfr="YJYCOIN"),
+    C("C38", "1uF", "BUCK_VCC", "GND", "power", "0603", lcsc="C15849", mpn="CL10A105KB8NNNC", mfr="Samsung Electro-Mechanics"),
+    # L: Table 8-1 5 V row 10 uH; Eq 4 at 14.4 V in, 5.4 V out, K 0.4, 2 A -> 10.5 uH; Eq 5 LMIN 5.7 uH.
+    # Isat 4.6 A >= ISC 3.6 A max (6.5, 8.2.1.2.3). Same 6045 case as the footprint.
+    Part("L1", "10uH", "Device:L", "Inductor_SMD:L_Bourns_SRN6045TA",
+         {"1": "BUCK_SW", "2": "5V_BUCK"}, "power", lcsc="C2046332", mpn="SRN6045TA-100M", mfr="Bourns"),
+    # COUT: Table 8-1 5 V row 2 x 22 uF rated, no CFF.
     C("C9", "22uF 10V", "5V_BUCK", "GND", "power", "0805", lcsc="C45783", mpn="CL21A226MAQNNNE", mfr="Samsung Electro-Mechanics"),
     C("C10", "22uF 10V", "5V_BUCK", "GND", "power", "0805", lcsc="C45783", mpn="CL21A226MAQNNNE", mfr="Samsung Electro-Mechanics"),
-    R("R9", "57.6k", "5V_BUCK", "BUCK_FB", "power", "0603", lcsc="C2933240", mpn="FRC0603F5762TS", mfr="FOJAN"),
-    R("R10", "10k", "BUCK_FB", "GND", "power", "0603", lcsc="C25804", mpn="0603WAF1002T5E", mfr="UNI-ROYAL"),
+    # FB: RFBT 100k recommended (8.2.1.2.2), RFBB = RFBT / (VOUT / VREF - 1), VREF 1 V (Eq 3)
+    # -> 100k / 4.4 = 22.7k, E96 22.6k -> 5.42 V.
+    R("R9", "100k", "5V_BUCK", "BUCK_FB", "power", "0603", lcsc="C25803", mpn="0603WAF1003T5E", mfr="UNI-ROYAL"),
+    R("R10", "22.6k", "BUCK_FB", "GND", "power", "0603", lcsc="C100874", mpn="CR0603FA2262G", mfr="LIZ Elec"),
     # OR-ing into 5V as v2 D3; USB-C VBUS_USB has its own SS34 (D8, mcu sheet).
     Part("D6", "SS34", "Device:D_Schottky", "Diode_SMD:D_SMA",
          {"1": "5V", "2": "5V_BUCK"}, "power", lcsc="C8678", mpn="SS34", mfr="MDD"),
@@ -143,12 +161,12 @@ _add(
     # RILIM 210k -> IOS 110/130/150 mA (Electrical Characteristics table); IN cap >= 0.1 uF.
     Part("U6", "TPS2553DBV", "da3:TPS2553DBV", "Package_TO_SOT_SMD:SOT-23-6",
          {"1": "5V", "2": "GND", "3": "SENS_5V_EN", "4": "SENS_5V_FLT", "5": "SENS_ILIM", "6": "5V_SENS_SW"},
-         "power", mpn="TPS2553DBVR", mfr="Texas Instruments"),
+         "power", lcsc="C55266", mpn="TPS2553DBVR", mfr="Texas Instruments"),
     # reverse block: a harness short of 5V_SENS to +12 V must not back-drive U6 (OUT abs max 7 V).
     # SS34 40 V / 3 A; ~0.3 V drop at 100 mA -> ~4.7 V at the sensor.
     Part("D7", "SS34", "Device:D_Schottky", "Diode_SMD:D_SMA",
          {"1": "5V_SENS", "2": "5V_SENS_SW"}, "power", lcsc="C8678", mpn="SS34", mfr="MDD"),
-    R("R11", "210k", "SENS_ILIM", "GND", "power", "0603"),
+    R("R11", "210k", "SENS_ILIM", "GND", "power", "0603", lcsc="C22952", mpn="0603WAF2103T5E", mfr="UNI-ROYAL"),
     # off until firmware enables; 10k, not 100k: PCA9555 P17 has an internal pull-up (>= 55k), see outputs sheet
     R("R12", "10k", "SENS_5V_EN", "GND", "power", "0603", lcsc="C25804", mpn="0603WAF1002T5E", mfr="UNI-ROYAL"),
     R("R13", "100k", "SENS_5V_FLT", "3V3", "power", "0603", lcsc="C25803", mpn="0603WAF1003T5E", mfr="UNI-ROYAL"),
@@ -168,7 +186,7 @@ _add(
 _R10K = dict(lcsc="C25804", mpn="0603WAF1002T5E", mfr="UNI-ROYAL")
 _R4K7 = dict(lcsc="C23162", mpn="0603WAF4701T5E", mfr="UNI-ROYAL")
 _C100N = dict(lcsc="C14663", mpn="CC0603KRX7R9BB104", mfr="YAGEO")
-_C10N = dict(lcsc="C57112", mpn="CL10B103KB8NNNC", mfr="Samsung Electro-Mechanics")
+_C10N = dict(lcsc="C57112", mpn="0603B103K500NT", mfr="FH")
 _ri, _ci = iter(range(20, 100)), iter(range(20, 100))
 
 def _ro(value, n1, n2, **kw):
@@ -187,7 +205,7 @@ for _k in range(1, 5):
              {"1": "GND", "2": f"LED{_a}_IN_R", "3": f"DEN{_k}_R", "4": "LED_ISENSE_RAW", "5": f"DSEL_R{_k}",
               "6": f"LED{_b}_IN_R", "7": "NC", "8": f"LED{_b}_12V", "9": f"LED{_b}_12V", "10": f"LED{_b}_12V",
               "11": "NC", "12": f"LED{_a}_12V", "13": f"LED{_a}_12V", "14": f"LED{_a}_12V", "15": "VBUS"},
-             "outputs", mpn="BTS70082EPAXUMA1", mfr="Infineon"),
+             "outputs", lcsc="C534830", mpn="BTS7008-2EPA", mfr="Infineon"),
         _ro("10k", f"DEN{_k}", "GND", **_R10K), _ro("4.7k", f"DEN{_k}", f"DEN{_k}_R", **_R4K7),
         _ro("4.7k", "DSEL", f"DSEL_R{_k}", **_R4K7),
         _co("100nF", "VBUS", "GND", **_C100N),
@@ -204,7 +222,7 @@ _add(
     _ro("4.7k", "LED_ISENSE_RAW", "LED_ISENSE", **_R4K7),
     _co("10nF", "LED_ISENSE", "GND", **_C10N),
     Part("D10", "BAT54S", "Diode:BAT54S", "Package_TO_SOT_SMD:SOT-23",
-         {"1": "GND", "2": "3V3", "3": "LED_ISENSE"}, "outputs", mpn="BAT54S", mfr="Nexperia"),
+         {"1": "GND", "2": "3V3", "3": "LED_ISENSE"}, "outputs", lcsc="C47546", mpn="BAT54S,215", mfr="Nexperia"),
 )
 
 # PCA9555PW (NXP Rev 10, p.5 Table 3, TSSOP24): 1 INT (open-drain), 2 A1, 3 A2, 4-11 IO0_0..7, 12 VSS,
@@ -217,7 +235,7 @@ _add(
     Part("U14", "PCA9555PW", "da3:PCA9555", "Package_SO:TSSOP-24_4.4x7.8mm_P0.65mm",
          {"1": "EXP_INT", "2": "GND", "3": "GND", "12": "GND", "21": "GND", "22": "I2C_SCL", "23": "I2C_SDA",
           "24": "3V3", **{_exp_pin(p): net for p, net in pinmap.EXP.items()}},
-         "outputs", mpn="PCA9555PW,118", mfr="NXP"),
+         "outputs", lcsc="C128392", mpn="PCA9555PW,118", mfr="NXP"),
     _co("100nF", "3V3", "GND", **_C100N),
     _ro("10k", "EXP_INT", "3V3", **_R10K),
     _ro("4.7k", "I2C_SDA", "3V3", **_R4K7), _ro("4.7k", "I2C_SCL", "3V3", **_R4K7),
@@ -249,7 +267,7 @@ _U1 = {"1": "GND", "2": "3V3", "3": "EN", "40": "GND", "41": "GND",
 _U1.update({str(n): "NC" for n in range(4, 40) if str(n) not in _U1})
 _add(
     Part("U1", "ESP32-S3-WROOM-1U-N16R2", "RF_Module:ESP32-S3-WROOM-1", "RF_Module:ESP32-S3-WROOM-1U",
-         _U1, "mcu", mpn="ESP32-S3-WROOM-1U-N16R2", mfr="Espressif"),
+         _U1, "mcu", lcsc="C3013945", mpn="ESP32-S3-WROOM-1U-N16R2", mfr="Espressif"),
     # v2 support parts: 22 uF + 100 nF on 3V3, EN RC 10k/1 uF (Espressif: RC delay on CHIP_PU),
     # BOOT (IO0) 10k pull-up, both buttons to GND.
     C("C16", "22uF 10V", "3V3", "GND", "mcu", "0805", lcsc="C45783", mpn="CL21A226MAQNNNE", mfr="Samsung Electro-Mechanics"),
@@ -362,7 +380,7 @@ for _i in range(1, 4):
         Part(f"D{21 + _i}", "SMAJ24A", "Device:D_TVS", "Diode_SMD:D_SMA",
              {"1": f"IN{_i}", "2": "GND"}, "comms", lcsc="C148222", mpn="SMAJ24A", mfr="Littelfuse"),
         _rk("10k", f"IN{_i}", f"IN{_i}_DIV", **_R10K),
-        _rk("33k", f"IN{_i}_DIV", f"IN{_i}_SENSE", mpn="0603WAF3302T5E", mfr="UNI-ROYAL"),
+        _rk("33k", f"IN{_i}_DIV", f"IN{_i}_SENSE", lcsc="C4216", mpn="0603WAF3302T5E", mfr="UNI-ROYAL"),
         _rk("10k", f"IN{_i}_SENSE", "GND", **_R10K),
         _rk("10k", f"IN{_i}_PULL", f"IN{_i}_SENSE", **_R10K),
     )
@@ -380,4 +398,4 @@ J1_PIN = {
 
 _add(Part("J1", "6437288-1", "da3:TE_6437288-1", "da3:TE_6437288-1",
           {p: ("GND" if k.endswith("_GND") else k) for k, p in J1_PIN.items()},
-          "comms", mpn="6437288-1", mfr="TE Connectivity"))
+          "comms", lcsc="C574787", mpn="6437288-1", mfr="TE Connectivity"))

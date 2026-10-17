@@ -32,7 +32,7 @@ def test_bts7002_footprint_pin_count():
 
 
 def test_v3_custom_parts_resolve():
-    for sym in ("da3:BTS7008-2EPA", "da3:LM74700-Q1", "da3:PCA9555", "da3:TE_6437288-1"):
+    for sym in ("da3:BTS7008-2EPA", "da3:LM74700-Q1", "da3:LMR36520ADDA", "da3:PCA9555", "da3:TE_6437288-1"):
         assert libs.symbol_exists(sym), sym
     for fp in ("da3:TE_6437288-1", "da3:Stud_M6", "da3:PG-TSDSO-14"):
         assert libs.footprint_exists(fp), fp
@@ -53,6 +53,13 @@ def test_lm74700_pinout_per_datasheet():
     assert libs.symbol_pin_names("da3:LM74700-Q1") == {
         "1": "EN", "2": "GND", "3": "N.C.", "4": "VCAP",
         "5": "ANODE", "6": "GATE", "7": "N.C.", "8": "CATHODE"}
+
+
+def test_lmr36520_pinout_per_datasheet():
+    # TI SNVSBF0C (Nov 2025) Fig 5-1 / Table 5-1, DDA HSOIC-8; 9 = thermal pad
+    assert libs.symbol_pin_names("da3:LMR36520ADDA") == {
+        "1": "PGND", "2": "VIN", "3": "EN", "4": "PG",
+        "5": "FB", "6": "VCC", "7": "BOOT", "8": "SW", "9": "PAD"}
 
 
 def test_da3_symbol_footprints_resolve():

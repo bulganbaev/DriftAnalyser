@@ -4894,6 +4894,15 @@
         )
       )
     )
+    (property "LCSC" "C4216"
+      (at 149.86 93.98 0)
+      (hide yes)
+      (effects
+        (font
+          (size 1.27 1.27)
+        )
+      )
+    )
     (property "MPN" "0603WAF3302T5E"
       (at 149.86 93.98 0)
       (hide yes)
@@ -5677,6 +5686,15 @@
       )
     )
     (property "Description" ""
+      (at 233.68 93.98 0)
+      (hide yes)
+      (effects
+        (font
+          (size 1.27 1.27)
+        )
+      )
+    )
+    (property "LCSC" "C4216"
       (at 233.68 93.98 0)
       (hide yes)
       (effects
@@ -6476,6 +6494,15 @@
         )
       )
     )
+    (property "LCSC" "C4216"
+      (at 63.5 152.4 0)
+      (hide yes)
+      (effects
+        (font
+          (size 1.27 1.27)
+        )
+      )
+    )
     (property "MPN" "0603WAF3302T5E"
       (at 63.5 152.4 0)
       (hide yes)
@@ -6939,6 +6966,15 @@
       )
     )
     (property "Description" ""
+      (at 121.92 154.94 0)
+      (hide yes)
+      (effects
+        (font
+          (size 1.27 1.27)
+        )
+      )
+    )
+    (property "LCSC" "C574787"
       (at 121.92 154.94 0)
       (hide yes)
       (effects
