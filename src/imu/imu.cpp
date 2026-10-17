@@ -38,23 +38,23 @@ static bool ack(uint8_t a) {
 
 static bool tryInit() {
     addr = 0;
-    for (uint8_t a : {0x68, 0x69}) {
+    for (uint8_t a : {0x6A, 0x6B}) {
         if (ack(a)) { addr = a; break; }
     }
     if (!addr) return false;
 
     uint8_t who = 0;
-    readRegs(0x75, &who, 1);
-    sysLog("MPU-6050 at 0x" + String(addr, HEX) + " WHO_AM_I=0x" + String(who, HEX));
+    readRegs(0x0F, &who, 1);
+    sysLog("LSM6DS3TR-C at 0x" + String(addr, HEX) + " WHO_AM_I=0x" + String(who, HEX));
+    if (who != 0x6A) return false;
 
-    bool ok = writeReg(0x6B, 0x80);  // reset
-    delay(100);
-    ok &= writeReg(0x6B, 0x01);      // wake, PLL X gyro
-    ok &= writeReg(0x1A, 0x03);      // DLPF 44 Hz
-    ok &= writeReg(0x1B, 0x08);      // gyro +-500 deg/s
-    ok &= writeReg(0x1C, 0x08);      // accel +-4 g
+    bool ok = writeReg(0x12, 0x01);  // CTRL3_C: software reset
+    delay(10);
+    ok &= writeReg(0x12, 0x44);      // CTRL3_C: BDU, auto-increment
+    ok &= writeReg(0x10, 0x48);      // CTRL1_XL: 104 Hz, +-4 g
+    ok &= writeReg(0x11, 0x44);      // CTRL2_G: 104 Hz, +-500 deg/s
     if (!ok) {
-        Serial.println("MPU-6050 config write failed");
+        Serial.println("LSM6DS3TR-C config write failed");
         return false;
     }
     readFails = 0;
@@ -72,7 +72,7 @@ void imuSetup() {
     delay(50);
     imu.ok = tryInit();
     lastInitTry = millis();
-    if (!imu.ok) Serial.println("MPU-6050 not found, will retry");
+    if (!imu.ok) Serial.println("LSM6DS3TR-C not found, will retry");
 }
 
 void imuTick() {
@@ -87,22 +87,23 @@ void imuTick() {
     lastRead = now;
 
     uint8_t buf[14];
-    if (!readRegs(0x3B, buf, 14)) {
+    if (!readRegs(0x20, buf, 14)) {
         if (++readFails >= 10) {
-            sysLog(F("MPU-6050 lost"));
+            sysLog(F("LSM6DS3TR-C lost"));
             imu.ok = false;
             lastInitTry = now;
         }
         return;
     }
     readFails = 0;
+    // OUT_TEMP, gyro XYZ, accel XYZ; little-endian
     int16_t raw[7];
-    for (int i = 0; i < 7; i++) raw[i] = (buf[2 * i] << 8) | buf[2 * i + 1];
+    for (int i = 0; i < 7; i++) raw[i] = (int16_t)(buf[2 * i] | (buf[2 * i + 1] << 8));
 
-    // +-4 g -> 8192 LSB/g, +-500 deg/s -> 65.5 LSB/(deg/s)
-    float ax = raw[0] / 8192.0f, ay = raw[1] / 8192.0f, az = raw[2] / 8192.0f;
-    float t = raw[3] / 340.0f + 36.53f;
-    float gx = raw[4] / 65.5f, gy = raw[5] / 65.5f, gz = raw[6] / 65.5f;
+    // +-4 g -> 0.122 mg/LSB, +-500 deg/s -> 17.5 mdps/LSB
+    float t = raw[0] / 256.0f + 25.0f;
+    float gx = raw[1] * 0.0175f, gy = raw[2] * 0.0175f, gz = raw[3] * 0.0175f;
+    float ax = raw[4] * 0.000122f, ay = raw[5] * 0.000122f, az = raw[6] * 0.000122f;
 
     imu.ax += (ax - imu.ax) * LPF;
     imu.ay += (ay - imu.ay) * LPF;

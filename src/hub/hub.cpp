@@ -282,7 +282,7 @@ static void buildWifi(gh::Builder& b) {
 static void buildImu(gh::Builder& b) {
     if (!imu.ok) {
         gh::Row r(b);
-        b.Label(F("MPU-6050 not responding")).label(F("IMU")).size(6);
+        b.Label(F("LSM6DS3TR-C not responding")).label(F("IMU")).size(6);
         return;
     }
     float latg = imuLateralG(), yaw = imuYawRate();

@@ -3,7 +3,7 @@
 
 #include <Arduino.h>
 
-// MPU-6050 on board I2C
+// LSM6DS3TR-C on board I2C
 struct ImuData {
     bool ok = false;
     float ax = 0, ay = 0, az = 0;  // g
