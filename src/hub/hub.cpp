@@ -163,7 +163,7 @@ static void buildLeds(gh::Builder& b, bool& forceSave) {
     }
     {
         gh::Row r(b);
-        b.Spinner(&numLedsPerStrip[selectedStrip]).label(F("LED count")).size(3).range(1, MAX_LEDS, 1);
+        b.Spinner(&numLedsPerStrip[selectedStrip]).label(F("LED count")).size(3).range(MIN_LEDS, MAX_LEDS, 1);
         b.Select(&st.colorOrder).label(F("Color order")).size(3).text("RGB;GRB;BGR;RBG;GBR;BRG");
     }
     if (st.mode > 0) {

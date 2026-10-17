@@ -29,6 +29,8 @@ struct StripSettings {
 };
 
 #define MAX_LEDS 1000
+// FastLED RMT never finishes show() when a whole frame fits the RMT buffer (~4 LEDs)
+#define MIN_LEDS 8
 
 extern CanSettings can_setting;
 extern StripSettings stripSettings[NUM_STRIPS];

@@ -39,7 +39,7 @@ static const uint8_t colorOrderMap[6][3] = {
 };
 
 void init(int index) {
-    if (numLedsPerStrip[index] < 1) numLedsPerStrip[index] = 1;
+    if (numLedsPerStrip[index] < MIN_LEDS) numLedsPerStrip[index] = MIN_LEDS;
     if (numLedsPerStrip[index] > MAX_LEDS) numLedsPerStrip[index] = MAX_LEDS;
     if (controllers[index]) controllers[index]->setLeds(out[index], numLedsPerStrip[index]);
     for (int i = numLedsPerStrip[index]; i < MAX_LEDS; i++) leds[index][i] = CRGB::Black;
