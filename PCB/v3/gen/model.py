@@ -1,5 +1,6 @@
 """Design model: every part and every pin's net. Source of truth for sch + pcb."""
 from dataclasses import dataclass, field
+from gen import pinmap
 
 @dataclass
 class Part:
@@ -148,8 +149,92 @@ _add(
     Part("D7", "SS34", "Device:D_Schottky", "Diode_SMD:D_SMA",
          {"1": "5V_SENS", "2": "5V_SENS_SW"}, "power", lcsc="C8678", mpn="SS34", mfr="MDD"),
     R("R11", "210k", "SENS_ILIM", "GND", "power", "0603"),
-    R("R12", "100k", "SENS_5V_EN", "GND", "power", "0603", lcsc="C25803", mpn="0603WAF1003T5E", mfr="UNI-ROYAL"),  # off until firmware enables (PCA9555 powers up as input)
+    # off until firmware enables; 10k, not 100k: PCA9555 P17 has an internal pull-up (>= 55k), see outputs sheet
+    R("R12", "10k", "SENS_5V_EN", "GND", "power", "0603", lcsc="C25804", mpn="0603WAF1002T5E", mfr="UNI-ROYAL"),
     R("R13", "100k", "SENS_5V_FLT", "3V3", "power", "0603", lcsc="C25803", mpn="0603WAF1003T5E", mfr="UNI-ROYAL"),
     C("C14", "100nF", "5V", "GND", "power", "0603", lcsc="C14663", mpn="CC0603KRX7R9BB104", mfr="YAGEO"),
     C("C15", "1uF", "5V_SENS", "GND", "power", "0603", lcsc="C15849", mpn="CL10A105KB8NNNC", mfr="Samsung Electro-Mechanics"),
 )
+
+# ---------------- outputs sheet ----------------
+# 4 x BTS7008-2EPA (Infineon PROFET+2 12V dual, datasheet Rev 1.21 2024-07-29). Pin table p.6 Table 2:
+# EP VS (symbol pin 15), 1 GND, 2 IN0, 6 IN1, 3 DEN, 4 IS, 5 DSEL, 7/11 n.c., 12-14 OUT0, 8-10 OUT1.
+# External parts per p.55 Table 24: RIN/RDEN/RDSEL 4.7k (needed to switch off on loss of ground, protect the
+# driver), CVS 100 nF, COUT 10 nF per output (ESD/BCI), RSENSE 1.2k. RGND 47R / CVSGND skipped: the ideal diode
+# (U2) blocks reverse battery and the strips are not inductive loads; GND pin straight to GND.
+# Pull-downs are 10k, not 100k: PCA9555 inputs have an internal pull-up to VDD (NXP PCA9555 Rev 10 p.8 6.2/6.4,
+# ILIL <= 100 uA p.18 -> >= 55k), 100k/55k would sit ~2.1 V > VDI(TH) max 2 V (BTS p.14 P_5.4.0.1) at reset.
+# 10k -> <= 0.51 V < VDI(TH) min 0.8 V, so every switch is off until firmware writes the expander.
+_R10K = dict(lcsc="C25804", mpn="0603WAF1002T5E", mfr="UNI-ROYAL")
+_R4K7 = dict(lcsc="C23162", mpn="0603WAF4701T5E", mfr="UNI-ROYAL")
+_C100N = dict(lcsc="C14663", mpn="CC0603KRX7R9BB104", mfr="YAGEO")
+_C10N = dict(lcsc="C57112", mpn="CL10B103KB8NNNC", mfr="Samsung Electro-Mechanics")
+_ri, _ci = iter(range(20, 100)), iter(range(20, 100))
+
+def _ro(value, n1, n2, **kw):
+    return R(f"R{next(_ri)}", value, n1, n2, "outputs", "0603", **kw)
+
+def _co(value, n1, n2, **kw):
+    return C(f"C{next(_ci)}", value, n1, n2, "outputs", "0603", **kw)
+
+for _i in range(1, 9):
+    _add(_ro("10k", f"LED{_i}_IN", "GND", **_R10K), _ro("4.7k", f"LED{_i}_IN", f"LED{_i}_IN_R", **_R4K7))
+_add(_ro("10k", "DSEL", "GND", **_R10K))
+for _k in range(1, 5):
+    _a, _b = 2 * _k - 1, 2 * _k
+    _add(
+        Part(f"U{9 + _k}", "BTS7008-2EPA", "da3:BTS7008-2EPA", "da3:PG-TSDSO-14",
+             {"1": "GND", "2": f"LED{_a}_IN_R", "3": f"DEN{_k}_R", "4": "LED_ISENSE_RAW", "5": f"DSEL_R{_k}",
+              "6": f"LED{_b}_IN_R", "7": "NC", "8": f"LED{_b}_12V", "9": f"LED{_b}_12V", "10": f"LED{_b}_12V",
+              "11": "NC", "12": f"LED{_a}_12V", "13": f"LED{_a}_12V", "14": f"LED{_a}_12V", "15": "VBUS"},
+             "outputs", mpn="BTS70082EPAXUMA1", mfr="Infineon"),
+        _ro("10k", f"DEN{_k}", "GND", **_R10K), _ro("4.7k", f"DEN{_k}", f"DEN{_k}_R", **_R4K7),
+        _ro("4.7k", "DSEL", f"DSEL_R{_k}", **_R4K7),
+        _co("100nF", "VBUS", "GND", **_C100N),
+        _co("10nF 50V", f"LED{_a}_12V", "GND", **_C10N), _co("10nF 50V", f"LED{_b}_12V", "GND", **_C10N),
+    )
+
+# Shared current sense. IS is high-Z while DEN is low (BTS p.42 ch.9, IIS(OFF) <= 0.5 uA P_9.6.0.2), so firmware
+# raises one DENk and picks the channel with DSEL; the four IS pins share one RSENSE (p.42: > 820 R, typ 1.2k).
+# kILIS 5450 (p.53 Table 22): 5 A -> 1.10 V, 2 x IL(NOM) 15 A -> 3.3 V. IIS(FAULT) 4.4..10 mA (p.51 P_9.6.1.1)
+# -> 5.3..12 V on LED_ISENSE_RAW: 4.7k (RIS_PROT, Table 24) + BAT54S clamp keep the ADC pin in 3V3 + 0.3 V,
+# ~1.8 mA worst case into 3V3. 4.7k x 10 nF = 47 us (Table 24: RADC x CSENSE > 1 us).
+_add(
+    _ro("1.2k", "LED_ISENSE_RAW", "GND", lcsc="C22765", mpn="0603WAF1201T5E", mfr="UNI-ROYAL"),
+    _ro("4.7k", "LED_ISENSE_RAW", "LED_ISENSE", **_R4K7),
+    _co("10nF", "LED_ISENSE", "GND", **_C10N),
+    Part("D10", "BAT54S", "Diode:BAT54S", "Package_TO_SOT_SMD:SOT-23",
+         {"1": "GND", "2": "3V3", "3": "LED_ISENSE"}, "outputs", mpn="BAT54S", mfr="Nexperia"),
+)
+
+# PCA9555PW (NXP Rev 10, p.5 Table 3, TSSOP24): 1 INT (open-drain), 2 A1, 3 A2, 4-11 IO0_0..7, 12 VSS,
+# 13-20 IO1_0..7, 21 A0, 22 SCL, 23 SDA, 24 VDD. A0..A2 = GND -> 0x20. No reset pin: internal POR (p.8 6.3),
+# all ports come up as inputs. The bus pull-ups live here (only ones on I2C; Task 6 must not add more).
+def _exp_pin(port):
+    return str((4 if port[1] == "0" else 13) + int(port[2]))
+
+_add(
+    Part("U14", "PCA9555PW", "da3:PCA9555", "Package_SO:TSSOP-24_4.4x7.8mm_P0.65mm",
+         {"1": "EXP_INT", "2": "GND", "3": "GND", "12": "GND", "21": "GND", "22": "I2C_SCL", "23": "I2C_SDA",
+          "24": "3V3", **{_exp_pin(p): net for p, net in pinmap.EXP.items()}},
+         "outputs", mpn="PCA9555PW,118", mfr="NXP"),
+    _co("100nF", "3V3", "GND", **_C100N),
+    _ro("10k", "EXP_INT", "3V3", **_R10K),
+    _ro("4.7k", "I2C_SDA", "3V3", **_R4K7), _ro("4.7k", "I2C_SCL", "3V3", **_R4K7),
+)
+
+# Data: 74HCT245 3V3 -> 5 V as v2 (symbol 74xx:74HC245, same pinout: 1 DIR, 2-9 A0-A7, 10 GND, 11-18 B7-B0,
+# 19 ~OE, 20 VCC). DIR high = A -> B, ~OE low. 4 lines per buffer, spare A inputs to GND.
+# Then 33R series + PESD5V0S1BA per line (v2 pattern; Device:D_TVS stands in, no PESD symbol in KiCad).
+for _u, _first in (("U15", 1), ("U16", 5)):
+    _p = {"1": "5V", "10": "GND", "19": "GND", "20": "5V"}
+    for _j in range(8):
+        _p[str(2 + _j)] = f"LED{_first + _j}_DATA" if _j < 4 else "GND"
+        _p[str(18 - _j)] = f"LED{_first + _j}_BUF" if _j < 4 else "NC"
+    _add(Part(_u, "74HCT245PW", "74xx:74HC245", "Package_SO:TSSOP-20_4.4x6.5mm_P0.65mm", _p,
+              "outputs", lcsc="C5980", mpn="74HCT245PW,118", mfr="Nexperia"),
+         _co("100nF", "5V", "GND", **_C100N))
+for _i in range(1, 9):
+    _add(_ro("33", f"LED{_i}_BUF", f"LED{_i}_DO", lcsc="C23140", mpn="0603WAF330JT5E", mfr="UNI-ROYAL"),
+         Part(f"D{10 + _i}", "PESD5V0S1BA", "Device:D_TVS", "Diode_SMD:D_SOD-323",
+              {"1": f"LED{_i}_DO", "2": "GND"}, "outputs", lcsc="C19224", mpn="PESD5V0S1BA,115", mfr="Nexperia"))
