@@ -206,6 +206,7 @@ static void buildLeds(gh::Builder& b, bool& forceSave) {
         gh::Row r(b);
         b.Select(&drive.engineOff).label(F("Engine off / no data")).size(3).text("Keep running;Dim;Off");
         if (drive.engineOff == 1) b.Slider(&drive.engineOffDim).label(F("Dim to %")).size(3).range(0, 100, 1);
+        if (drive.engineOff == 2) b.Switch(&savedData.cutPowerEngineOff).label(F("Cut strip power")).size(3);
     }
     {
         gh::Row r(b);

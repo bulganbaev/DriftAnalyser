@@ -4,6 +4,7 @@
 #include "settings/settings.h"
 #include "led_control/led_control.h"
 #include "system/system.h"
+#include "vehicle/vehicle.h"
 
 PowerState power;
 
@@ -59,7 +60,8 @@ void powerTick() {
         }
     }
     // first frame is black, so the strips never wake up on stale data
-    setSwitch(drive.masterOn && !power.latched && ledsFrameShown());
+    bool parked = savedData.cutPowerEngineOff && drive.engineOff == 2 && !(vehicleDataFresh() && vehicle.rpm > 300);
+    setSwitch(drive.masterOn && !power.latched && !parked && ledsFrameShown());
 
     // 1 Hz normal, 5 Hz latched
     digitalWrite(STATUS_LED_PIN, (now / (power.latched ? 100 : 500)) & 1);

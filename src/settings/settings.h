@@ -41,6 +41,7 @@ struct SavedData {
     DriveSettings drive;
     Preset presets[NUM_PRESETS];
     float currentCal;     // LED current = IS reading * this; appended so old files keep their data
+    bool cutPowerEngineOff;  // engineOff == Off also opens the strip switch (no WS2815 idle draw)
 };
 
 extern SavedData savedData;
