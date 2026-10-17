@@ -84,3 +84,28 @@ def all_symbols_resolve():
         except (KeyError, FileNotFoundError):
             bad.append(p.symbol)
     return bad
+
+
+def symbol_exists(lib_id):
+    try:
+        symbol_def(lib_id)
+        return True
+    except (KeyError, FileNotFoundError):
+        return False
+
+
+def _footprint_text(fp_id):
+    d, name = footprint_path(fp_id)
+    with open(os.path.join(d, name + ".kicad_mod")) as f:
+        return f.read()
+
+
+def footprint_exists(fp_id):
+    d, name = footprint_path(fp_id)
+    return os.path.exists(os.path.join(d, name + ".kicad_mod"))
+
+
+def footprint_pad_names(fp_id):
+    """Non-empty pad names of a footprint."""
+    root = sexp.parse(_footprint_text(fp_id))[0]
+    return {p[1] for p in sexp.find(root, "pad") if p[1]}

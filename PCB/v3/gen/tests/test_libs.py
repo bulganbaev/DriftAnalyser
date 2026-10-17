@@ -29,3 +29,21 @@ def test_bts7002_footprint_pin_count():
     d, name = libs.footprint_path("da3:PG-TSDSO-14")
     text = open(os.path.join(d, name + ".kicad_mod")).read()
     assert text.count("(pad ") == 15
+
+
+def test_v3_custom_parts_resolve():
+    for sym in ("da3:BTS7008-2EPA", "da3:LM74700-Q1", "da3:PCA9555", "da3:TE_6437288-1"):
+        assert libs.symbol_exists(sym), sym
+    for fp in ("da3:TE_6437288-1", "da3:Stud_M6", "da3:PG-TSDSO-14"):
+        assert libs.footprint_exists(fp), fp
+
+
+def test_superseal_has_34_pads():
+    assert libs.footprint_pad_names("da3:TE_6437288-1") == {str(i) for i in range(1, 35)}
+    assert len(libs.symbol_pins("da3:TE_6437288-1")) == 34
+
+
+def test_pin_counts():
+    assert len(libs.symbol_pins("da3:BTS7008-2EPA")) == 15
+    assert len(libs.symbol_pins("da3:LM74700-Q1")) == 8
+    assert len(libs.symbol_pins("da3:PCA9555")) == 24
