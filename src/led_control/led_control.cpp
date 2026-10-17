@@ -357,6 +357,11 @@ static void transformStrip(int i) {
 }
 
 static volatile bool reinitPending = false;
+static volatile bool frameShown = false;
+
+bool ledsFrameShown() {
+    return frameShown;
+}
 
 void requestLedReinit() {
     reinitPending = true;
@@ -380,7 +385,7 @@ void runAnimations() {
     }
 
     int brightness = can_setting.brightess;
-    bool blackout = !drive.masterOn;
+    bool blackout = !drive.masterOn || !frameShown;
     if (!blackout && !engineOn()) {
         if (drive.engineOff == 2) blackout = true;
         else if (drive.engineOff == 1) brightness = brightness * constrain(drive.engineOffDim, 0, 100) / 100;
@@ -396,6 +401,7 @@ void runAnimations() {
     }
     FastLED.setBrightness(mapBrightness(brightness));
     FastLED.show();
+    frameShown = true;
 }
 
 // Flash writes (settings, log, OTA) must not overlap RMT output. The LED task holds

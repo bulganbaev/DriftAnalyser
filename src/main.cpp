@@ -8,6 +8,7 @@
 #include "vehicle/vehicle.h"
 #include "imu/imu.h"
 #include "system/system.h"
+#include "power/power.h"
 
 CANBus canBus;
 OBD2 obd2;
@@ -17,6 +18,7 @@ void setup() {
     delay(2000);
     Serial.println("System initializing...");
 
+    powerBegin();
     settingsBegin();
     sysBegin();
     initializeLEDStrips();
@@ -39,5 +41,6 @@ void loop() {
     updateHub();
     vehicleTick();
     imuTick();
+    powerTick();
     delay(1);
 }

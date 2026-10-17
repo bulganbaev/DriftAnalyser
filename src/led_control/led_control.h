@@ -43,6 +43,7 @@ void requestLedReinit();       // ask the LED task to re-apply LED counts betwee
 void ledsPause();              // stop output, returns after the current frame is done
 void ledsResume();
 bool ledsPaused();
+bool ledsFrameShown();       // at least one (black) frame went out since boot
 
 // Different animation types for LED strips
 void staticColor(int stripIndex);

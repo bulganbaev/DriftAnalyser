@@ -6,6 +6,7 @@
 #include "vehicle/vehicle.h"
 #include "imu/imu.h"
 #include "system/system.h"
+#include "power/power.h"
 
 GyverHub hub;
 
@@ -57,7 +58,10 @@ void updateHub() {
     for (const char* n : always) hub.sendUpdate(n);
     if (canMode == CAN_MODE_SNIFFER) hub.sendUpdate("sniff");
     if (hub.menu == 2) hub.sendUpdate("br");
-    if (hub.menu == 5) { hub.sendUpdate("uptime"); hub.sendUpdate("heap"); }
+    if (hub.menu == 5) {
+        static const char* names[] = {"uptime", "heap", "vbat", "amps", "pwr"};
+        for (const char* n : names) hub.sendUpdate(n);
+    }
     if (imu.ok && hub.menu == 4) {
         static const char* names[] = {"ax", "ay", "az", "gx", "gy", "gz", "imutemp"};
         for (const char* n : names) hub.sendUpdate(n);
@@ -322,6 +326,20 @@ static void buildImu(gh::Builder& b) {
 }
 
 static void buildSystem(gh::Builder& b) {
+    {
+        gh::Row r(b);
+        b.Label_("vbat", fmt(power.vbat, 2)).label(F("VBAT, V")).size(2);
+        b.Label_("amps", fmt(power.ledAmps, 2)).label(F("LED current, A")).size(2);
+        b.Label_("pwr", powerStatusString()).label(F("LED power")).size(2);
+    }
+    {
+        gh::Row r(b);
+        b.Spinner(&drive.ledMaxAmps).label(F("LED max current, A")).size(3).range(0.5f, 25.0f, 0.5f);
+        if (b.Button().label("Reset power latch").size(3).click()) {
+            powerResetLatch();
+            hub.sendRefresh();
+        }
+    }
     {
         gh::Row r(b);
         b.Label_("uptime", sysUptime()).label(F("Uptime")).size(2);
