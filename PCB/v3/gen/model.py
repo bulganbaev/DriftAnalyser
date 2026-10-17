@@ -128,7 +128,7 @@ _add(
     C("C10", "22uF 10V", "5V_BUCK", "GND", "power", "0805", lcsc="C45783", mpn="CL21A226MAQNNNE", mfr="Samsung Electro-Mechanics"),
     R("R9", "57.6k", "5V_BUCK", "BUCK_FB", "power", "0603", lcsc="C2933240", mpn="FRC0603F5762TS", mfr="FOJAN"),
     R("R10", "10k", "BUCK_FB", "GND", "power", "0603", lcsc="C25804", mpn="0603WAF1002T5E", mfr="UNI-ROYAL"),
-    # OR-ing into 5V as v2 D3; the USB-C VBUS diode comes with the connector in Task 6.
+    # OR-ing into 5V as v2 D3; USB-C VBUS_USB has its own SS34 (D8, mcu sheet).
     Part("D6", "SS34", "Device:D_Schottky", "Diode_SMD:D_SMA",
          {"1": "5V", "2": "5V_BUCK"}, "power", lcsc="C8678", mpn="SS34", mfr="MDD"),
     C("C11", "22uF 10V", "5V", "GND", "power", "0805", lcsc="C45783", mpn="CL21A226MAQNNNE", mfr="Samsung Electro-Mechanics"),
@@ -238,3 +238,127 @@ for _i in range(1, 9):
     _add(_ro("33", f"LED{_i}_BUF", f"LED{_i}_DO", lcsc="C23140", mpn="0603WAF330JT5E", mfr="UNI-ROYAL"),
          Part(f"D{10 + _i}", "PESD5V0S1BA", "Device:D_TVS", "Diode_SMD:D_SOD-323",
               {"1": f"LED{_i}_DO", "2": "GND"}, "outputs", lcsc="C19224", mpn="PESD5V0S1BA,115", mfr="Nexperia"))
+
+# ---------------- mcu sheet ----------------
+# ESP32-S3-WROOM-1U-N16R2: same pinout as WROOM-1 (Espressif WROOM-1/1U datasheet "Pin Definitions"),
+# u.FL antenna -> no PCB keep-out. KiCad has no -1U symbol: WROOM-1 symbol + RF_Module:ESP32-S3-WROOM-1U
+# footprint. Every GPIO pad comes from pinmap; the rest is power or NC.
+# IO3/IO45/IO46 are straps left floating (internal defaults), IO48 is spare.
+_U1 = {"1": "GND", "2": "3V3", "3": "EN", "40": "GND", "41": "GND",
+       **{pinmap.module_pin(g): net for g, net in pinmap.GPIO.items()}}
+_U1.update({str(n): "NC" for n in range(4, 40) if str(n) not in _U1})
+_add(
+    Part("U1", "ESP32-S3-WROOM-1U-N16R2", "RF_Module:ESP32-S3-WROOM-1", "RF_Module:ESP32-S3-WROOM-1U",
+         _U1, "mcu", mpn="ESP32-S3-WROOM-1U-N16R2", mfr="Espressif"),
+    # v2 support parts: 22 uF + 100 nF on 3V3, EN RC 10k/1 uF (Espressif: RC delay on CHIP_PU),
+    # BOOT (IO0) 10k pull-up, both buttons to GND.
+    C("C16", "22uF 10V", "3V3", "GND", "mcu", "0805", lcsc="C45783", mpn="CL21A226MAQNNNE", mfr="Samsung Electro-Mechanics"),
+    C("C17", "100nF", "3V3", "GND", "mcu", "0603", **_C100N),
+    R("R14", "10k", "3V3", "EN", "mcu", "0603", **_R10K),
+    C("C18", "1uF", "EN", "GND", "mcu", "0603", lcsc="C15849", mpn="CL10A105KB8NNNC", mfr="Samsung Electro-Mechanics"),
+    R("R15", "10k", "3V3", "BOOT", "mcu", "0603", **_R10K),
+    Part("SW1", "BOOT", "Switch:SW_Push", "Button_Switch_SMD:SW_SPST_PTS645Sx43SMTR92",
+         {"1": "BOOT", "2": "GND"}, "mcu", lcsc="C221880", mpn="PTS645SM43SMTR92LFS", mfr="C&K"),
+    Part("SW2", "EN", "Switch:SW_Push", "Button_Switch_SMD:SW_SPST_PTS645Sx43SMTR92",
+         {"1": "EN", "2": "GND"}, "mcu", lcsc="C221880", mpn="PTS645SM43SMTR92LFS", mfr="C&K"),
+
+    # status LED on PCA9555 P16 (push-pull, 3V3): (3.3 - ~2 V) / 1k ~ 1.3 mA.
+    Part("D9", "GREEN", "Device:LED", "LED_SMD:LED_0603_1608Metric",
+         {"1": "GND", "2": "STATUS_LED_A"}, "mcu", lcsc="C22371299", mpn="PSC-1608U49GC-G4", mfr="HONGLITRONIC"),
+    R("R16", "1k", "STATUS_LED", "STATUS_LED_A", "mcu", "0603", lcsc="C21190", mpn="0603WAF1001T5E", mfr="UNI-ROYAL"),
+
+    # USB-C, flashing only (inside the case), v2 pattern. Connector:USB_C_Receptacle_USB2.0_16P pins A1..B12 + SH.
+    # VBUS_USB, not VBUS (that is the 12 V bus). 5.1k Rd on CC1/CC2 -> sink, 5 V default.
+    Part("J3", "USB-C 16P", "Connector:USB_C_Receptacle_USB2.0_16P",
+         "Connector_USB:USB_C_Receptacle_HRO_TYPE-C-31-M-12",
+         {"A1": "GND", "A4": "VBUS_USB", "A5": "USB_CC1", "A6": "USB_DP", "A7": "USB_DN", "A8": "NC",
+          "A9": "VBUS_USB", "A12": "GND", "B1": "GND", "B4": "VBUS_USB", "B5": "USB_CC2", "B6": "USB_DP",
+          "B7": "USB_DN", "B8": "NC", "B9": "VBUS_USB", "B12": "GND", "SH": "GND"},
+         "mcu", lcsc="C2765186", mpn="TYPE-C 16PIN 2MD(073)", mfr="SHOU HAN"),
+    R("R17", "5.1k", "USB_CC1", "GND", "mcu", "0603", lcsc="C23186", mpn="0603WAF5101T5E", mfr="UNI-ROYAL"),
+    R("R18", "5.1k", "USB_CC2", "GND", "mcu", "0603", lcsc="C23186", mpn="0603WAF5101T5E", mfr="UNI-ROYAL"),
+    # USBLC6-2SC6 (Power_Protection symbol): 1/6 I/O1, 3/4 I/O2, 2 GND, 5 VBUS.
+    Part("U9", "USBLC6-2SC6", "Power_Protection:USBLC6-2SC6", "Package_TO_SOT_SMD:SOT-23-6",
+         {"1": "USB_DN", "2": "GND", "3": "USB_DP", "4": "USB_DP", "5": "VBUS_USB", "6": "USB_DN"},
+         "mcu", lcsc="C7519", mpn="USBLC6-2SC6", mfr="STMicroelectronics"),
+    # USB alone powers the logic for flashing: OR-ed into 5V like D6 from the buck (v2 D4).
+    Part("D8", "SS34", "Device:D_Schottky", "Diode_SMD:D_SMA",
+         {"1": "5V", "2": "VBUS_USB"}, "mcu", lcsc="C8678", mpn="SS34", mfr="MDD"),
+
+    # UART0 debug header (GPIO43/44), v2 J3.
+    Part("J4", "UART0", "Connector_Generic:Conn_01x04", "Connector_PinHeader_2.54mm:PinHeader_1x04_P2.54mm_Vertical",
+         {"1": "3V3", "2": "GND", "3": "UART0_TX", "4": "UART0_RX"}, "mcu",
+         lcsc="C2691448", mpn="PZ254V-11-04P", mfr="XFCN"),
+
+    # IMU, v2 U5 unchanged. LSM6DS3TR-C LGA-14 (ST DS11224 table 2): 1 SDO/SA0, 2 SDx, 3 SCx, 4 INT1,
+    # 5 VDDIO, 6/7 GND, 8 VDD, 9 INT2, 10/11 NC, 12 CS, 13 SCL, 14 SDA. CS high = I2C, SA0 low -> 0x6A
+    # (no clash with PCA9555 0x20). SDx/SCx unused in I2C mode, tied to GND per table 2.
+    # Bus pull-ups are on the outputs sheet.
+    Part("U3", "LSM6DS3TR-C", "da3:LSM6DS3TR-C", "Package_LGA:LGA-14_3x2.5mm_P0.5mm_LayoutBorder3x4y",
+         {"1": "GND", "2": "GND", "3": "GND", "4": "IMU_INT1", "5": "3V3", "6": "GND", "7": "GND",
+          "8": "3V3", "9": "NC", "10": "NC", "11": "NC", "12": "3V3", "13": "I2C_SCL", "14": "I2C_SDA"},
+         "mcu", lcsc="C967633", mpn="LSM6DS3TR-C", mfr="STMicroelectronics"),
+    C("C19", "100nF", "3V3", "GND", "mcu", "0603", **_C100N),  # VDD
+    C("C36", "100nF", "3V3", "GND", "mcu", "0603", **_C100N),  # VDDIO
+)
+
+# ---------------- comms sheet ----------------
+_rc, _cc = iter(range(70, 100)), iter(range(40, 60))
+
+def _rk(value, n1, n2, size="0603", **kw):
+    return R(f"R{next(_rc)}", value, n1, n2, "comms", size, **kw)
+
+def _ck(value, n1, n2, **kw):
+    return C(f"C{next(_cc)}", value, n1, n2, "comms", "0603", **kw)
+
+# CAN, v2 U8. Interface_CAN_LIN:TJA1051T-3: 1 TXD, 2 GND, 3 VCC, 4 RXD, 5 VIO, 6 CANL, 7 CANH, 8 S.
+# No GPIO left for STB: S tied to GND = normal mode (NXP TJA1051 Table: S low -> normal). Unpowered
+# (5V off in sleep) the TJA1051 is passive on the bus.
+_add(
+    Part("U4", "TJA1051T/3", "Interface_CAN_LIN:TJA1051T-3", "Package_SO:SOIC-8_3.9x4.9mm_P1.27mm",
+         {"1": "CAN_TX", "2": "GND", "3": "5V", "4": "CAN_RX", "5": "3V3", "6": "CANL", "7": "CANH", "8": "GND"},
+         "comms", lcsc="C58988", mpn="TJA1051T/3,118", mfr="NXP"),
+    _ck("100nF", "5V", "GND", **_C100N),
+    _ck("100nF", "3V3", "GND", **_C100N),
+    # switchable 120R: CANH - R - Q3 drain, source on CANL. 2N7002 (Transistor_FET:2N7002): 1 G, 2 S, 3 D.
+    # Body diode CANL -> CAN_TERM is reverse biased while CANH >= CANL. Gate from PCA9555 P15;
+    # 10k pull-down (Task 5 ruling: PCA9555 reset pull-up >= 55k) -> terminator off until firmware.
+    _rk("120", "CANH", "CAN_TERM", "1206", lcsc="C17909", mpn="1206W4F1200T5E", mfr="UNI-ROYAL"),
+    Part("Q3", "2N7002", "Transistor_FET:2N7002", "Package_TO_SOT_SMD:SOT-23",
+         {"1": "CAN_TERM_EN", "2": "CANL", "3": "CAN_TERM"}, "comms", mpn="2N7002", mfr="Nexperia"),
+    _rk("10k", "CAN_TERM_EN", "GND", **_R10K),
+    # PESD1CAN as v2 D20: Device:D_TVS_Dual_AAC, 1 A1, 2 A2, 3 common.
+    Part("D20", "PESD1CAN", "Device:D_TVS_Dual_AAC", "Package_TO_SOT_SMD:SOT-23",
+         {"1": "CANH", "2": "CANL", "3": "GND"}, "comms", lcsc="C15771", mpn="PESD1CAN,215", mfr="Nexperia"),
+)
+
+# K-line, v2 U9. TJA1027T/20 (NXP Rev 3 Table 3, SO8): 1 RXD, 2 SLP_N, 3 n.c., 4 TXD, 5 GND, 6 LIN, 7 VBAT, 8 n.c.
+# SLP_N on 3V3: normal mode while the logic is up, sleep when 3V3 drops. RXD is open-drain -> 10k to 3V3.
+# 510R K-line pull-up to VBUS only when JP1 is fitted (v2 JP2).
+_add(
+    Part("U5", "TJA1027T/20", "da3:TJA1027T", "Package_SO:SOIC-8_3.9x4.9mm_P1.27mm",
+         {"1": "K_RX", "2": "3V3", "3": "NC", "4": "K_TX", "5": "GND", "6": "KLINE", "7": "VBUS", "8": "NC"},
+         "comms", lcsc="C112994", mpn="TJA1027T/20,118", mfr="NXP"),
+    _ck("100nF 50V", "VBUS", "GND", **_C100N),
+    _rk("10k", "K_RX", "3V3", **_R10K),
+    _rk("510 0.5W", "K_PU", "KLINE", "2512", lcsc="C2934121", mpn="FRC2512J511TS", mfr="FOJAN"),
+    Part("JP1", "K PULLUP", "Connector_Generic:Conn_01x02", "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical",
+         {"1": "VBUS", "2": "K_PU"}, "comms", lcsc="C492401", mpn="PZ254V-11-02P", mfr="XFCN"),
+    # SMAJ24A as v2 D21 (24 V jump start). D_SMA pad 1 = cathode band -> on the line.
+    Part("D21", "SMAJ24A", "Device:D_TVS", "Diode_SMD:D_SMA",
+         {"1": "KLINE", "2": "GND"}, "comms", lcsc="C148222", mpn="SMAJ24A", mfr="Littelfuse"),
+)
+
+# Universal inputs IN1..IN3: J1 - TVS SMAJ18A to GND - 10k series - INn_DIV - 22k - INn_SENSE - 10k - GND.
+# INn_PULL (GPIO) - 10k - INn_DIV: output 1 = pull-up to 3V3, 0 = pull-down, input = none.
+# Hi-Z: 16 V -> 3.81 V, 12 V -> 2.86 V, 5 V -> 1.19 V on the ADC (11 dB range ~3.1 V -> ~13 V usable).
+# Pull-up, IN open / IN to GND: 0.79 / 0.34 V. Pull-down, IN 12 V: 1.62 V.
+for _i in range(1, 4):
+    _add(
+        Part(f"D{21 + _i}", "SMAJ18A", "Device:D_TVS", "Diode_SMD:D_SMA",
+             {"1": f"IN{_i}", "2": "GND"}, "comms", mpn="SMAJ18A", mfr="Littelfuse"),
+        _rk("10k", f"IN{_i}", f"IN{_i}_DIV", **_R10K),
+        _rk("22k", f"IN{_i}_DIV", f"IN{_i}_SENSE", lcsc="C31850", mpn="0603WAF2202T5E", mfr="UNI-ROYAL"),
+        _rk("10k", f"IN{_i}_SENSE", "GND", **_R10K),
+        _rk("10k", f"IN{_i}_PULL", f"IN{_i}_DIV", **_R10K),
+    )

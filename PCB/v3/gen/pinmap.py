@@ -32,6 +32,7 @@ GPIO: dict[int, str] = {
     42: "IMU_INT1",
     43: "UART0_TX",
     44: "UART0_RX",
+    47: "SENS_5V_FLT",  # TPS2553 /FAULT (open-drain, R13 pull-up)
 }
 
 EXP: dict[str, str] = {
