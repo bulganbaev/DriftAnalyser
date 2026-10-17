@@ -27,7 +27,7 @@ FLOOR = 2.0
 CLEAR = 1.0           # board edge -> inner wall (right, top, bottom)
 LEFT_EXT = 8.0        # extra cavity on the left for the ESP32 antenna overhang
 STANDOFF_H = 5.0      # board bottom above the floor
-COMP_H = 12.0         # tallest part above board top (JST VH 11.5)
+COMP_H = 12.0         # tallest part above board top (JST VH 11.5); mated plugs (VH 17, XH 10) go through the lid notches
 LID_T = 2.0
 LIP_H = 3.0           # lid lip going down inside the walls
 LIP_T = 1.2
@@ -189,12 +189,13 @@ def make_lid():
     # ---- wire notches over the six strip connectors (open to the +Y edge)
     for i in range(1, 7):
         x = placement._strip_x(i) + 3.96          # connector centre (pins at x, x+3.96, x+7.92)
-        notch = (cq.Workplane("XY").center(bx(x), OUT_D / 2 - 6.0)
-                 .rect(16.0, 12.0 + 2).extrude(-LIP_H - 1).translate((0, 0, LID_T + 0.5)))
+        # plugs are top-entry and stick up through the lid: cover the whole VH body (board y 1.7..10.3)
+        notch = (cq.Workplane("XY").center(bx(x), OUT_D / 2 - 7.5)
+                 .rect(16.0, 15.0 + 2).extrude(-LIP_H - 1).translate((0, 0, LID_T + 0.5)))
         lid = lid.cut(notch)
     # ---- wire notch over the OBD connector (JST XH, vertical entry) at the -Y edge
-    notch = (cq.Workplane("XY").center(bx(92.0 + 3.75), -OUT_D / 2 + 5.0)
-             .rect(15.0, 10.0 + 2).extrude(-LIP_H - 1).translate((0, 0, LID_T + 0.5)))
+    notch = (cq.Workplane("XY").center(bx(92.0 + 3.75), -OUT_D / 2 + 6.5)
+             .rect(15.0, 13.0 + 2).extrude(-LIP_H - 1).translate((0, 0, LID_T + 0.5)))
     lid = lid.cut(notch)
 
     # ---- pin holes for BOOT / EN, light holes for the two LEDs
@@ -234,10 +235,10 @@ def make_lid():
     lid = lid.cut(engrave("DriftAnalyser v2", bx(55.0), by(36.0), 5.0))
     for i in range(1, 7):
         x = placement._strip_x(i) + 3.96
-        lid = lid.cut(engrave(f"LED{i}", bx(x), OUT_D / 2 - 15.0, 3.2))
-    lid = lid.cut(engrave("OBD", bx(95.75), -OUT_D / 2 + 13.0, 3.2))
-    lid = lid.cut(engrave("12V", bx(17.5), -OUT_D / 2 + 13.0, 3.2))
-    lid = lid.cut(engrave("USB", bx(57.0), -OUT_D / 2 + 13.0, 3.2))
+        lid = lid.cut(engrave(f"LED{i}", bx(x), OUT_D / 2 - 19.0, 3.2))
+    lid = lid.cut(engrave("OBD", bx(95.75), -OUT_D / 2 + 17.0, 3.2))
+    lid = lid.cut(engrave("12V", bx(17.5), -OUT_D / 2 + 17.0, 3.2))
+    lid = lid.cut(engrave("USB", bx(57.0), -OUT_D / 2 + 17.0, 3.2))
 
     # ---- more lid venting over the hot zone: buck/LDO (board x 40..80, y 40..62)
     for i in range(7):
