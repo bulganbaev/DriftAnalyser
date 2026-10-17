@@ -17,6 +17,7 @@ extern PowerState power;
 
 void powerBegin();       // switch off, status LED on until the first powerTick
 void powerTick();
+void powerSampleAdc();   // called by the LED task between frames: ADC reads stall the RMT refill interrupt
 void powerResetLatch();
 String powerStatusString();
 

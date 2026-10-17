@@ -148,3 +148,15 @@ float imuYawRate() {
     float g[3] = {imu.gx, imu.gy, imu.gz};
     return axisValue(g, drive.gyrOff, drive.yawAxis);
 }
+
+static void imuTask(void*) {
+    imuSetup();  // Wire installs its interrupt on this core
+    for (;;) {
+        imuTick();
+        vTaskDelay(pdMS_TO_TICKS(5));
+    }
+}
+
+void imuStartTask() {
+    xTaskCreatePinnedToCore(imuTask, "imu", 4096, nullptr, 1, nullptr, 0);
+}

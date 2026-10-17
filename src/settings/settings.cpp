@@ -48,6 +48,7 @@ static void setDefaults() {
     d.maxLateralG = 1.0f;
     d.maxYawRate = 60.0f;
     d.ledMaxAmps = 15.0f;
+    savedData.currentCal = 1.0f;
 }
 
 static void pushLive() {
@@ -86,10 +87,11 @@ void settingsBegin() {
         }
     }
     setDefaults();
+    fileData.addWithoutWipe(true);  // fields appended to SavedData keep the old data
     FDstat_t st = fileData.read();
     switch (st) {
         case FD_READ:  Serial.println("Settings loaded"); break;
-        case FD_ADD:   Serial.println("Settings file created with defaults"); break;
+        case FD_ADD:   Serial.println("Settings loaded, new fields at defaults"); break;
         case FD_WRITE: Serial.println("Settings layout changed, defaults written"); break;
         default:       Serial.println("Settings read error, using defaults"); break;
     }

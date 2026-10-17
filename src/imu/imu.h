@@ -16,6 +16,9 @@ extern ImuData imu;
 
 void imuSetup();
 void imuTick();
+// IMU on its own task on core 0: Wire masks interrupts on its core and would delay the
+// FastLED RMT refill interrupt on core 1 (truncated frames)
+void imuStartTask();
 void imuCalibrate();      // current rest reading becomes zero
 float imuLateralG();      // along drive.lateralAxis, offset removed
 float imuYawRate();       // deg/s along drive.yawAxis, offset removed

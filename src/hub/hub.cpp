@@ -206,6 +206,7 @@ static void buildLeds(gh::Builder& b, bool& forceSave) {
         gh::Row r(b);
         b.Select(&drive.engineOff).label(F("Engine off / no data")).size(3).text("Keep running;Dim;Off");
         if (drive.engineOff == 1) b.Slider(&drive.engineOffDim).label(F("Dim to %")).size(3).range(0, 100, 1);
+        if (drive.engineOff == 2) b.Switch(&savedData.cutPowerEngineOff).label(F("Cut strip power")).size(3);
     }
     {
         gh::Row r(b);
@@ -365,8 +366,9 @@ static void buildSystem(gh::Builder& b) {
     }
     {
         gh::Row r(b);
-        b.Spinner(&drive.ledMaxAmps).label(F("LED max current, A")).size(3).range(0.5f, 25.0f, 0.5f);
-        if (b.Button().label("Reset power latch").size(3).click()) {
+        b.Spinner(&drive.ledMaxAmps).label(F("LED max current, A")).size(2).range(0.5f, 25.0f, 0.5f);
+        b.Spinner(&savedData.currentCal).label(F("Current cal (PSU A / shown A)")).size(2).range(0.3f, 3.0f, 0.01f);
+        if (b.Button().label("Reset power latch").size(2).click()) {
             powerResetLatch();
             hub.sendRefresh();
         }
