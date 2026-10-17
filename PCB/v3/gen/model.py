@@ -343,21 +343,26 @@ _add(
     _rk("510 0.5W", "K_PU", "KLINE", "2512", lcsc="C2934121", mpn="FRC2512J511TS", mfr="FOJAN"),
     Part("JP1", "K PULLUP", "Connector_Generic:Conn_01x02", "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical",
          {"1": "VBUS", "2": "K_PU"}, "comms", lcsc="C492401", mpn="PZ254V-11-02P", mfr="XFCN"),
-    # SMAJ24A as v2 D21 (24 V jump start). D_SMA pad 1 = cathode band -> on the line.
+    # SMAJ24A as v2 D21 (24 V jump start): unidirectional, drawn with Device:D_TVS; D_SMA pad 1 = cathode
+    # (band) on the line side, pad 2 anode on GND.
     Part("D21", "SMAJ24A", "Device:D_TVS", "Diode_SMD:D_SMA",
          {"1": "KLINE", "2": "GND"}, "comms", lcsc="C148222", mpn="SMAJ24A", mfr="Littelfuse"),
 )
 
 # Universal inputs IN1..IN3: J1 - TVS SMAJ24A to GND - 10k series - INn_DIV - 33k - INn_SENSE - 10k - GND.
-# INn_PULL (GPIO) - 10k - INn_DIV: output 1 = pull-up to 3V3, 0 = pull-down, input = none.
-# SMAJ24A (not 18A): stays off at a 24 V jump start. Hi-Z: 16 V -> 3.02 V, 12 V -> 2.26 V, 5 V -> 0.94 V
-# on the ADC (11 dB). Pull-up, IN open / IN to GND: 0.62 / 0.34 V. Pull-down, IN 12 V: 1.25 V.
+# INn_PULL (GPIO) - 10k - INn_SENSE (the ADC node): output 1 = pull-up to 3V3, 0 = pull-down, input = no pull
+# (INn_SENSE <= 3.02 V at 16 V in, below the pad's ESD clamp, so the hi-Z GPIO draws nothing and the
+# analog range stays linear). SMAJ24A (not 18A): stays off at a 24 V jump start.
+# Hi-Z: 16 V -> 3.02 V, 12 V -> 2.26 V, 5 V -> 0.94 V on the ADC (11 dB).
+# Pull-up: IN open 1.65 V, IN to GND 1.48 V (10k || 43k vs 10k), IN at 12 V 2.73 V.
+# Pull-down: IN open 0 V, IN at 12 V 1.25 V (43k vs 10k || 10k).
 for _i in range(1, 4):
     _add(
+        # unidirectional SMAJ24A drawn with Device:D_TVS: pad 1 = cathode (band) on IN, pad 2 anode on GND
         Part(f"D{21 + _i}", "SMAJ24A", "Device:D_TVS", "Diode_SMD:D_SMA",
              {"1": f"IN{_i}", "2": "GND"}, "comms", lcsc="C148222", mpn="SMAJ24A", mfr="Littelfuse"),
         _rk("10k", f"IN{_i}", f"IN{_i}_DIV", **_R10K),
         _rk("33k", f"IN{_i}_DIV", f"IN{_i}_SENSE", mpn="0603WAF3302T5E", mfr="UNI-ROYAL"),
         _rk("10k", f"IN{_i}_SENSE", "GND", **_R10K),
-        _rk("10k", f"IN{_i}_PULL", f"IN{_i}_DIV", **_R10K),
+        _rk("10k", f"IN{_i}_PULL", f"IN{_i}_SENSE", **_R10K),
     )

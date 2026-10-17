@@ -34,3 +34,10 @@ def test_sens_5v_fault_read():
 def test_usb_powers_5v_through_schottky():
     d = [p for p in model.PARTS if p.symbol == "Device:D_Schottky" and p.pins == {"1": "5V", "2": "VBUS_USB"}]
     assert d
+
+
+def test_input_pull_on_adc_node():
+    for i in (1, 2, 3):
+        pull = [p for p in model.PARTS if p.symbol == "Device:R" and f"IN{i}_PULL" in p.pins.values()]
+        assert len(pull) == 1 and sorted(pull[0].pins.values()) == [f"IN{i}_PULL", f"IN{i}_SENSE"], i
+        assert len(model.nets()[f"IN{i}_DIV"]) == 2, i
