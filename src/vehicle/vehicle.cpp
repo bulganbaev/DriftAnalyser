@@ -1,5 +1,6 @@
 #include "vehicle.h"
 #include "system/system.h"
+#include "kline/kline.h"
 
 VehicleData vehicle;
 int canMode = CAN_MODE_OBD2;
@@ -63,7 +64,7 @@ String canBitrateString() {
 }
 
 static void bitrateScanTick(unsigned long now) {
-    if (canBitrateSel != 0 || canMode == CAN_MODE_OBD2 || !canBus) return;
+    if (canBitrateSel != 0 || canMode == CAN_MODE_OBD2 || canMode == CAN_MODE_DS2 || !canBus) return;
     if (now - brWindowStart < BR_WINDOW) return;
     unsigned long errs = canBus->busErrors() - brWindowErrStart;
     if (brWindowFrames > 0) {
@@ -95,7 +96,8 @@ void vehicleSetMode(int mode) {
         canBus->restart(mode != CAN_MODE_OBD2, idx);
         brWindowErrStart = canBus->busErrors();
     }
-    sysLog(String("CAN mode: ") + (mode == CAN_MODE_OBD2 ? "OBD2" : mode == CAN_MODE_BMW ? "BMW MS43" : "Sniffer"));
+    static const char* names[] = {"OBD2", "BMW MS43", "Sniffer", "BMW MS43 K-line"};
+    sysLog(String("Data source: ") + names[constrain(mode, 0, 3)]);
 }
 
 // BMW E46 / MS43 PT-CAN, 500 kbit
@@ -148,7 +150,7 @@ static void sniffFrame(const twai_message_t& f) {
 void vehicleTick() {
     unsigned long now = millis();
     static unsigned long lastDiag = 0;
-    if (canBus && canMode != CAN_MODE_OBD2 && now - lastDiag >= 5000) {
+    if (canBus && canMode != CAN_MODE_OBD2 && canMode != CAN_MODE_DS2 && now - lastDiag >= 5000) {
         lastDiag = now;
         Serial.println("CAN " + canBus->diagString() + " fps=" + String(framesPerSec));
     }
@@ -174,6 +176,10 @@ void vehicleTick() {
         if (obd2p) obd2p->tick();
         return;
     }
+    if (canMode == CAN_MODE_DS2) {
+        klineTick();
+        return;
+    }
     bitrateScanTick(now);
 
     twai_message_t f;
@@ -192,6 +198,12 @@ bool vehicleDataFresh() {
 }
 
 String canStatusString() {
+    if (canMode == CAN_MODE_DS2) {
+        String s = klineStatusString();
+        if (!vehicle.lastUpdate) s += ", no data";
+        else if (!vehicleDataFresh()) s += ", stale " + String((millis() - vehicle.lastUpdate) / 1000) + "s";
+        return s;
+    }
     if (!canBus || !canBus->isDriverRunning()) return F("driver off");
     String s = canBus->stateName();
     if (canMode == CAN_MODE_OBD2) {

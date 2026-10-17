@@ -9,6 +9,7 @@
 #include "imu/imu.h"
 #include "system/system.h"
 #include "power/power.h"
+#include "kline/kline.h"
 
 CANBus canBus;
 OBD2 obd2;
@@ -27,6 +28,7 @@ void setup() {
     canBus.begin(CAN_RX_PIN, CAN_TX_PIN, CAN_STB_PIN, timingConfig, canMode != CAN_MODE_OBD2);
     obd2.begin(canBus);
     vehicleSetup(canBus, obd2);
+    klineBegin();
 
     netBegin();
     setupHub();

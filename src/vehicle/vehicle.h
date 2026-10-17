@@ -10,6 +10,7 @@ enum CanMode : int {
     CAN_MODE_OBD2 = 0,     // active OBD2 PID polling
     CAN_MODE_BMW = 1,      // passive decode of BMW MS43 PT-CAN
     CAN_MODE_SNIFFER = 2,  // passive, dump all IDs to Serial
+    CAN_MODE_DS2 = 3,      // BMW MS43 over K-line, CAN stays listen-only
 };
 
 struct VehicleData {

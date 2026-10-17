@@ -7,11 +7,13 @@
 #include "imu/imu.h"
 #include "system/system.h"
 #include "power/power.h"
+#include "kline/kline.h"
 
 GyverHub hub;
 
 static int selectedStrip = 0;
 static int selectedPreset = 0;
+static String ds2Custom = "12 05 0B 03";
 static unsigned long lastUpdate = 0;
 const unsigned long updateInterval = 1000;
 static unsigned long uploadPausedAt = 0;
@@ -57,6 +59,10 @@ void updateHub() {
     static const char* always[] = {"rpm", "speed", "throttle", "temp", "wifi", "can", "sta", "ap", "latg", "yaw"};
     for (const char* n : always) hub.sendUpdate(n);
     if (canMode == CAN_MODE_SNIFFER) hub.sendUpdate("sniff");
+    if (canMode == CAN_MODE_DS2 && hub.menu == 2) {
+        static const char* names[] = {"ds2raw", "ds2reply", "ds2vals"};
+        for (const char* n : names) hub.sendUpdate(n);
+    }
     if (hub.menu == 2) hub.sendUpdate("br");
     if (hub.menu == 5) {
         static const char* names[] = {"uptime", "heap", "vbat", "amps", "pwr"};
@@ -227,7 +233,7 @@ static void buildLeds(gh::Builder& b, bool& forceSave) {
 static void buildCan(gh::Builder& b) {
     {
         gh::Row r(b);
-        if (b.Select(&canMode).label("CAN Source").text("OBD2;BMW MS43;Sniffer").click()) {
+        if (b.Select(&canMode).label("Data source").text("OBD2 CAN;BMW MS43 CAN;CAN sniffer;BMW MS43 K-line").click()) {
             vehicleSetMode(canMode);
         }
     }
@@ -252,6 +258,31 @@ static void buildCan(gh::Builder& b) {
     if (canMode == CAN_MODE_SNIFFER) {
         gh::Row r(b);
         b.Text_("sniff", sniffTableString()).label(F("CAN frames")).rows(20).size(6);
+    }
+    if (canMode == CAN_MODE_DS2) {
+        {
+            gh::Row r(b);
+            String vals = "pedal " + fmt(ms43.pedalDeg, 1) + " deg, throttle " + fmt(ms43.throttleDeg, 1) + " deg, intake " +
+                          fmt(ms43.intakeC, 1) + " C, coolant " + fmt(ms43.coolantC, 1) + " C, vbat " + fmt(ms43.vbat, 1) + " V";
+            b.Label_("ds2vals", vals).label(F("MS43 decoded (unverified offsets)")).size(6).fontSize(14);
+        }
+        {
+            gh::Row r(b);
+            b.Text_("ds2raw", klineLastFrameHex()).label(F("Last DS2 frame")).rows(4).size(6);
+        }
+        {
+            gh::Row r(b);
+            b.Input(&ds2Custom).label(F("Custom request hex (addr len data, xor added)")).size(4).maxLen(120);
+            if (b.Button().label("Send").size(2).click()) {
+                uint8_t raw[DS2_MAX_FRAME];
+                size_t n = ds2ParseHex(ds2Custom.c_str(), raw, sizeof(raw) - 1);
+                if (!klineSendCustom(raw, n)) sysLog(F("DS2 custom: bad hex"));
+            }
+        }
+        {
+            gh::Row r(b);
+            b.Text_("ds2reply", klineCustomReplyHex()).label(F("Custom reply")).rows(4).size(6);
+        }
     }
 }
 
