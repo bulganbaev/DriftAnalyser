@@ -1,0 +1,316 @@
+"""Everything the fab and the assembly house get, out of the board that is here.
+
+Needs kicad-cli only, but lives with the rest of the generator:
+    KICAD_PY -m gen.export        (cwd = PCB/v2)
+"""
+import csv
+import glob
+import os
+import re
+import shutil
+import subprocess
+import sys
+import zipfile
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from gen import env, model
+
+FAB = os.path.join(env.PROJECT_DIR, "fab")
+PCB = os.path.join(env.PROJECT_DIR, env.PROJECT_NAME + ".kicad_pcb")
+SCH = os.path.join(env.PROJECT_DIR, env.PROJECT_NAME + ".kicad_sch")
+
+# JLCPCB's 4 layer order: the two inner layers go in the middle of the stack,
+# In1 = ground, In2 = VBAT / 12V_LED. --subtract-soldermask keeps silk off the
+# pads, --use-drill-file-origin puts every file on the board's bottom-left
+# corner (the builder sets the aux origin there) so the drill lines up.
+GERBER_LAYERS = ("F.Cu,In1.Cu,In2.Cu,B.Cu,F.Paste,B.Paste,"
+                 "F.SilkS,B.SilkS,F.Mask,B.Mask,Edge.Cuts")
+
+
+def _cli(*args):
+    subprocess.run([env.KICAD_CLI, *args], check=True,
+                   stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+
+# KiCad stamps the moment of the run into every gerber, both drill files and the
+# .gbrjob. On disk they keep it - that is the fab's record of when the files were
+# made - but gerbers.zip is tracked, so the copy that goes into the zip gets a
+# fixed one. Without this two runs that changed nothing still produce two zips.
+FIXED_GERBER_DATE = b"2026-01-01T00:00:00+00:00"
+FIXED_HUMAN_DATE = b"2026-01-01 00:00:00"
+# the machine-readable attribute (every gerber, both .drl headers, the .gbrjob)
+GERBER_DATE = re.compile(
+    rb"(TF\.CreationDate,|\"CreationDate\": \"|; DRILL file KiCad [0-9.]+ date )"
+    rb"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:[+-]\d{2}:\d{2})?")
+# and the human-readable G04 comment KiCad writes next to it
+GERBER_COMMENT_DATE = re.compile(
+    rb"(G04 Created by KiCad \(PCBNEW [0-9.]+\) date )"
+    rb"\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}")
+
+
+def _undated(data):
+    """The bytes of one gerber / drill / gbrjob file with its creation date fixed."""
+    data = GERBER_DATE.sub(lambda m: m.group(1) + FIXED_GERBER_DATE, data)
+    return GERBER_COMMENT_DATE.sub(lambda m: m.group(1) + FIXED_HUMAN_DATE, data)
+
+
+def gerbers():
+    gdir = os.path.join(FAB, "gerbers")
+    shutil.rmtree(gdir, ignore_errors=True)
+    os.makedirs(gdir)
+    _cli("pcb", "export", "gerbers", "--layers", GERBER_LAYERS,
+         "--subtract-soldermask", "--no-x2", "--use-drill-file-origin",
+         "-o", gdir + os.sep, PCB)
+    _cli("pcb", "export", "drill", "--format", "excellon", "--excellon-separate-th",
+         "--generate-map", "--map-format", "gerberx2", "--drill-origin", "plot",
+         "-o", gdir + os.sep, PCB)
+    out = os.path.join(FAB, "gerbers.zip")
+    with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as z:
+        for f in sorted(glob.glob(os.path.join(gdir, "*"))):
+            # fixed mtime: the file times alone would make every rebuild a new zip
+            info = zipfile.ZipInfo(os.path.basename(f), date_time=(2026, 1, 1, 0, 0, 0))
+            info.compress_type = zipfile.ZIP_DEFLATED
+            info.external_attr = 0o644 << 16
+            with open(f, "rb") as fh:
+                z.writestr(info, _undated(fh.read()))
+    return out
+
+
+def _refkey(ref):
+    m = re.match(r"([A-Za-z]+)(\d+)", ref)
+    return (m.group(1), int(m.group(2))) if m else (ref, 0)
+
+
+def bom():
+    """One line per orderable part. BOM.csv uses JLCPCB's column names plus an explicit
+    per-board Quantity (the domestic jlc.com side and human assemblers ask for it);
+    BOM-cn.csv is the same table with Chinese headers and MPN/manufacturer columns."""
+    rows = {}
+    for p in model.PARTS:
+        rows.setdefault((p.value, p.footprint.split(":")[1], p.lcsc, p.mpn, p.mfr), []).append(p.ref)
+    ordered = sorted(rows.items(), key=lambda kv: _refkey(sorted(kv[1], key=_refkey)[0]))
+    out = os.path.join(FAB, "BOM.csv")
+    with open(out, "w", newline="") as f:
+        w = csv.writer(f)
+        w.writerow(["Comment", "Designator", "Footprint", "Quantity", "LCSC Part #"])
+        for (val, fp, lcsc, mpn, mfr), refs in ordered:
+            w.writerow([val, ",".join(sorted(refs, key=_refkey)), fp, len(refs), lcsc])
+    with open(os.path.join(FAB, "BOM-cn.csv"), "w", newline="", encoding="utf-8-sig") as f:
+        w = csv.writer(f)
+        w.writerow(["型号/值", "位号", "封装", "单套数量", "立创编号", "厂家型号", "厂家"])
+        for (val, fp, lcsc, mpn, mfr), refs in ordered:
+            w.writerow([val, ",".join(sorted(refs, key=_refkey)), fp, len(refs), lcsc, mpn, mfr])
+    return out
+
+
+def cpl():
+    """Pick and place, same origin as the gerbers. H1..H4 are holes, not parts."""
+    pos = os.path.join(FAB, "pos.csv")
+    _cli("pcb", "export", "pos", "--format", "csv", "--units", "mm", "--side", "both",
+         "--use-drill-file-origin", "-o", pos, PCB)
+    with open(pos) as f:
+        rows = list(csv.DictReader(f))
+    out = os.path.join(FAB, "CPL.csv")
+    with open(out, "w", newline="") as f:
+        w = csv.writer(f)
+        w.writerow(["Designator", "Mid X", "Mid Y", "Layer", "Rotation"])
+        for r in sorted(rows, key=lambda r: _refkey(r["Ref"])):
+            if r["Ref"].startswith("H"):
+                continue
+            w.writerow([r["Ref"], f'{float(r["PosX"]):.4f}mm', f'{float(r["PosY"]):.4f}mm',
+                        "Top" if r["Side"].lower().startswith("top") else "Bottom",
+                        f'{float(r["Rot"]) % 360:.2f}'])
+    return out
+
+
+# one plot per layer that anyone reviewing the board wants to look at. Only the
+# top view is tracked; the rest are regenerated by build.sh.
+TOP_VIEW = ("render-top.svg", "F.Cu,F.SilkS,F.Mask,Edge.Cuts", False)
+VIEWS = (("render-bottom.svg", "B.Cu,B.SilkS,B.Mask,Edge.Cuts", True),
+         ("render-in1.svg", "In1.Cu,Edge.Cuts", False),
+         ("render-in2.svg", "In2.Cu,Edge.Cuts", False))
+
+
+# KiCad stamps the time of day into everything it plots. The gerbers keep theirs
+# (rewriting a fab file's own date would be a lie about when it was made), but the
+# plots that are tracked here get a fixed one, or every rebuild is a diff.
+SVG_TITLE = re.compile(r"<title>SVG Image created as [^<]*</title>")
+PDF_DATE = re.compile(rb"(/(?:CreationDate|ModDate)\s*\()([^)]*)(\))")
+FIXED_PDF_DATE = b"D:2026:01:01:00:00:00"
+
+
+def _fix_svg_date(path):
+    with open(path) as f:
+        text = f.read()
+    text, n = SVG_TITLE.subn(f"<title>{os.path.basename(path)}</title>", text)
+    if n:
+        with open(path, "w") as f:
+            f.write(text)
+    return n
+
+
+def _fix_pdf_dates(path):
+    """Same length in, same length out: a PDF's xref table is byte offsets."""
+    with open(path, "rb") as f:
+        data = f.read()
+
+    def fixed(m):
+        old = m.group(2)
+        return m.group(1) + FIXED_PDF_DATE[:len(old)].ljust(len(old), b"0") + m.group(3)
+
+    out, n = PDF_DATE.subn(fixed, data)
+    if len(out) != len(data):
+        raise RuntimeError(f"{path}: date rewrite changed the file length")
+    if n:
+        with open(path, "wb") as f:
+            f.write(out)
+    return n
+
+
+def _svg(name, layers, mirror):
+    out = os.path.join(FAB, name)
+    _cli("pcb", "export", "svg", "--mode-single", "--layers", layers,
+         "--page-size-mode", "2", "--exclude-drawing-sheet",
+         *(["--mirror"] if mirror else []), "-o", out, PCB)
+    _fix_svg_date(out)
+
+
+def renders():
+    for view in VIEWS:
+        _svg(*view)
+    for side in ("top", "bottom"):
+        _cli("pcb", "render", "--quality", "high", "--perspective",
+             "--rotate", "-55,0,-35" if side == "top" else "55,0,-35",
+             "--zoom", "0.85", "--background", "opaque", "-w", "1800", "-h", "1200",
+             "--side", side, "-o", os.path.join(FAB, f"render-3d-{side}.png"), PCB)
+    pdf = os.path.join(FAB, "schematic.pdf")
+    _cli("sch", "export", "pdf", "-o", pdf, SCH)
+    _fix_pdf_dates(pdf)
+
+
+def step():
+    """3D model for the enclosure. The JST VH strip connectors have no model in
+    the KiCad library, so their footprints come out flat - everything else is there."""
+    out = os.path.join(FAB, env.PROJECT_NAME + ".step")
+    _cli("pcb", "export", "step", "--subst-models", "--include-tracks",
+         "--include-zones", "--force", "-o", out, PCB)
+    return out
+
+
+README = """# Fab notes - DriftAnalyser v2
+
+Order from `fab/gerbers.zip` (gerbers + Excellon drill, all on the board's
+bottom-left corner as the origin), assemble from `BOM.csv` + `CPL.csv`.
+
+## JLCPCB board options
+
+| option | value | why |
+| --- | --- | --- |
+| layers | 4 | In1.Cu = solid GND, In2.Cu = VBAT / 12V_LED |
+| thickness | 1.6 mm | stackup **JLC04161H-7628** (the one the board file declares) |
+| outer copper | 1 oz | |
+| **inner copper** | **1 oz - must be picked** | the VBAT path to U2 runs on In2. At the stock 0.5 oz the plane carries about half its rated current and the 20 A strip load runs the copper hot; 1 oz is what every number in the report assumes |
+| surface finish | HASL lead free or ENIG | ENIG if the LGA-14 IMU is hand-reworked |
+| min hole | 0.2 mm | the ESP32-S3-WROOM-1 footprint brings its own 0.2 mm thermal vias under the module - JLC surcharges these, everything we drew is 0.4 mm |
+| min clearance | 0.15 mm | only U5's LGA-14 land pattern goes that low; our own copper keeps 0.25 mm |
+| silkscreen | white on green (any) | min text height on the board is 0.8 mm |
+
+## Assembly
+
+- Every part is on the **top** side; nothing is placed on B.Cu.
+- `CPL.csv` is in mm with rotations as KiCad has them. Check JLC's preview
+  before paying: their library rotates some SOT/SOIC parts 90 or 180 degrees
+  from the KiCad convention, and the preview is the only place that shows it.
+- **U2 (BTS7002-1EPP) has an exposed pad** (pad 15) carrying VS - the whole
+  strip current goes through it. It needs paste on the pad, not just the leads.
+  What we ship is a **single 2.65 x 4.0 mm aperture**, not a split one; JLC may
+  split the stencil window themselves, and the datasheet (Fig. 39) suggests a
+  split window for a hand-cut stencil. Either is fine - the point is that the
+  pad gets paste.
+- U5 (LSM6DS3TR-C, LGA-14) is the finest pitch on the board (0.5 mm).
+- R31..R36 / D11..D16 have no reference on the silk (no room between the strip
+  connectors and the LED legend) - they are the series resistor and the data
+  clamp of the strip above them, one pair per strip, and they are in the CPL.
+- J1 is an XT60PW-M: **+ is pin 2**, the hole on the left as the board is drawn,
+  marked on the silk over its own pad. The XT60 housing's chamfered end is the
+  negative contact and its straight end the positive one, and on this footprint
+  the chamfered end is pin 1 - so pin 1 is GND. The footprint's own "+"/"-"
+  silk is deleted by the generator; the two marks on the board are ours.
+
+## Regenerating
+
+`bash gen/build.sh` rebuilds everything here.
+
+The tracked build products are date-free on purpose: the SVGs get a fixed
+`<title>`, `schematic.pdf` a fixed `/CreationDate` (rewritten in place at the
+same byte length, so the xref table still points where it should), `netlist.net`
+a repo-relative `(source ...)`, and `gerbers.zip` both a fixed entry timestamp
+and a fixed `TF.CreationDate` in every gerber, drill file and the `.gbrjob`
+inside it. Two exports of the same board file therefore produce a byte-identical
+zip. A full `build.sh` still moves it: `pcbnew` hands every footprint a fresh
+random KIID, that reorders the board file, and the order of the flashes in the
+gerbers follows. The loose files under `fab/gerbers/` keep the real date - they
+are the fab's record of when the files were made - and are not tracked.
+
+The STEP, the 3D PNGs and the inner/bottom plots are not tracked at all - run
+`KICAD_PY -m gen.export` to get them back.
+
+## What the 20 A rating rests on
+
+- Every ampacity number in this board's tests and notes is **IPC-2221** (the
+  external/internal `k` split at a 20 K rise). That is the conservative curve:
+  IPC-2152 rates an internal layer with a solid plane under it considerably
+  higher, so the real margin is better than the numbers say, not worse.
+- **U2 dissipates about 1.1-1.8 W at 20 A** (R_DS(on) 2.8-4.5 mOhm hot). It gets
+  rid of that through its exposed pad into the F.Cu tab pour and the 24 vias
+  that ring the pad in that pour, down into the In2 VBAT plane. **This was not thermally modelled** - it is
+  the standard "pad + via field + plane" construction sized by area, not a
+  simulated junction temperature. If the strips really pull 20 A continuously,
+  measure the tab before trusting it.
+
+## Hand check before power-up
+
+- 12V IN polarity (silk + / -), then the rails. **There are no test points on
+  this board**: probe 5 V across C13 (x 62, y 45) and 3V3 across C15 (x 75,
+  y 48), both 0603 next to their regulator.
+- CAN termination jumper JP1 fitted only if this board is an end of the bus.
+- JP2 (K PULLUP) fitted for K-line, left open on a CAN-only car.
+"""
+
+
+def readme():
+    out = os.path.join(FAB, "README-fab.md")
+    with open(out, "w") as f:
+        f.write(README)
+    return out
+
+
+def export_fab():
+    """What the fab and the assembly house get, plus the one tracked plot.
+    Seconds, no 3D: this is what the test suite runs."""
+    os.makedirs(FAB, exist_ok=True)
+    gerbers()
+    bom()
+    cpl()
+    _svg(*TOP_VIEW)
+    readme()
+
+
+def export_heavy():
+    """The 3D renders, the STEP and the other plots - half a minute and 28 MB,
+    none of it tracked. build.sh runs it, the tests do not."""
+    renders()
+    step()
+
+
+def export_all():
+    export_fab()
+    if os.environ.get("DA2_HEAVY", "1") == "1":
+        export_heavy()
+
+
+if __name__ == "__main__":
+    export_all()
+    print("fab/ written:", ", ".join(sorted(
+        os.path.basename(f) for f in glob.glob(os.path.join(FAB, "*")) if os.path.isfile(f))))

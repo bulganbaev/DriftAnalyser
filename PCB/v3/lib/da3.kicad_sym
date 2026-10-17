@@ -1,0 +1,1129 @@
+(kicad_symbol_lib
+	(version 20251024)
+	(generator "da3")
+	(generator_version "10.0")
+	(symbol "BTS7002-1EPP"
+		(pin_names
+			(offset 1.016)
+		)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(duplicate_pin_numbers_are_jumpers no)
+		(property "Reference" "U"
+			(at 0 16.51 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "BTS7002-1EPP"
+			(at 0 -20.32 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "da3:PG-TSDSO-14"
+			(at 0 0 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+					(italic yes)
+				)
+			)
+		)
+		(property "Datasheet" "https://www.infineon.com/assets/row/public/documents/10/49/infineon-bts7002-1epp-datasheet-en.pdf"
+			(at 0 0 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "PROFET +2 12V smart high-side power switch, 1x2.6 mOhm, current sense, PG-TSDSO-14"
+			(at 0 0 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "ki_keywords" "high-side switch PROFET smart power switch"
+			(at 0 0 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "ki_fp_filters" "PG-TSDSO*"
+			(at 0 0 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(symbol "BTS7002-1EPP_0_1"
+			(rectangle
+				(start -10.16 12.7)
+				(end 10.16 -12.7)
+				(stroke
+					(width 0.254)
+					(type default)
+				)
+				(fill
+					(type background)
+				)
+			)
+		)
+		(symbol "BTS7002-1EPP_1_1"
+			(pin power_in line
+				(at -12.7 10.16 0)
+				(length 2.54)
+				(name "VS"
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+				)
+				(number "15"
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+				)
+			)
+			(pin input line
+				(at -12.7 5.08 0)
+				(length 2.54)
+				(name "IN"
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+				)
+				(number "2"
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+				)
+			)
+			(pin input line
+				(at -12.7 2.54 0)
+				(length 2.54)
+				(name "DEN"
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+				)
+				(number "3"
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+				)
+			)
+			(pin output line
+				(at -12.7 -2.54 0)
+				(length 2.54)
+				(name "IS"
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+				)
+				(number "4"
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+				)
+			)
+			(pin power_in line
+				(at -12.7 -10.16 0)
+				(length 2.54)
+				(name "GND"
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+				)
+				(number "1"
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+				)
+			)
+			(pin no_connect line
+				(at 0 -15.24 90)
+				(length 2.54)
+				(name "NC"
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+				)
+				(number "5"
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+				)
+			)
+			(pin no_connect line
+				(at 2.54 -15.24 90)
+				(length 2.54)
+				(name "NC"
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+				)
+				(number "6"
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+				)
+			)
+			(pin no_connect line
+				(at 5.08 -15.24 90)
+				(length 2.54)
+				(name "NC"
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+				)
+				(number "7"
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+				)
+			)
+			(pin no_connect line
+				(at 7.62 -15.24 90)
+				(length 2.54)
+				(name "NC"
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+				)
+				(number "11"
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+				)
+			)
+			(pin power_out line
+				(at 12.7 7.62 180)
+				(length 2.54)
+				(name "OUT"
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+				)
+				(number "8"
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+				)
+			)
+			(pin passive line
+				(at 12.7 5.08 180)
+				(length 2.54)
+				(name "OUT"
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+				)
+				(number "9"
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+				)
+			)
+			(pin passive line
+				(at 12.7 2.54 180)
+				(length 2.54)
+				(name "OUT"
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+				)
+				(number "10"
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+				)
+			)
+			(pin passive line
+				(at 12.7 0 180)
+				(length 2.54)
+				(name "OUT"
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+				)
+				(number "12"
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+				)
+			)
+			(pin passive line
+				(at 12.7 -2.54 180)
+				(length 2.54)
+				(name "OUT"
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+				)
+				(number "13"
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+				)
+			)
+			(pin passive line
+				(at 12.7 -5.08 180)
+				(length 2.54)
+				(name "OUT"
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+				)
+				(number "14"
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+				)
+			)
+		)
+	)
+	(symbol "TJA1027T"
+		(pin_names
+			(offset 1.016)
+		)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(duplicate_pin_numbers_are_jumpers no)
+		(property "Reference" "U"
+			(at 0 12.7 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "TJA1027T"
+			(at 0 -12.7 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Package_SO:SOIC-8_3.9x4.9mm_P1.27mm"
+			(at 0 0 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+					(italic yes)
+				)
+			)
+		)
+		(property "Datasheet" "https://www.nxp.com/docs/en/data-sheet/TJA1027.pdf"
+			(at 0 0 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "LIN 2.2A/SAE J2602 transceiver, sleep control, SO8"
+			(at 0 0 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "ki_keywords" "LIN transceiver K-line"
+			(at 0 0 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "ki_fp_filters" "SOIC*3.9x4.9mm*P1.27mm*"
+			(at 0 0 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(symbol "TJA1027T_0_1"
+			(rectangle
+				(start -7.62 7.62)
+				(end 7.62 -7.62)
+				(stroke
+					(width 0.254)
+					(type default)
+				)
+				(fill
+					(type background)
+				)
+			)
+		)
+		(symbol "TJA1027T_1_1"
+			(pin input line
+				(at -10.16 5.08 0)
+				(length 2.54)
+				(name "TXD"
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+				)
+				(number "4"
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+				)
+			)
+			(pin output line
+				(at -10.16 2.54 0)
+				(length 2.54)
+				(name "RXD"
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+				)
+				(number "1"
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+				)
+			)
+			(pin input line
+				(at -10.16 0 0)
+				(length 2.54)
+				(name "SLP_N"
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+				)
+				(number "2"
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+				)
+			)
+			(pin power_in line
+				(at 0 10.16 270)
+				(length 2.54)
+				(name "VBAT"
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+				)
+				(number "7"
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+				)
+			)
+			(pin power_in line
+				(at 0 -10.16 90)
+				(length 2.54)
+				(name "GND"
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+				)
+				(number "5"
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+				)
+			)
+			(pin bidirectional line
+				(at 10.16 2.54 180)
+				(length 2.54)
+				(name "LIN"
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+				)
+				(number "6"
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+				)
+			)
+			(pin no_connect line
+				(at 10.16 -2.54 180)
+				(length 2.54)
+				(name "NC"
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+				)
+				(number "3"
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+				)
+			)
+			(pin no_connect line
+				(at 10.16 -5.08 180)
+				(length 2.54)
+				(name "NC"
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+				)
+				(number "8"
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+				)
+			)
+		)
+	)
+	(symbol "LSM6DS3TR-C"
+		(pin_names
+			(offset 1.016)
+		)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(duplicate_pin_numbers_are_jumpers no)
+		(property "Reference" "U"
+			(at 0 19.05 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "LSM6DS3TR-C"
+			(at 0 -19.05 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Package_LGA:LGA-14_3x2.5mm_P0.5mm_LayoutBorder3x4y"
+			(at 0 0 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+					(italic yes)
+				)
+			)
+		)
+		(property "Datasheet" "https://www.st.com/resource/en/datasheet/lsm6ds3tr-c.pdf"
+			(at 0 0 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "iNEMO 6-axis IMU, 3D accelerometer + 3D gyroscope, I2C/SPI, LGA-14"
+			(at 0 0 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "ki_keywords" "IMU accelerometer gyroscope inertial"
+			(at 0 0 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "ki_fp_filters" "LGA*3x2.5mm*P0.5mm*"
+			(at 0 0 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(symbol "LSM6DS3TR-C_0_1"
+			(rectangle
+				(start -10.16 12.7)
+				(end 10.16 -12.7)
+				(stroke
+					(width 0.254)
+					(type default)
+				)
+				(fill
+					(type background)
+				)
+			)
+		)
+		(symbol "LSM6DS3TR-C_1_1"
+			(pin input line
+				(at -12.7 7.62 0)
+				(length 2.54)
+				(name "SCL"
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+				)
+				(number "13"
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+				)
+			)
+			(pin bidirectional line
+				(at -12.7 5.08 0)
+				(length 2.54)
+				(name "SDA"
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+				)
+				(number "14"
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+				)
+			)
+			(pin bidirectional line
+				(at -12.7 2.54 0)
+				(length 2.54)
+				(name "SDO/SA0"
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+				)
+				(number "1"
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+				)
+			)
+			(pin input line
+				(at -12.7 0 0)
+				(length 2.54)
+				(name "CS"
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+				)
+				(number "12"
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+				)
+			)
+			(pin bidirectional line
+				(at -12.7 -5.08 0)
+				(length 2.54)
+				(name "SDx"
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+				)
+				(number "2"
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+				)
+			)
+			(pin input line
+				(at -12.7 -7.62 0)
+				(length 2.54)
+				(name "SCx"
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+				)
+				(number "3"
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+				)
+			)
+			(pin output line
+				(at 12.7 7.62 180)
+				(length 2.54)
+				(name "INT1"
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+				)
+				(number "4"
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+				)
+			)
+			(pin output line
+				(at 12.7 5.08 180)
+				(length 2.54)
+				(name "INT2"
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+				)
+				(number "9"
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+				)
+			)
+			(pin no_connect line
+				(at 12.7 -5.08 180)
+				(length 2.54)
+				(name "NC"
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+				)
+				(number "10"
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+				)
+			)
+			(pin no_connect line
+				(at 12.7 -7.62 180)
+				(length 2.54)
+				(name "NC"
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+				)
+				(number "11"
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+				)
+			)
+			(pin power_in line
+				(at -2.54 15.24 270)
+				(length 2.54)
+				(name "VDD"
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+				)
+				(number "8"
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+				)
+			)
+			(pin power_in line
+				(at 2.54 15.24 270)
+				(length 2.54)
+				(name "VDDIO"
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+				)
+				(number "5"
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+				)
+			)
+			(pin power_in line
+				(at -2.54 -15.24 90)
+				(length 2.54)
+				(name "GND"
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+				)
+				(number "6"
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+				)
+			)
+			(pin passive line
+				(at 2.54 -15.24 90)
+				(length 2.54)
+				(name "GND"
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+				)
+				(number "7"
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+				)
+			)
+		)
+	)
+	(symbol "AP7361C-33E"
+		(pin_names
+			(offset 1.016)
+		)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(in_pos_files yes)
+		(duplicate_pin_numbers_are_jumpers no)
+		(property "Reference" "U"
+			(at 0 7.62 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "AP7361C-33E"
+			(at 0 5.08 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Package_TO_SOT_SMD:SOT-223-3_TabPin2"
+			(at 0 0 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+					(italic yes)
+				)
+			)
+		)
+		(property "Datasheet" "https://www.diodes.com/assets/Datasheets/AP7361C.pdf"
+			(at 0 0 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Description" "1A ultra-low-dropout linear regulator, fixed 3.3V, SOT-223 (tab = pin 2 = GND)"
+			(at 0 0 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "ki_keywords" "LDO regulator linear 3.3V"
+			(at 0 0 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "ki_fp_filters" "SOT?223*TabPin2*"
+			(at 0 0 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(hide yes)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(symbol "AP7361C-33E_0_1"
+			(rectangle
+				(start -6.35 3.81)
+				(end 6.35 -5.08)
+				(stroke
+					(width 0.254)
+					(type default)
+				)
+				(fill
+					(type background)
+				)
+			)
+		)
+		(symbol "AP7361C-33E_1_1"
+			(pin power_in line
+				(at -8.89 0 0)
+				(length 2.54)
+				(name "IN"
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+				)
+				(number "1"
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+				)
+			)
+			(pin power_out line
+				(at 8.89 0 180)
+				(length 2.54)
+				(name "OUT"
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+				)
+				(number "3"
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+				)
+			)
+			(pin power_in line
+				(at 0 -7.62 90)
+				(length 2.54)
+				(name "GND"
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+				)
+				(number "2"
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+				)
+			)
+		)
+	)
+)
