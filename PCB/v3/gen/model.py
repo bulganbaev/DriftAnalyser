@@ -67,17 +67,18 @@ _add(
          {"1": "VIN", "2": "GND", "3": "NC", "4": "LM_VCAP", "5": "VIN", "6": "LM_GATE",
           "7": "NC", "8": "VBUS"},
          "power", mpn="LM74700QDDFRQ1", mfr="Texas Instruments"),
-    # VCAP >= 10 x Ciss (SNOSD17G 10.1.1.2.3): 2 x 4.6 nF (BSC010N04LS6) -> >= 92 nF, use 220 nF.
-    # Cap sits VCAP-ANODE (VCAP-ANODE abs max 15 V).
+    # VCAP >= 10 x Ciss (SNOSD17G 10.1.1.2.3): 2 x 5.2 nF typ / 6.5 nF max (BSC016N06NS)
+    # -> >= 130 nF worst case, use 220 nF. Cap sits VCAP-ANODE (VCAP-ANODE abs max 15 V).
     C("C2", "220nF 25V", "LM_VCAP", "VIN", "power", "0603"),
-    # BSC010N04LS6 (Infineon OptiMOS 6, Rev 2.0 2018-07-31): 40 V, 1.0 mOhm @10 V / 1.4 mOhm @4.5 V,
-    # VGS +-20 V (LM74700 drives <= 13 V), Vth 1.3-2.3 V, Ciss 4.6 nF, PG-TDSON-8 FL.
-    # Pins 1-3 S, 4 G, 5-8 + tab D -> KiCad TDSON-8-1 pad 5 = drain. Source on VIN (anode),
-    # drain on VBUS (cathode); two in parallel for the strip current.
-    Part("Q1", "BSC010N04LS6", pins={"1": "VIN", "2": "VIN", "3": "VIN", "4": "LM_GATE", "5": "VBUS"},
-         sheet="power", mpn="BSC010N04LS6ATMA1", mfr="Infineon", **_FET),
-    Part("Q2", "BSC010N04LS6", pins={"1": "VIN", "2": "VIN", "3": "VIN", "4": "LM_GATE", "5": "VBUS"},
-         sheet="power", mpn="BSC010N04LS6ATMA1", mfr="Infineon", **_FET),
+    # BSC016N06NS (Infineon OptiMOS 5, datasheet Rev 2.6 2025-05-11): 60 V (TI SNOSD17G
+    # 10.1.1.2.2 recommends 60 V: ISO 7637 pulse 1 puts TVS clamp + VBUS ~55 V across the FET),
+    # RDS(on) 1.4/1.6 mOhm @10 V, 1.9/2.4 mOhm @6 V, VGS +-20 V (LM74700 drives <= 13 V),
+    # Vth 2.1/2.8/3.3 V, Ciss 5.2 nF typ, PG-TDSON-8. Pins 1-3 S, 4 G, 5-8 + tab D -> KiCad
+    # TDSON-8-1 pad 5 = drain. Source on VIN (anode), drain on VBUS (cathode); two in parallel.
+    Part("Q1", "BSC016N06NS", pins={"1": "VIN", "2": "VIN", "3": "VIN", "4": "LM_GATE", "5": "VBUS"},
+         sheet="power", mpn="BSC016N06NSATMA1", mfr="Infineon", **_FET),
+    Part("Q2", "BSC016N06NS", pins={"1": "VIN", "2": "VIN", "3": "VIN", "4": "LM_GATE", "5": "VBUS"},
+         sheet="power", mpn="BSC016N06NSATMA1", mfr="Infineon", **_FET),
     # COUT: 47 uF typ in Fig 10-2; v2 bulk + MLCC.
     Part("C3", "100uF 50V", "Device:C_Polarized", "Capacitor_SMD:CP_Elec_8x10.5",
          {"1": "VBUS", "2": "GND"}, "power", lcsc="C2983550", mpn="GVZ1H107M0810CNVC", mfr="HRK"),
@@ -140,8 +141,12 @@ _add(
     # sensor 5 V: TPS2553DBV (TI SLVS841F): 1 IN, 2 GND, 3 EN (active high), 4 /FAULT, 5 ILIM, 6 OUT.
     # RILIM 210k -> IOS 110/130/150 mA (Electrical Characteristics table); IN cap >= 0.1 uF.
     Part("U6", "TPS2553DBV", "da3:TPS2553DBV", "Package_TO_SOT_SMD:SOT-23-6",
-         {"1": "5V", "2": "GND", "3": "SENS_5V_EN", "4": "SENS_5V_FLT", "5": "SENS_ILIM", "6": "5V_SENS"},
+         {"1": "5V", "2": "GND", "3": "SENS_5V_EN", "4": "SENS_5V_FLT", "5": "SENS_ILIM", "6": "5V_SENS_SW"},
          "power", mpn="TPS2553DBVR", mfr="Texas Instruments"),
+    # reverse block: a harness short of 5V_SENS to +12 V must not back-drive U6 (OUT abs max 7 V).
+    # SS34 40 V / 3 A; ~0.3 V drop at 100 mA -> ~4.7 V at the sensor.
+    Part("D7", "SS34", "Device:D_Schottky", "Diode_SMD:D_SMA",
+         {"1": "5V_SENS", "2": "5V_SENS_SW"}, "power", lcsc="C8678", mpn="SS34", mfr="MDD"),
     R("R11", "210k", "SENS_ILIM", "GND", "power", "0603"),
     R("R12", "100k", "SENS_5V_EN", "GND", "power", "0603", lcsc="C25803", mpn="0603WAF1003T5E", mfr="UNI-ROYAL"),  # off until firmware enables (PCA9555 powers up as input)
     R("R13", "100k", "SENS_5V_FLT", "3V3", "power", "0603", lcsc="C25803", mpn="0603WAF1003T5E", mfr="UNI-ROYAL"),

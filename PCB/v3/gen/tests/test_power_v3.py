@@ -17,5 +17,13 @@ def test_hold_pulled_down():
     assert pulls, "HOLD needs a pull-down so a blank board sleeps"
 
 def test_sensor_supply_behind_current_limiter():
-    both = {r for r, _ in n()["5V"]} & {r for r, _ in n()["5V_SENS"]}
-    assert both == {"U6"}, both  # only the limiter joins them
+    # 5V -> U6 -> 5V_SENS_SW -> D7 -> 5V_SENS: only the limiter, then only the diode
+    assert {r for r, _ in n()["5V"]} & {r for r, _ in n()["5V_SENS"]} == set()
+    assert {r for r, _ in n()["5V"]} & {r for r, _ in n()["5V_SENS_SW"]} == {"U6"}
+    assert {r for r, _ in n()["5V_SENS_SW"]} & {r for r, _ in n()["5V_SENS"]} == {"D7"}
+
+def test_limiter_output_behind_reverse_diode():
+    u6 = model.by_ref("U6")
+    assert u6.pins["6"] != "5V_SENS"
+    d = model.by_ref("D7")
+    assert d.symbol == "Device:D_Schottky" and d.pins == {"1": "5V_SENS", "2": u6.pins["6"]}  # K out, A from U6
