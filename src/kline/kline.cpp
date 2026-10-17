@@ -26,6 +26,7 @@ static unsigned long secondStart = 0;
 
 const unsigned long REPLY_TIMEOUT = 400;  // echo + 300 ms for the ECU
 const unsigned long GAP = 10;             // between requests
+const unsigned long GAP_AFTER_ERROR = 100; // let the ECU finish a reply we gave up on (45 bytes ~ 52 ms)
 
 static String hex(const uint8_t* b, size_t n) {
     String s;
@@ -69,9 +70,9 @@ static void send() {
     sentAt = millis();
 }
 
-static void finish(unsigned long now) {
+static void finish(unsigned long now, bool error = false) {
     waiting = false;
-    nextAt = now + GAP;
+    nextAt = now + (error ? GAP_AFTER_ERROR : GAP);
 }
 
 static void onFrame(const uint8_t* f, size_t n) {
@@ -91,7 +92,7 @@ static void onFrame(const uint8_t* f, size_t n) {
     vehicle.rpm = ms43.rpm;
     vehicle.speed = ms43.speed;
     vehicle.throttle = ms43PedalPercent(ms43.pedalDeg);
-    vehicle.temp = (int8_t)lroundf(ms43.coolantC);
+    vehicle.temp = (int8_t)constrain(lroundf(ms43.coolantC), -128L, 127L);
     vehicle.lastUpdate = millis();
 }
 
@@ -114,13 +115,13 @@ void klineTick() {
         else if (r == Ds2Parser::BAD_LEN) klineStats.badLen++;
         else klineStats.badSum++;
         if (r != Ds2Parser::DONE && customInFlight) customReply = "error";
-        finish(now);
+        finish(now, r != Ds2Parser::DONE);
         return;
     }
     if (now - sentAt > REPLY_TIMEOUT) {
         klineStats.timeouts++;
         if (customInFlight) customReply = "timeout";
-        finish(now);
+        finish(now, true);
     }
 }
 

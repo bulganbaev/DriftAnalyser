@@ -26,7 +26,7 @@ void powerBegin() {
     digitalWrite(STATUS_LED_PIN, HIGH);
     analogReadResolution(12);
     analogSetPinAttenuation(VBAT_SENSE_PIN, ADC_11db);
-    analogSetPinAttenuation(LED_ISENSE_PIN, ADC_11db);
+    analogSetPinAttenuation(LED_ISENSE_PIN, ADC_6db);  // ~1.75 V full scale: ~84 A, better low end than 11 dB
     power.vbat = vbatFromAdc(analogReadMilliVolts(VBAT_SENSE_PIN) / 1000.0f);
 }
 

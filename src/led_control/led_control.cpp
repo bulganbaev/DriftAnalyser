@@ -3,6 +3,7 @@
 #include "settings/settings.h"
 #include "vehicle/vehicle.h"
 #include "imu/imu.h"
+#include "power/power.h"
 
 const int ledPins[NUM_STRIPS] = {LED_PIN_1, LED_PIN_2, LED_PIN_3, LED_PIN_4, LED_PIN_5, LED_PIN_6};
 
@@ -385,7 +386,8 @@ void runAnimations() {
     }
 
     int brightness = can_setting.brightess;
-    bool blackout = !drive.masterOn || !frameShown;
+    // no data into unpowered strips (latched or master off)
+    bool blackout = !drive.masterOn || !frameShown || !power.on;
     if (!blackout && !engineOn()) {
         if (drive.engineOff == 2) blackout = true;
         else if (drive.engineOff == 1) brightness = brightness * constrain(drive.engineOffDim, 0, 100) / 100;

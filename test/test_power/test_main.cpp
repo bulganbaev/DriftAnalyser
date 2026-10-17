@@ -31,9 +31,9 @@ void test_sustained_overcurrent_trips_after_hold() {
 
 void test_fault_voltage_trips_first() {
     PowerLatch l;
-    TEST_ASSERT_EQUAL(PowerLatch::NONE, l.update(0, 140.0f, 3.0f, MAX_A));
-    TEST_ASSERT_EQUAL(PowerLatch::NONE, l.update(40, 140.0f, 3.0f, MAX_A));
-    TEST_ASSERT_EQUAL(PowerLatch::FAULT, l.update(50, 140.0f, 3.0f, MAX_A));
+    TEST_ASSERT_EQUAL(PowerLatch::NONE, l.update(0, 80.0f, 1.7f, MAX_A));
+    TEST_ASSERT_EQUAL(PowerLatch::NONE, l.update(40, 80.0f, 1.7f, MAX_A));
+    TEST_ASSERT_EQUAL(PowerLatch::FAULT, l.update(50, 80.0f, 1.7f, MAX_A));
 }
 
 void test_millis_wraparound() {
