@@ -40,6 +40,9 @@ class TestPcb(unittest.TestCase):
             pos = self.fps[ref].GetPosition()
             self.assertAlmostEqual(_mm(pos.x), x, delta=0.001, msg=ref)
             self.assertAlmostEqual(_mm(pos.y), y, delta=0.001, msg=ref)
+            fp = self.fps[ref]
+            self.assertAlmostEqual(fp.GetOrientationDegrees() % 360, rot % 360, delta=0.001, msg=ref)
+            self.assertEqual(fp.GetLayer(), pcbnew.F_Cu if side == "F" else pcbnew.B_Cu, ref)
 
     def test_outline_and_holes(self):
         bb = self.board.GetBoardEdgesBoundingBox()
@@ -74,6 +77,18 @@ class TestPcb(unittest.TestCase):
             if ref.startswith("H"):
                 self.assertFalse(_intersects(fp.GetCourtyard(pcbnew.F_CrtYd), ears), ref)
 
+    def test_bottom_holes_clear_of_stud_and_module(self):
+        """>= 0.5 mm between the hole courtyard (r 3.45) and J2 / U1: room for a washer."""
+        r = 3.45 + 0.5
+        sx, sy, _, _ = placement.PLACE["J2"]
+        bb = self.fps["U1"].GetCourtyard(pcbnew.F_CrtYd).BBox()
+        ux0, uy0, ux1, uy1 = (_mm(v) for v in (bb.GetLeft(), bb.GetTop(), bb.GetRight(), bb.GetBottom()))
+        for hx, hy in placement.HOLES[2:]:
+            self.assertGreaterEqual(((hx - sx) ** 2 + (hy - sy) ** 2) ** 0.5, 10.0 + r)
+            dx = max(ux0 - hx, 0.0, hx - ux1)
+            dy = max(uy0 - hy, 0.0, hy - uy1)
+            self.assertGreaterEqual((dx * dx + dy * dy) ** 0.5, r)
+
     def test_courtyards_inside_board(self):
         for ref, fp in self.fps.items():
             if ref == "J1":          # its mating end goes out through the case wall
@@ -98,7 +113,7 @@ class TestPcb(unittest.TestCase):
     def test_silk_labels_present(self):
         texts = {t.GetText() for t in self.board.GetDrawings() if isinstance(t, pcbnew.PCB_TEXT)}
         for want in ("DriftAnalyser v3", "1", "+12V", "JP1 K-LINE", "JP2 CAN TERM",
-                     "BOOT", "EN", "USB"):
+                     "BOOT", "EN", "USB", "IMU", "X", "Y"):
             self.assertIn(want, texts)
 
 

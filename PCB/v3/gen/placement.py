@@ -17,7 +17,8 @@ CORNER_R = 3.0
 
 # M3, 3.2 mm. The top pair sits below J1's body: the connector's courtyard is
 # 46.5 mm of the 55 mm edge, which leaves no room for a hole beside it.
-HOLES = [(3.8, 27.4), (51.2, 27.4), (3.8, BOARD_H - 3.8), (51.2, BOARD_H - 3.8)]
+# The bottom pair keeps >= 0.5 mm from the stud's and U1's courtyards (screw head / washer).
+HOLES = [(3.8, 27.4), (51.2, 27.4), (3.5, BOARD_H - 3.5), (51.5, BOARD_H - 3.5)]
 
 # WROOM-1U has a u.FL, not a PCB antenna: no keep-out on this board.
 ANTENNA_KEEPOUT = None
@@ -75,11 +76,16 @@ PLACE = {
     "R9": (13.0, 56.1, 0, "F"), "R10": (13.0, 57.9, 0, "F"),
     "D6": (19.4, 57.0, 0, "F"), "C11": (24.4, 57.2, 90, "F"),
 
-    # ---- bulk, TVS, ideal diode, just above the stud
-    "C3": (6.5, 64.0, 0, "F"), "D1": (16.4, 64.2, 90, "F"), "C4": (21.9, 64.0, 90, "F"),
-    "Q1": (4.12, 73.5, 0, "F"), "Q2": (11.52, 73.5, 0, "F"),
-    "U2": (17.9, 72.0, 0, "F"), "C1": (22.5, 70.6, 0, "F"), "C2": (22.5, 72.4, 0, "F"),
-    "J2": (13.5, BOARD_H - 13.5, 0, "F"),
+    # ---- the power path reads bottom to top: stud -> D1 (TVS on VIN) -> Q1/Q2
+    # sources -> drain tabs -> VBUS (C3 bulk beside them, then up to the switches).
+    # The FETs at rot 90 turn local -x (sources 1..3, gate 4) down to the stud and
+    # the drain tab up. U2 sits left of D1: ANODE/GATE/CATHODE (pins 5..8) face the
+    # FETs' gates and sources, VCAP (pin 4) faces C2.
+    "J2": (14.0, BOARD_H - 13.5, 0, "F"),
+    "D1": (18.8, 72.9, 0, "F"),
+    "Q1": (15.85, 65.1, 90, "F"), "Q2": (21.7, 65.1, 90, "F"),
+    "C3": (6.5, 64.0, 0, "F"), "C4": (2.0, 73.6, 90, "F"),
+    "U2": (10.5, 71.0, 0, "F"), "C1": (10.5, 74.4, 0, "F"), "C2": (7.6, 71.0, 90, "F"),
 
     # ---- IMU near the board centre, LDO, sensor 5 V switch, wake: middle column
     "U3": (29.8, 49.3, 0, "F"), "C19": (26.6, 49.3, 90, "F"), "C36": (33.0, 49.3, 90, "F"),
@@ -89,10 +95,10 @@ PLACE = {
     "C14": (25.4, 66.8, 90, "F"), "C15": (34.4, 66.8, 90, "F"),
     "R5": (25.4, 70.4, 90, "F"), "R6": (27.1, 70.4, 90, "F"), "R7": (28.8, 70.4, 90, "F"),
     "R8": (30.5, 70.4, 90, "F"), "R19": (32.2, 70.4, 90, "F"),
-    "D4": (19.8, 75.4, 0, "F"), "D5": (22.9, 75.4, 0, "F"),
+    "D4": (2.0, 69.9, 0, "F"), "D5": (5.2, 69.9, 0, "F"),
 
     # ---- ESP32 in the bottom-right corner, u.FL (module top right) at the right wall
-    "U1": (44.75, BOARD_H - 17.65, 0, "F"),
+    "U1": (44.75, BOARD_H - 17.8, 0, "F"),
     "R14": (26.1, 72.9, 0, "F"), "C18": (29.4, 72.9, 0, "F"), "C17": (32.7, 72.9, 0, "F"),
     "SW2": (29.6, 78.0, 0, "F"),
     "D8": (28.5, 83.6, 0, "F"), "C16": (33.9, 83.6, 90, "F"),
@@ -110,9 +116,9 @@ PLACE = {
     "R73": (49.25, 58.4, 90, "F"), "J4": (53.1, 57.4, 0, "F"),
     "D9": (52.2, 69.7, 90, "F"), "R16": (53.9, 69.7, 90, "F"),
     "R1": (36.4, 64.6, 90, "F"), "R2": (38.1, 64.6, 90, "F"), "C5": (39.8, 64.6, 90, "F"),
-    "R3": (41.5, 64.6, 90, "F"), "R4": (36.4, 67.8, 90, "F"), "C6": (38.1, 67.8, 90, "F"),
+    "R3": (41.5, 64.6, 90, "F"), "R4": (36.4, 67.77, 90, "F"), "C6": (38.1, 67.77, 90, "F"),
     "D2": (45.3, 63.6, 0, "F"), "D3": (45.3, 67.4, 0, "F"),
     **{f"R{74 + i}": (48.4 + 1.7 * (i % 2), 64.0 + 3.2 * (i // 2), 90, "F") for i in range(6)},
-    "R80": (39.8, 67.8, 90, "F"), "R81": (41.5, 67.8, 90, "F"),
-    **{f"R{82 + i}": (36.4 + 1.7 * i, 70.9, 90, "F") for i in range(4)},
+    "R80": (39.8, 67.77, 90, "F"), "R81": (41.5, 67.77, 90, "F"),
+    **{f"R{82 + i}": (36.4 + 1.7 * i, 70.82, 90, "F") for i in range(4)},
 }

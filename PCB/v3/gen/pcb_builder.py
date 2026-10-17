@@ -1028,6 +1028,17 @@ def _silk(board):
     sx, sy, _, _ = placement.PLACE["J2"]
     _text(board, "+12V", 1.8, sy, size=1.4, rot=90, bold=True)
 
+    # ---- IMU axes. U3 sits at rot 0 with LGA pad 1 top-left, which is the
+    # LSM6DS3TR-C datasheet's top view: sensor +X points at the board's right
+    # edge, +Y at J1 (top edge), +Z out of the front. No free silk beside U3
+    # itself, so the legend sits in the open corner left of the stud.
+    ox, oy = 1.4, sy - 5.5
+    _arrow(board, ox, oy, ox + 3.2, oy)
+    _text(board, "X", ox + 4.1, oy, size=0.8, bold=True)
+    _arrow(board, ox, oy, ox, oy - 3.0)
+    _text(board, "Y", ox, oy - 3.8, size=0.8, bold=True)
+    _text(board, "IMU", ox + 2.2, oy + 1.4, size=0.8)
+
     # ---- buttons and USB: their bodies cover their own footprints, so beside them
     x, y, _, _ = placement.PLACE["SW1"]
     _text(board, "BOOT", x - 5.75, y, size=0.8, rot=90, bold=True)
