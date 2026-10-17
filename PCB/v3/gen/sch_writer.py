@@ -41,7 +41,7 @@ DOC_UUID = {s: f"0d6f1c2a-0000-4000-8000-00000000002{i}" for i, s in enumerate(S
 
 # One power:PWR_FLAG per net here, placed on the power sheet, so ERC sees a driver for
 # nets that only have power_in pins on them. Nets that already own a power_out pin
-# (3V3 from U8, 5V_SENS from U6) must NOT get a flag: two power outputs on one net is
+# (3V3 from U8, 5V_SENS_SW from U6) must NOT get a flag: two power outputs on one net is
 # an ERC error.
 FLAG_NETS = ("VIN", "VBUS", "GND", "5V", "VBUS_USB", "5V_BUCK")
 
@@ -349,10 +349,10 @@ def _write(path, doc):
 
 SYM_LIB_TABLE = ('(sym_lib_table\n  (version 7)\n'
                  '  (lib (name "da3")(type "KiCad")(uri "${KIPRJMOD}/lib/da3.kicad_sym")'
-                 '(options "")(descr "DriftAnalyser v2 custom symbols"))\n)\n')
+                 '(options "")(descr "DriftAnalyser v3 custom symbols"))\n)\n')
 FP_LIB_TABLE = ('(fp_lib_table\n  (version 7)\n'
                 '  (lib (name "da3")(type "KiCad")(uri "${KIPRJMOD}/lib/da3.pretty")'
-                '(options "")(descr "DriftAnalyser v2 custom footprints"))\n)\n')
+                '(options "")(descr "DriftAnalyser v3 custom footprints"))\n)\n')
 
 
 def write_all():
