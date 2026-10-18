@@ -316,9 +316,10 @@ def svg_top():
                  f'stroke="#111" stroke-width="0.3"/>')
         o.append(f'<text class="lb" x="{X(sx)}" y="{Y(sy) + 1.2}" text-anchor="middle" font-weight="700">'
                  f'{"+12V" if ref == "J2" else "GND"}</text>')
-    ux = X(E.J3_X)
-    o.append(f'<rect x="{ux - 6.5}" y="{Y(Y1) - 0.6}" width="13" height="1.2" fill="#111"/>')
-    o.append(f'<text class="lb" x="{ux}" y="{Y(Y1) + 4.2}" text-anchor="middle">USB-C</text>')
+    if E.USB_OPENING:
+        ux = X(E.J3_X)
+        o.append(f'<rect x="{ux - 6.5}" y="{Y(Y1) - 0.6}" width="13" height="1.2" fill="#111"/>')
+        o.append(f'<text class="lb" x="{ux}" y="{Y(Y1) + 4.2}" text-anchor="middle">USB-C</text>')
     # dimensions
     oy = Y(Y1)
     o.append(dim_h(X0, X1, oy - 9, oy - 1, oy - 1, fmt(X1 - X0) + " мм"))
@@ -498,7 +499,7 @@ def build_html():
 <tr><td>Входы</td><td>IN1–IN3: цифровые (на GND / на +12V) или аналоговые 0–16 В</td></tr>
 <tr><td>Питание датчиков</td><td>+5V датчиков ≈ 4,7 В, с ограничением тока</td></tr>
 <tr><td>Датчик движения</td><td>акселерометр + гироскоп (6 осей), встроенный</td></tr>
-<tr><td>Настройка</td><td>Wi-Fi (ESP32-S3), внешняя антенна SMA; USB-C на задней стенке — сервис и прошивка</td></tr>
+<tr><td>Настройка</td><td>Wi-Fi (ESP32-S3), внешняя антенна SMA; обновление прошивки по воздуху. USB-C внутри корпуса — только для первой прошивки и восстановления (снять крышку)</td></tr>
 <tr><td>Разъём</td><td>TE Superseal 1.0, 34 конт.: 6437288-1, ответная часть 4-1437290-0</td></tr>
 <tr><td>Силовые клеммы</td><td>2 × Würth REDCUBE 7461059, внутренняя резьба M6</td></tr>
 <tr><td>Габариты</td><td>{fmt(E.X1 - E.X0)} × {fmt(E.Y1 - E.Y0)} мм, высота {fmt(E.HOOD_TOP)} мм; {fmt(E.X1 - E.X0 + 2 * E.EAR_L)} мм по крепёжным ушам (предварительно)</td></tr>
@@ -609,7 +610,7 @@ def build_html():
 <p>Крепление — 4 болта M5 через уши на основании. Монтировать на ровную площадку, по возможности
 подальше от источников тепла и в сухом месте.</p>
 <p>Спереди оставить место под ответную часть разъёма и жгут: ≈ 40 мм + изгиб жгута.</p>
-<p>Силовые кабели к клеммам +12V / GND подходят сзади; USB-C — на задней стенке, антенна SMA — на боковой стенке.</p>
+<p>Силовые кабели к клеммам +12V / GND подходят сзади, антенна SMA — на боковой стенке. Корпус закрытый: USB-C внутри, доступ — со снятой крышкой.</p>
 </div>
 <img class="iso" src="data:image/jpeg;base64,{iso}" alt="DriftAnalyser v3">
 </div>

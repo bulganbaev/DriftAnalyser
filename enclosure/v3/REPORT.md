@@ -36,7 +36,7 @@ Bare board with all mating parts: `out/render-board-mated-iso-j1.png`, `-iso-stu
 - Second M6 stud J5 (battery negative, GND) at (44.4, 96.3), same stack as J2 at (14, 86.5): brass spacer through a PA66/PEEK sleeve, ring lug, washer, M6 bolt, boot. J2 boot and cable red, J5 black.
 - Both lug tongues point to the rear (+board y). Two fingers on each sleeve flange (|x| 4.3–5.5, 5.8–8.6 behind the stud axis) flank the tongue so a lug can't swing toward the other stud; they're on the insulating sleeve, not the aluminium lid, since the lug is live. The boot has a matching tongue channel.
 - Stud spacing: centres 31.9, ring lug to ring lug 17.9, bolt head to bolt head 21.2, boot to boot 7.9 (measured on the solids).
-- USB-C J3 now at x 14 on the bottom edge (shell 9.5–18.5, front at y 111.3); the 13 × 7.5 rear-wall slot follows it.
+- USB-C J3 at x 14 on the bottom edge (shell 9.5–18.5, front at y 111.3). **No rear-wall opening** (USB_OPENING = False, 2026-10-18): USB is only for the first flash with the lid off, updates go over the air. Set USB_OPENING = True to cut the 13 × 7.5 slot again.
 - U1 at (45.1, 57.3); u.FL at (51.1, 50.2) from the footprint's fab circle. The SMA bulkhead hole moved to y 50.2, still 7.5 above the board top. Inner nut (AF8, flats up): 0.3 above the U1 can's corner (overlaps it by 0.65 in x), 1.0 under the lid.
 - Middle lid-screw pilasters moved to y 63 (clear of the SMA spot face), rear pair to y 110; ears to y 32 / 88.
 - Heat pedestals from the routed copper, 2 mm high with a 1.0 mm insulating pad (drawn, light blue):

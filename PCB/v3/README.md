@@ -110,6 +110,10 @@ from the datasheets (estimate, **not measured**):
 
 ## Firmware notes (fw-v3)
 
+- **Updates over the air only.** The case has no USB opening: J3 USB-C is for the first flash and
+  recovery with the lid off. fw-v3 must keep OTA safe: two app slots (`ota_0`/`ota_1` in a 16 MB
+  partition table), rollback if the new image does not confirm itself, and OTA reachable from the
+  web UI over the unit's own Wi-Fi AP.
 - Pin map: `gen/pinmap.py` (ESP32 GPIOs and the PCA9555 ports). U14 PCA9555 is at **I2C 0x20**:
   P00..P07 = LED1..8 IN, P10..P13 = DEN1..4, P14 = DSEL, P15 = CAN_S, P16 = status LED, P17 = sensor 5 V EN.
   Every switch input has a 10k pull-down, so all channels are off until the expander is written.

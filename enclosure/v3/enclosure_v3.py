@@ -114,7 +114,9 @@ UFL_XY = (51.1, 50.2)  # U1 u.FL (fab circle of ESP32-S3-WROOM-1U at (45.1, 57.3
 SMA_Z = 7.5            # above the board top: nut AF8 clears U1 (3.2) and the lid (12.5)
 SMA_HOLE = 6.5
 
-# USB-C (J3, HRO TYPE-C-31-M-12) opening in the rear wall, room for the plug overmold
+# USB-C (J3, HRO TYPE-C-31-M-12): only for the first flash with the lid off, updates go over the air,
+# so the case is closed. USB_OPENING = True cuts a rear-wall slot with room for the plug overmold.
+USB_OPENING = False
 J3_X = P.PLACE["J3"][0]
 USB_SLOT = (13.0, 7.5)   # length x height, rounded ends
 
@@ -227,7 +229,8 @@ def make_base():
     # SMA bulkhead hole + outside spot face
     base = base.cut(cyl_x(BW, X1 + 1, UFL_XY[1], T + SMA_Z, SMA_HOLE))
     base = base.cut(cyl_x(X1 - 0.5, X1 + 1, UFL_XY[1], T + SMA_Z, 12.0))
-    # USB-C opening in the rear wall
+    if not USB_OPENING:
+        return base
     L, H = USB_SLOT
     usb = (cq.Workplane("XZ").slot2D(L, H).extrude(WALL + 2)
            .translate((J3_X, -(BH + CLR - 1), T + 1.6)))
