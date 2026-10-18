@@ -34,3 +34,11 @@ def test_j1_part_matches_table():
     for key, pin in model.J1_PIN.items():
         want = "GND" if key.endswith("_GND") else key
         assert j1.pins[pin] == want, (key, pin, j1.pins[pin])
+
+
+def test_readme_j1_table_is_the_models():
+    import os
+    from gen import env, export
+    text = open(os.path.join(env.PROJECT_DIR, "README.md")).read()
+    a, b = text.index(export.J1_BEGIN), text.index(export.J1_END)
+    assert text[a:b + len(export.J1_END)] == export.j1_table()
