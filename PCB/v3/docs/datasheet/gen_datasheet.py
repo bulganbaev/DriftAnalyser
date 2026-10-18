@@ -17,13 +17,13 @@ sys.path.insert(0, os.path.join(ROOT, "enclosure", "v3"))
 from gen.model import J1_PIN  # noqa: E402
 import enclosure_v3 as E  # noqa: E402
 
-DOC = "DA-TD-001"
+DOC = "ZVER-L8-TD-001"
 REV = "rev 0.3"
 DATE = "2026-10"
 STATUS = "предварительная"
 CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 HTML = os.path.join(HERE, "datasheet.html")
-PDF = os.path.join(HERE, "DriftAnalyser_V1.0_datasheet.pdf")
+PDF = os.path.join(HERE, "ZVER_L8_datasheet.pdf")
 
 INK = "#15171A"
 ACC = "#FF5A1F"  # signal orange, used sparingly
@@ -310,7 +310,7 @@ def nodes(x, y):
 
 
 def svg_can1():
-    s = [box(10, 70, 80, 46, "ЭБУ"), box(225, 10, 110, 46, "DriftAnalyser", "CAN 18/19", True),
+    s = [box(10, 70, 80, 46, "ЭБУ"), box(225, 10, 110, 46, "ZVER L8", "CAN 18/19", True),
          box(225, 130, 110, 46, "Другие блоки", "шина авто")]
     s.append(bus(90, 280, 93, "CAN 500 кбит/с"))
     s.append(vbus(280, 56, 130))
@@ -320,7 +320,7 @@ def svg_can1():
 
 def svg_can2():
     s = [box(10, 10, 80, 46, "ЭБУ"), box(10, 130, 80, 46, "Панель", "eDash"),
-         box(225, 130, 110, 46, "DriftAnalyser", "CAN 18/19", True)]
+         box(225, 130, 110, 46, "ZVER L8", "CAN 18/19", True)]
     s.append(vbus(50, 56, 130))
     s.append(f'<text x="60" y="98" font-size="11" fill="{INK}">CAN1</text>')
     s.append(bus(90, 225, 153, "CAN2 · 1 Мбит/с"))
@@ -344,7 +344,7 @@ def svg_power():
     # unit
     s.append(f'<rect x="250" y="40" width="190" height="165" fill="#F4F5F6" stroke="{blk}" stroke-width="1.6"/>')
     s.append(f'<rect x="250" y="40" width="190" height="6" fill="{blk}"/>')
-    s.append(f'<text x="345" y="125" text-anchor="middle" font-size="15" font-weight="700" fill="{blk}">DriftAnalyser V1.0</text>')
+    s.append(f'<text x="345" y="125" text-anchor="middle" font-size="15" font-weight="700" fill="{blk}">ZVER L8</text>')
     s.append(f'<rect x="272" y="49" width="26" height="26" fill="{RED}" stroke="{blk}"/><text x="285" y="67" text-anchor="middle" '
              'font-size="13" fill="#fff" font-weight="700">+</text>')
     s.append(f'<rect x="272" y="170" width="26" height="26" fill="{blk}" stroke="{blk}"/><text x="285" y="188" text-anchor="middle" '
@@ -673,12 +673,12 @@ def alert(title, body):
 
 
 def page(n, body, cover=False):
-    band = (f'<div class="band"><div class="vt">DRIFTANALYSER V1.0 <i>■</i> {DOC}</div></div>')
-    head = "" if cover else (f'<div class="rh"><b>DriftAnalyser V1.0</b>'
+    band = (f'<div class="band"><div class="vt">ZVER L8 <i>■</i> {DOC}</div></div>')
+    head = "" if cover else (f'<div class="rh"><b>ZVER L8</b>'
                              f'<span>{DOC} · {REV} · {DATE}</span></div>')
     return (f'<section class="page">{band}{head}{body}'
             f'<div class="ftr"><div class="meta"><b>{DOC}</b> · {REV} · {DATE} · {STATUS}<br>'
-            f'Контроллер светодиодных лент · техническое описание</div>'
+            f'ZVER · контроллер светодиодных лент · техническое описание</div>'
             f'<div class="pg">{n:02d}<small><i>/</i>@@TOTAL@@</small></div></div></section>')
 
 
@@ -687,8 +687,8 @@ def cover():
           ("9–16 В", "питание, номинал 12 В"), ("≤1 мА", "ток покоя, IGN выкл."), ("34", "конт. J1, Superseal 1.0")]
     cells = "".join(f'<div><div class="v">{v}</div><div class="l">{lbl}</div></div>' for v, lbl in kf)
     return (f'<div class="cover"><div class="mast"><div class="k">ТЕХНИЧЕСКОЕ ОПИСАНИЕ · {DOC}</div>'
-            f'<div class="nm">DRIFTANALYSER<i>V1.0</i></div>'
-            f'<div class="sub">Контроллер светодиодных лент · аппаратная ревизия 3</div>'
+            f'<div class="nm">ZVER<i>L8</i></div>'
+            f'<div class="sub">Контроллер светодиодных лент, 8 каналов · аппаратная ревизия 3</div>'
             f'<div class="st">{REV} · {DATE} · {STATUS}</div></div>'
             f'<div class="kf">{cells}</div></div>')
 
@@ -785,13 +785,13 @@ TE Superseal 1.0, 34 конт.: <span class="m">6437288-1</span> (блок), <sp
 <p>Контакты <span class="m">18</span> (CAN High) и <span class="m">19</span> (CAN Low), витая пара. Один канал, скорость задаётся в настройках:
 <b class="nw">500 кбит/с</b> — шина ЭБУ, <b>1 Мбит/с</b> — CAN2 панели eDash. Пока CAN не настроен, блок работает
 только на приём (silent) и ничего не передаёт в шину.</p>
-<p>Терминатор 120 Ом — перемычка <b>JP2 внутри корпуса</b>, отдельного контакта терминатора на разъёме нет. JP2 ставится, только если DriftAnalyser — крайнее устройство на шине. На уже
+<p>Терминатор 120 Ом — перемычка <b>JP2 внутри корпуса</b>, отдельного контакта терминатора на разъёме нет. JP2 ставится, только если ZVER L8 — крайнее устройство на шине. На уже
 терминированной шине автомобиля (обычный случай) JP2 не ставится.</p>
 <div class="dias">
-<div><div class="dcap"><b>А</b>Без панели — DriftAnalyser на шине ЭБУ</div>{svg_can1()}
-<div class="dtxt">ЭБУ → шина CAN автомобиля<br>DriftAnalyser → та же шина, 500 кбит/с<br>JP2 — обычно не ставится</div></div>
-<div><div class="dcap"><b>Б</b>С панелью eDash — DriftAnalyser на CAN2 панели</div>{svg_can2()}
-<div class="dtxt">ЭБУ → eDash (CAN1)<br>DriftAnalyser → eDash (CAN2), 1 Мбит/с<br>JP2 — если DriftAnalyser на конце CAN2</div></div>
+<div><div class="dcap"><b>А</b>Без панели — ZVER L8 на шине ЭБУ</div>{svg_can1()}
+<div class="dtxt">ЭБУ → шина CAN автомобиля<br>ZVER L8 → та же шина, 500 кбит/с<br>JP2 — обычно не ставится</div></div>
+<div><div class="dcap"><b>Б</b>С панелью ZVER D7 — ZVER L8 на CAN2 панели</div>{svg_can2()}
+<div class="dtxt">ЭБУ → ZVER D7 (CAN1)<br>ZVER L8 → ZVER D7 (CAN2), 1 Мбит/с<br>JP2 — если ZVER L8 на конце CAN2</div></div>
 </div>
 
 <h2>K-line</h2>
@@ -847,7 +847,7 @@ TE Superseal 1.0, 34 конт.: <span class="m">6437288-1</span> (блок), <sp
 <p>Спереди оставить место под ответную часть разъёма и жгут: ≈ 40 мм + изгиб жгута.</p>
 <p>Силовые кабели к клеммам +12V / GND подходят сзади, антенна SMA — на боковой стенке. Корпус закрытый: USB-C внутри, доступ — со снятой крышкой.</p>
 </div>
-<img class="iso" src="data:image/jpeg;base64,{iso}" alt="DriftAnalyser V1.0">
+<img class="iso" src="data:image/jpeg;base64,{iso}" alt="ZVER L8">
 </div>
 </div>
 {svg_wrap(svb, sbody, "side")}
@@ -857,7 +857,7 @@ TE Superseal 1.0, 34 конт.: <span class="m">6437288-1</span> (блок), <sp
              "&family=IBM+Plex+Sans:wght@400;500;600;700&display=block")
     html = ('<!doctype html><html lang="ru"><head><meta charset="utf-8">'
             '<meta name="viewport" content="width=device-width, initial-scale=1">'
-            f'<title>DriftAnalyser V1.0 · {DOC}</title>'
+            f'<title>ZVER L8 · {DOC}</title>'
             f'<link href="{fonts.replace("&", "&amp;")}" rel="stylesheet">'
             f'<style>{CSS}</style></head><body>' + "".join(pages).replace("@@TOTAL@@", f"{len(pages):02d}")
             + "</body></html>")
