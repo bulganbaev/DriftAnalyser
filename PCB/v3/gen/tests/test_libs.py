@@ -34,8 +34,22 @@ def test_bts7002_footprint_pin_count():
 def test_v3_custom_parts_resolve():
     for sym in ("da3:BTS7008-2EPA", "da3:LM74700-Q1", "da3:LMR36520ADDA", "da3:PCA9555", "da3:TE_6437288-1"):
         assert libs.symbol_exists(sym), sym
-    for fp in ("da3:TE_6437288-1", "da3:Stud_M6", "da3:PG-TSDSO-14"):
+    for fp in ("da3:TE_6437288-1", "da3:Wurth_REDCUBE_7461059", "da3:PG-TSDSO-14"):
         assert libs.footprint_exists(fp), fp
+
+
+def test_redcube_footprint_per_wurth_drawing():
+    """Wurth 7461059: 16 press-fit pins on the perimeter of a 5 x 5 grid at 2.54,
+    finished hole 1.475 (ENIG), all one pad, no centre hole."""
+    d, name = libs.footprint_path("da3:Wurth_REDCUBE_7461059")
+    text = open(os.path.join(d, name + ".kicad_mod")).read()
+    import re
+    pads = re.findall(r'\(pad "1" thru_hole circle\s+\(at ([-\d.]+) ([-\d.]+)\)\s+'
+                      r'\(size 2 2\)\s+\(drill 1.475\)', text)
+    assert len(pads) == 16 == text.count("(pad ")
+    pos = {(round(float(x) / 2.54), round(float(y) / 2.54)) for x, y in pads}
+    assert pos == {(i, j) for i in range(-2, 3) for j in range(-2, 3) if max(abs(i), abs(j)) == 2}
+    assert ("0", "0") not in {(x, y) for x, y in pads}
 
 
 def test_superseal_has_34_pads():

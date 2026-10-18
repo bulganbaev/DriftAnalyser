@@ -616,6 +616,31 @@ def _groups(board, net, islands):
     return list(out.values())
 
 
+# The session carries the builder's fixed copper as it was when the board was
+# routed, under the old one-pad stud footprint. The signals do not go near the
+# studs, so instead of a new session the stud copper is redrawn here from the
+# current builder: no VIN via under J2's body, and J5's via ring (it was a
+# circle at r 9.3 that ran under the body's corners) as pcb_builder._j5_vias
+# draws it now.
+def restud(board):
+    doomed = []
+    jx, jy, _, _ = placement.PLACE["J2"]
+    gx, gy, _, _ = placement.PLACE["J5"]
+    for t in board.Tracks():
+        if t.GetClass() != "PCB_VIA":
+            continue
+        x, y = pcbnew.ToMM(t.GetPosition().x), pcbnew.ToMM(t.GetPosition().y)
+        if t.GetNetname() == "VIN" and max(abs(x - jx), abs(y - jy)) < pcb_builder.STUD_BODY:
+            doomed.append(t)
+        elif (t.GetNetname() == "GND"
+              and math.hypot(x - gx, y - gy) < pcb_builder.J5_DISC_R - 0.45):
+            doomed.append(t)
+    for t in doomed:
+        board.RemoveNative(t)
+    ring = pcb_builder._j5_vias(board, {"GND": board.FindNet("GND")})
+    return len(doomed), len(ring)
+
+
 # J5's GND disc outranks the board-wide GND fill, so the fill is cut back to the
 # disc's edge and the two only meet edge to edge. A row of vias on that seam
 # (centre on the disc's radius, half the barrel in the disc, half in the fill,
@@ -857,6 +882,8 @@ def import_ses(pcb, ses):
     if widened:
         print(f"{widened} necked tracks widened to {MIN_TRACK} mm")
     hand = finish_by_hand(board)
+    gone, ring = restud(board)
+    print(f"studs: {gone} stale vias off, {ring} J5 ring vias")
     seam = j5_seam_vias(board)
     print(f"{len(seam)} vias on the J5 disc / GND fill seam")
     board.BuildConnectivity()

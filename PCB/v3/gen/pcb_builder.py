@@ -477,7 +477,7 @@ LED_IN3 = {
 # ---- VIN: stud -> TVS -> the two FET sources, on F.Cu and on In3 under it.
 # The F pour stops east of U2 (its VBUS sense pin and the gate pin are there)
 # and west of D1's ground pad.
-# (the stud's eight small ring pads are separate copper of the same pad: the
+# (the stud's 16 press-fit pins are separate copper of the same pad: the
 # pours have to take all of them)
 VIN_F = [(13.3, 67.2, 23.0, 70.9), (13.3, 67.2, 20.6, 79.0), (4.8, 77.5, 23.3, 95.9)]
 VIN_IN3 = [(7.0, 67.3, 24.5, 99.2), (4.8, 78.6, 24.5, 99.2)]
@@ -490,12 +490,22 @@ VBUS_F = [(13.4, 58.6, 24.2, 66.6), (0.8, 59.6, 13.6, 62.35), (3.4, 57.9, 11.2, 
 # and under the CAN / K-line block below the ESP32 (the K-line pull-up, the
 # transceiver's battery pin, the battery sense divider)
 VBUS_IN3 = [(0.8, 26.3, 54.2, 66.9), (0.8, 66.9, 6.6, 78.0), (35.0, 66.0, 54.2, 85.9)]
+# ---- the studs: Wurth 7461059 REDCUBE press-fit terminals, a 13 x 13 mm brass
+# block on 16 pins (perimeter of a 5 x 5 grid, 2.54 pitch). Nothing of ours
+# goes under the block: no vias inside STUD_BODY (half size, mm) of either
+# centre - it seats flat on F, and the press tool's support sits under B.
+STUD_BODY = 7.0
+# J2 (+12 V): the F and In3 VIN pours take all 16 pins; on the other four
+# layers a VIN square over the pin field keeps the GND fill (and the router)
+# out from between the pins.
+J2_VIN_HALF = 7.3
 # ---- battery negative: J5, the strips' 35..40 A return. A GND disc on every
-# layer over its courtyard (r 10 - nothing else sits there), fenced off for the
-# router, with a ring of vias round the 14 mm pad on top of the pad's own eight.
-# From there In1 (solid GND, full width) and the GND fills carry it up to J1.
+# layer over the terminal (r 9.9 - the body's corners are at r 9.19), fenced off
+# for the router, with a square ring of vias just outside the body (the pins
+# themselves tie all six layers). From there In1 (solid GND, full width) and the
+# GND fills carry it up to J1.
 J5_DISC_R = 9.9
-J5_VIA_R, J5_VIA_STEP = 9.3, 10.0       # ring radius (mm), angular step (deg)
+J5_RING, J5_RING_STEP = 7.4, 1.27       # ring half size, spacing along it (mm)
 
 
 def _disc(cx, cy, r, n=48):
@@ -540,6 +550,11 @@ def _zones(board, nets):
     gx, gy, _, _ = placement.PLACE["J5"]
     for layer in CU:
         _zone_pts(board, nets["GND"], layer, _disc(gx, gy, J5_DISC_R), priority=2)
+    sx, sy, _, _ = placement.PLACE["J2"]
+    h = J2_VIN_HALF
+    for layer in CU:
+        if layer not in (pcbnew.F_Cu, PWR):
+            _zone(board, nets["VIN"], layer, [(sx - h, sy - h, sx + h, sy + h)], priority=2)
     hw, top, bot = SW_B
     for x in SW.values():
         _zone(board, nets["VBUS"], pcbnew.B_Cu, [(x - hw, top, x + hw, bot)], priority=2)
@@ -647,19 +662,28 @@ VBUS_WEST = (0.8, 57.9, 13.4, 62.4)
 
 
 def _j5_vias(board, nets):
-    """The ring round J5's pad, wherever it misses the pad's own small vias."""
+    """A square ring just outside J5's body, as far round as the disc reaches."""
     gx, gy, _, _ = placement.PLACE["J5"]
     reach = pcbnew.FromMM(0.4 + 0.2)
+    h = J5_RING
+    n = int(2 * h / J5_RING_STEP)
+    ts = [-h + 2 * h * k / n for k in range(n)]
+    ring = ([(t, -h) for t in ts] + [(h, t) for t in ts]
+            + [(-t, h) for t in ts] + [(-h, -t) for t in ts])
     out = []
-    a = 0.0
-    while a < 360.0 - 1e-6:
-        x = round(gx + J5_VIA_R * math.cos(math.radians(a)), 3)
-        y = round(gy + J5_VIA_R * math.sin(math.radians(a)), 3)
+    for dx, dy in ring:
+        if math.hypot(dx, dy) > J5_DISC_R - 0.5:
+            continue
+        x, y = round(gx + dx, 3), round(gy + dy, 3)
         if _inside_board(x, y, 0.9) and _clear_of_everything(board, MM(x, y), reach, "GND"):
             _via(board, nets["GND"], x, y)
             out.append((x, y))
-        a += J5_VIA_STEP
     return out
+
+
+def _under_stud(x, y):
+    return any(max(abs(x - placement.PLACE[s][0]), abs(y - placement.PLACE[s][1])) < STUD_BODY
+               for s in ("J2", "J5"))
 
 
 def _fixed_vias(board, nets):
@@ -735,7 +759,7 @@ def stitch(board, net, upper, lower, box=None, step=1.2, d=0.8, drill=0.4):
             while x <= x1 + 1e-6:
                 p = MM(x, y)
                 if (top.Contains(p) and any(b.Contains(p) for b in bots)
-                        and _inside_board(x, y, r + 0.5)
+                        and _inside_board(x, y, r + 0.5) and not _under_stud(x, y)
                         and not any(z.Outline().Collide(p, reach) for z in foreign)
                         and _clear_of_everything(board, p, reach, net)):
                     _via(board, netinfo, x, y, d, drill)

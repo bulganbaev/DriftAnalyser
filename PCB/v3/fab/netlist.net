@@ -2200,15 +2200,15 @@
 		)
 		(comp
 			(ref "J2")
-			(value "Stud_M6")
-			(footprint "da3:Stud_M6")
+			(value "7461059 M6")
+			(footprint "da3:Wurth_REDCUBE_7461059")
 			(fields
 				(field
 					(name "MPN") "7461059 (hand-fit)")
 				(field
 					(name "Manufacturer") "Wurth")
 				(field
-					(name "Footprint") "da3:Stud_M6")
+					(name "Footprint") "da3:Wurth_REDCUBE_7461059")
 				(field
 					(name "Datasheet")
 				)
@@ -2263,15 +2263,15 @@
 		)
 		(comp
 			(ref "J5")
-			(value "Stud_M6")
-			(footprint "da3:Stud_M6")
+			(value "7461059 M6")
+			(footprint "da3:Wurth_REDCUBE_7461059")
 			(fields
 				(field
 					(name "MPN") "7461059 (hand-fit)")
 				(field
 					(name "Manufacturer") "Wurth")
 				(field
-					(name "Footprint") "da3:Stud_M6")
+					(name "Footprint") "da3:Wurth_REDCUBE_7461059")
 				(field
 					(name "Datasheet")
 				)

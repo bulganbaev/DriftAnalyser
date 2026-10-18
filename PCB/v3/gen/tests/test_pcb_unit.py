@@ -238,6 +238,24 @@ class TestPcb(unittest.TestCase):
                     and t.GetNetname() == "VBUS" and ep.HitTest(t.GetPosition())]
             self.assertGreaterEqual(len(vias), 12, u)
 
+    def test_studs_are_redcube_with_nothing_under_the_body(self):
+        """J2 / J5 are the 16-pin Wurth 7461059; no via and no foreign copper under
+        the 13 x 13 brass block (it seats on F, the press support sits under B)."""
+        for ref in ("J2", "J5"):
+            fp = self.fps[ref]
+            pads = list(fp.Pads())
+            self.assertEqual(len(pads), 16, ref)
+            self.assertTrue(all(_mm(p.GetDrillSize().x) == 1.475 for p in pads), ref)
+            net = pads[0].GetNetname()
+            self.assertTrue(all(p.GetNetname() == net for p in pads), ref)
+            sx, sy, _, _ = placement.PLACE[ref]
+            for t in self.board.Tracks():
+                for q in ((t.GetPosition(),) if t.GetClass() == "PCB_VIA"
+                          else (t.GetStart(), t.GetEnd())):
+                    inside = max(abs(_mm(q.x) - sx), abs(_mm(q.y) - sy)) < pcb_builder.STUD_BODY
+                    self.assertFalse(inside and (t.GetClass() == "PCB_VIA" or t.GetNetname() != net),
+                                     f"{ref}: {t.GetClass()} {t.GetNetname()} under the body")
+
     def test_j5_disc_joined_to_gnd_fill(self):
         """The J5 disc and the board GND fill only meet edge to edge; the seam vias
         have to share copper area with both, on every layer."""

@@ -3082,7 +3082,7 @@
         )
       )
     )
-    (property "Value" "Stud_M6"
+    (property "Value" "7461059 M6"
       (at 22.46 19.47 0)
       (effects
         (font
@@ -3090,7 +3090,7 @@
         )
       )
     )
-    (property "Footprint" "da3:Stud_M6"
+    (property "Footprint" "da3:Wurth_REDCUBE_7461059"
       (at 30.48 12.7 0)
       (hide yes)
       (effects
@@ -3198,7 +3198,7 @@
         )
       )
     )
-    (property "Value" "Stud_M6"
+    (property "Value" "7461059 M6"
       (at 47.86 19.47 0)
       (effects
         (font
@@ -3206,7 +3206,7 @@
         )
       )
     )
-    (property "Footprint" "da3:Stud_M6"
+    (property "Footprint" "da3:Wurth_REDCUBE_7461059"
       (at 55.88 12.7 0)
       (hide yes)
       (effects
