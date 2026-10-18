@@ -51,7 +51,7 @@ def parts_on(sheet):
 # ---------------- power sheet ----------------
 # Stud -> TVS -> LM74700-Q1 ideal diode (VIN -> VBUS) -> buck 12->5 V -> LDO 3V3.
 # Buck EN (PWR_EN) = IGN (divided) OR HOLD (GPIO41); pull-downs (R7 100k, R8 10k) so a blank board sleeps.
-_FET = dict(symbol="Transistor_FET:Q_NMOS_SSSGD_AvalancheRated", footprint="Package_TO_SOT_SMD:TDSON-8-1")
+_FET = dict(symbol="Transistor_FET:Q_NMOS_SSSGD_AvalancheRated", footprint="da3:Infineon_TDSON-8_FL")
 _add(
     # Wurth 7461059 WP-BUCF REDCUBE press-fit terminals (13 x 13 mm brass block, internal M6
     # thread: bolt + ring lug on top), J2 = +12 V in, J5 = battery negative (the strips' 35-40 A
@@ -79,8 +79,9 @@ _add(
     # BSC016N06NS (Infineon OptiMOS 5, datasheet Rev 2.6 2025-05-11): 60 V (TI SNOSD17G
     # 10.1.1.2.2 recommends 60 V: ISO 7637 pulse 1 puts TVS clamp + VBUS ~55 V across the FET),
     # RDS(on) 1.4/1.6 mOhm @10 V, 1.9/2.4 mOhm @6 V, VGS +-20 V (LM74700 drives <= 13 V),
-    # Vth 2.1/2.8/3.3 V, Ciss 5.2 nF typ, PG-TDSON-8. Pins 1-3 S, 4 G, 5-8 + tab D -> KiCad
-    # TDSON-8-1 pad 5 = drain. Source on VIN (anode), drain on VBUS (cathode); two in parallel.
+    # Vth 2.1/2.8/3.3 V, Ciss 5.2 nF typ, PG-TDSON-8 FL. Pins 1-3 S, 4 G, 5-8 + tab D -> pad 5 =
+    # drain. Land: da3:Infineon_TDSON-8_FL = KiCad TDSON-8-1 with the lead pads per Infineon Fig 2.
+    # Source on VIN (anode), drain on VBUS (cathode); two in parallel.
     Part("Q1", "BSC016N06NS", pins={"1": "VIN", "2": "VIN", "3": "VIN", "4": "LM_GATE", "5": "VBUS"},
          sheet="power", lcsc="C454269", mpn="BSC016N06NS", mfr="Infineon", **_FET),
     Part("Q2", "BSC016N06NS", pins={"1": "VIN", "2": "VIN", "3": "VIN", "4": "LM_GATE", "5": "VBUS"},

@@ -4116,7 +4116,7 @@
         )
       )
     )
-    (property "Footprint" "Package_TO_SOT_SMD:TDSON-8-1"
+    (property "Footprint" "da3:Infineon_TDSON-8_FL"
       (at 215.9 30.48 0)
       (hide yes)
       (effects
@@ -4381,7 +4381,7 @@
         )
       )
     )
-    (property "Footprint" "Package_TO_SOT_SMD:TDSON-8-1"
+    (property "Footprint" "da3:Infineon_TDSON-8_FL"
       (at 248.92 30.48 0)
       (hide yes)
       (effects

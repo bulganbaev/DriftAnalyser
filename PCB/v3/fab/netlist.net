@@ -2399,7 +2399,7 @@
 		(comp
 			(ref "Q1")
 			(value "BSC016N06NS")
-			(footprint "Package_TO_SOT_SMD:TDSON-8-1")
+			(footprint "da3:Infineon_TDSON-8_FL")
 			(fields
 				(field
 					(name "LCSC") "C454269")
@@ -2408,7 +2408,7 @@
 				(field
 					(name "Manufacturer") "Infineon")
 				(field
-					(name "Footprint") "Package_TO_SOT_SMD:TDSON-8-1")
+					(name "Footprint") "da3:Infineon_TDSON-8_FL")
 				(field
 					(name "Datasheet")
 				)
@@ -2476,7 +2476,7 @@
 		(comp
 			(ref "Q2")
 			(value "BSC016N06NS")
-			(footprint "Package_TO_SOT_SMD:TDSON-8-1")
+			(footprint "da3:Infineon_TDSON-8_FL")
 			(fields
 				(field
 					(name "LCSC") "C454269")
@@ -2485,7 +2485,7 @@
 				(field
 					(name "Manufacturer") "Infineon")
 				(field
-					(name "Footprint") "Package_TO_SOT_SMD:TDSON-8-1")
+					(name "Footprint") "da3:Infineon_TDSON-8_FL")
 				(field
 					(name "Datasheet")
 				)
