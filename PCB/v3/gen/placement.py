@@ -8,8 +8,9 @@ J1 (Superseal 34) sits on the top short edge, mating face out through the case
 end wall. Right under it the four high-side switches, then their control
 passives, the expander and the data buffers. Below that the board splits:
 power on the left (stud in the bottom-left corner, ideal diode above it, buck
-and LDO above that), logic on the right (ESP32 in the bottom-right corner, u.FL
-toward the right wall), comms between them.
+and LDO above that), logic on the right: the ESP32 right under the expander and
+the buffers' resistor rows (u.FL toward the right wall), the CAN / K-line /
+input block below it, comms between them.
 """
 
 BOARD_W, BOARD_H = 55.0, 100.0
@@ -69,9 +70,10 @@ PLACE = {
     **{f"D{10 + i}": (28.3 + 6.7 * ((i - 1) // 4), 40.0 + 2.1 * ((i - 1) % 4), 0, "F") for i in range(1, 9)},
     "U14": (41.6, 43.0, 0, "F"), "C33": (46.6, 40.0, 90, "F"), "R51": (46.6, 45.5, 90, "F"),
 
-    # ---- buck 12 -> 5.4 V, top of the power column
+    # ---- buck 12 -> 5.4 V, top of the power column. C8 (bootstrap) has its BST
+    # pad down, facing U7 pin 7, and its SW pad up, where the switch node comes in.
     "U7": (7.9, 51.6, 0, "F"), "C7": (1.9, 51.0, 90, "F"), "C37": (2.0, 55.7, 90, "F"),
-    "C8": (12.95, 49.1, 90, "F"), "C38": (7.9, 55.9, 0, "F"),
+    "C8": (12.95, 49.1, 270, "F"), "C38": (7.9, 55.9, 0, "F"),
     "L1": (17.5, 51.6, 0, "F"), "C9": (22.4, 50.2, 90, "F"), "C10": (24.6, 50.2, 90, "F"),
     "R9": (13.0, 56.1, 0, "F"), "R10": (13.0, 57.9, 0, "F"),
     "D6": (19.4, 57.0, 0, "F"), "C11": (24.4, 57.2, 90, "F"),
@@ -97,8 +99,11 @@ PLACE = {
     "R8": (30.5, 70.4, 90, "F"), "R19": (32.2, 70.4, 90, "F"),
     "D4": (2.0, 69.9, 0, "F"), "D5": (5.2, 69.9, 0, "F"),
 
-    # ---- ESP32 in the bottom-right corner, u.FL (module top right) at the right wall
-    "U1": (44.75, BOARD_H - 17.8, 0, "F"),
+    # ---- ESP32 right under U14 and the data resistor rows, u.FL (module top right)
+    # at the right wall. It used to sit in the bottom-right corner, and the eight
+    # DATA lines, I2C, IMU INT, ISENSE and CAN TX all had to cross the board to it:
+    # the autorouter stalled at ~50 open links (task 11).
+    "U1": (45.1, 57.3, 0, "F"),
     "R14": (26.1, 72.9, 0, "F"), "C18": (29.4, 72.9, 0, "F"), "C17": (32.7, 72.9, 0, "F"),
     "SW2": (29.6, 78.0, 0, "F"),
     "D8": (28.5, 83.6, 0, "F"), "C16": (33.9, 83.6, 90, "F"),
@@ -107,7 +112,8 @@ PLACE = {
     "J3": (29.6, BOARD_H - 4.4, 0, "F"),
     "SW1": (41.4, BOARD_H - 3.7, 0, "F"),
 
-    # ---- CAN, K-line, battery / ignition sense, input dividers, headers: above the ESP32
+    # ---- CAN, K-line, battery / ignition sense, input dividers, headers: below the
+    # ESP32 (COMMS_SHIFT moves the whole block down as one, see the end of the file)
     "U4": (39.4, 50.6, 0, "F"), "C40": (44.2, 49.3, 90, "F"), "C41": (45.9, 49.3, 90, "F"),
     "R70": (44.2, 52.5, 90, "F"),
     "R71": (39.4, 55.0, 0, "F"), "D20": (45.2, 56.0, 0, "F"),
@@ -122,3 +128,13 @@ PLACE = {
     "R80": (39.8, 67.77, 90, "F"), "R81": (41.5, 67.77, 90, "F"),
     **{f"R{82 + i}": (36.4 + 1.7 * i, 70.82, 90, "F") for i in range(4)},
 }
+
+# The CAN / K-line / sense / input block, laid out where the ESP32 is now and moved
+# down below it as one piece, so its internal spacing stays what it was.
+COMMS_BLOCK = ("U4", "C40", "C41", "R70", "R71", "D20", "U5", "C42", "R72", "JP2", "JP1",
+               "R73", "J4", "D9", "R16", "R1", "R2", "C5", "R3", "R4", "C6", "D2", "D3",
+               *(f"R{74 + i}" for i in range(6)), "R80", "R81", *(f"R{82 + i}" for i in range(4)))
+COMMS_SHIFT = 20.3
+for _ref in COMMS_BLOCK:
+    _x, _y, _rot, _side = PLACE[_ref]
+    PLACE[_ref] = (_x, round(_y + COMMS_SHIFT, 3), _rot, _side)
