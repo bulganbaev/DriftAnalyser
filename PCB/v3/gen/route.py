@@ -1,13 +1,17 @@
 """Autoroute the signal nets with Freerouting and bring the result back.
 
-The power nets are already done: the pours plus the stubs pcb_builder draws reach
-every pad of GND / VBAT / 12V_LED, so what is left here is signal copper.
+The power nets are already done: the pours plus the stubs, ties and via fields
+pcb_builder draws reach every pad of GND / VIN / VBUS / LEDn_12V, so what is left
+here is signal copper.
 
 Needs pcbnew, so run it with KiCad's python:
-    KICAD_PY -m gen.route              (cwd = PCB/v2)
-    DA2_PASSES=100 KICAD_PY -m gen.route
+    KICAD_PY -m gen.route                      (cwd = PCB/v3) replay fab/route.ses
+    DA3_STAGE=dsn KICAD_PY -m gen.route        just write fab/route/<board>.dsn
+    DA3_REROUTE=1 KICAD_PY -m gen.route        draw a new session locally
+The real draws run on the compute server: gen/route_remote.sh.
 """
 import json
+import math
 import os
 import re
 import shutil
@@ -26,22 +30,36 @@ from gen import env, pcb_builder, placement
 JAR = os.path.expanduser("~/.local/freerouting/freerouting.jar")
 # Freerouting 2.4.1 wants Java >= 25; macOS /usr/bin/java is usually older or absent
 JAVA = os.environ.get("JAVA", "/opt/homebrew/opt/openjdk/bin/java")
-PASSES = int(os.environ.get("DA2_PASSES", "200"))
+PASSES = int(os.environ.get("DA3_PASSES", "200"))
 
 # The power pours are copper the router must not cut. On the outer layers they go
 # into the DSN as keep-outs, and their nets are split pad by pad so the router
 # never tries to reach a pad the pour already holds - the split keeps every pad
 # in its netclass, which is what sets the clearance the router leaves around it.
-# The In2 halves of VBAT and 12V_LED need no fence: nothing routes on In2 (see
-# dedicate_power_layers), so only the router's vias ever cross them.
-BUS = ("VBAT", "12V_LED")
-POURED = ("GND",) + BUS
+# GND is not split: every ground pad is tied to the In1 plane by protected copper
+# (its tie via, or a stub into a neighbour's), and In1's GND pour stays in the DSN
+# as a plane, so the router sees ground as finished. Split, the ties would be
+# wires of a net with no pads left, and the router joins them up with traces.
+BUS = pcb_builder.POWER_NETS
+POURED = pcb_builder.POURED
+# The one pad each split net keeps under its own name: a through-hole pad inside
+# that net's inner plane, so the router sees the net as finished. Anything else
+# (the first pad KiCad lists, say U2 pin 1 for VIN) is a lone pad the router then
+# tries to wire to the plane.
+KEEP_PIN = {"GND": "J1-26", "VIN": "J2-1", "VBUS": "JP1-1"}
+# the planes that stay in the DSN; every other power pour is a keep-out
+INNER_PLANES = {("GND", "In1.Cu"), ("VBUS", "In2.Cu"), ("VIN", "In2.Cu")}
 
 # F.Cu and B.Cu carry the signals; In1.Cu is the solid ground plane and In2.Cu
-# the VBAT / 12V_LED power plane, and nothing is ever routed on either of them.
+# the VBUS / VIN / LED lane plane, and nothing is ever routed on either of them.
 OUTER = (pcbnew.F_Cu, pcbnew.B_Cu)
 CU = (pcbnew.F_Cu, pcbnew.In1_Cu, pcbnew.In2_Cu, pcbnew.B_Cu)
 INNER = ("In1.Cu", "In2.Cu")
+
+# Areas no signal may cross, on top of the pours: the buck's switch node. L1,
+# C8 and the SW run are on F.Cu; under them on B.Cu nothing else goes (the data
+# lines to J1 in particular). The SW / BST copper itself is drawn by the builder.
+QUIET = [("B.Cu", (9.5, 47.5, 21.5, 54.7))]
 
 # Freerouting reads these on top of its own config file (FREEROUTING__ROUTER__*)
 ROUTER_ENV = {
@@ -69,22 +87,21 @@ CONFIG = {
 
 
 PCB = os.path.join(env.PROJECT_DIR, env.PROJECT_NAME + ".kicad_pcb")
-# scratch, not fab/: the DSN carries an absolute path on its first line and the
-# plane scopes come out in whatever order the zones were built, so a tracked copy
-# is dirty after every build even when nothing changed. DA2_DSN puts it back
-# somewhere useful when it needs reading.
-DSN = os.environ.get("DA2_DSN") or os.path.join(
-    tempfile.gettempdir(), env.PROJECT_NAME + "-route.dsn")
+# not tracked: the DSN carries an absolute path on its first line. DA3_DSN puts
+# it somewhere else.
+DSN = os.environ.get("DA3_DSN") or os.path.join(
+    env.PROJECT_DIR, "fab", "route", env.PROJECT_NAME + ".dsn")
 # The session file is committed, and it is what makes this build reproducible:
-# Freerouting has no seed, so a fresh draw of the same input lands somewhere else
-# every time (26 draws of this board came out at between 0 and 5 open links).
-# With fab/route.ses present, `route()` replays it instead of drawing again;
-# DA2_REROUTE=1 asks for a new draw, and DA2_SES points somewhere else.
-SES = os.path.join(env.PROJECT_DIR, os.environ.get("DA2_SES", "fab/route.ses"))
-REROUTE = os.environ.get("DA2_REROUTE") == "1"
+# Freerouting has no seed worth relying on across machines and pass counts, so
+# the build replays the one draw that was picked (gen/route_remote.sh runs the
+# draws on the compute server). DA3_REROUTE=1 draws locally instead, DA3_SES
+# points somewhere else.
+SES = os.path.join(env.PROJECT_DIR, os.environ.get("DA3_SES", "fab/route.ses"))
+REROUTE = os.environ.get("DA3_REROUTE") == "1"
+STAGE = os.environ.get("DA3_STAGE", "")
 
-# what the builder leaves on the board: the power stubs and the U5 / U1 escapes
-BUILDER_TRACKS = 100
+# what the builder leaves on the board: stubs, cap runs, pad ties (~170)
+BUILDER_TRACKS = 300
 
 _KEEPOUT = re.compile(r'\(keepout\s+""\s+\(polygon\s+(\S+)\s+\d+\s+([-\d.\s]+)\)')
 
@@ -159,7 +176,11 @@ def split_bus_nets(dsn, nets=POURED):
                       % re.escape(name), text)
         if not m:
             raise RuntimeError(f"no (net {name}) in the DSN")
-        pad, rest = m.group(2).split()[0], m.group(2).split()[1:]
+        pins = m.group(2).split()
+        if KEEP_PIN.get(name) in pins:
+            pins.remove(KEEP_PIN[name])
+            pins.insert(0, KEEP_PIN[name])
+        pad, rest = pins[0], pins[1:]
         extra = [f"{name}_pad{i}" for i in range(2, len(rest) + 2)]
         pre = m.group(1)
         block = f"{pre}(net {name}\n{pre}  (pins {pad})\n{pre})\n"
@@ -178,57 +199,42 @@ def split_bus_nets(dsn, nets=POURED):
     return added
 
 
-# The J16 arm of the 12V comb reaches down to U2 across the whole corner where
-# R36, D16 and J16's data pin live, so fencing the pour off there would leave the
-# sixth LED channel with nowhere to go. These two boxes are cut out of the fence:
-# what stays protected is the left 3.5 mm of the arm, which is the current path.
-KEEPOUT_LANES = [(91.0, 9.0, 100.0, 20.0, None), (93.5, 4.0, 100.0, 9.0, None),
-                 # and a slit across the protected part, or the sixth channel's
-                 # series resistor can only be reached the long way round. Front
-                 # only: a trace may cut the front pour there because the arm's
-                 # In2 copper and the twelve vias down it carry the current.
-                 (87.0, 15.0, 91.0, 18.0, "F.Cu")]
-
-
-def _lane_mask(layer):
-    mask = pcbnew.SHAPE_POLY_SET()
-    for x0, y0, x1, y1, only in KEEPOUT_LANES:
-        if only and only != layer:
-            continue
-        mask.NewOutline()
-        for x, y in ((x0, y0), (x1, y0), (x1, y1), (x0, y1)):
-            mask.Append(pcbnew.FromMM(x), pcbnew.FromMM(y))
-    return mask
+def _keepout(layer, pts):
+    path = "  ".join(f"{round(x * 1000)} {round(-y * 1000)}" for x, y in pts + pts[:1])
+    return f'    (keepout "" (polygon {layer} 0  {path}))'
 
 
 def bus_keepouts(pcb, dsn, nets=BUS):
-    """Fence the power pours off on the routing layers. KiCad exports zones as
-    `(plane ...)`, which tells Freerouting the net is connected but not that the
-    copper matters, so without this it drives signal traces straight through the
-    12V comb and the VBAT tab pour and cuts the current path into pieces."""
+    """Fence the power pours off. KiCad exports zones as `(plane ...)`, which
+    tells Freerouting the net is connected but not that the copper matters, so
+    without this it drives signal traces straight through the LED channels and
+    cuts the current path into pieces. On the outer layers that is every power
+    pour; on In2 it is the LED lanes (a keep-out there bars the router's vias,
+    and the lanes have necks a via would cut), while the VBUS / VIN planes take
+    the router's vias as anti-pads."""
     board = pcbnew.LoadBoard(pcb)
     outs = []
     for z in board.Zones():
         if z.GetIsRuleArea() or z.GetNetname() not in nets:
             continue
-        for layer in OUTER:
+        for layer in CU:
             if not z.IsOnLayer(layer):
                 continue
-            fence = pcbnew.SHAPE_POLY_SET()
-            fence.BooleanSubtract(z.Outline(), _lane_mask(board.GetLayerName(layer)))
-            for n in range(fence.OutlineCount()):
-                o = fence.Outline(n)
-                pts = [(pcbnew.ToMM(o.CPoint(k).x), pcbnew.ToMM(o.CPoint(k).y))
-                       for k in range(o.PointCount())]
-                path = "  ".join(f"{round(x * 1000)} {round(-y * 1000)}"
-                                 for x, y in pts + pts[:1])
-                outs.append(f'    (keepout "" (polygon {board.GetLayerName(layer)} 0'
-                            f'  {path}))')
+            if layer not in OUTER and z.GetNetname() not in pcb_builder.LED_NETS:
+                continue
+            o = z.Outline()
+            for n in range(o.OutlineCount()):
+                c = o.Outline(n)
+                pts = [(pcbnew.ToMM(c.CPoint(k).x), pcbnew.ToMM(c.CPoint(k).y))
+                       for k in range(c.PointCount())]
+                outs.append(_keepout(board.GetLayerName(layer), pts))
+    for layer, (x0, y0, x1, y1) in QUIET:
+        outs.append(_keepout(layer, [(x0, y0), (x1, y0), (x1, y1), (x0, y1)]))
+    outs += corner_fences()
     with open(dsn) as f:
         text = f.read()
-    # in after the antenna keep-out, which is the last one in the board scope
-    cut = text.index("\n", text.rindex('    (keepout "" (polygon', 0,
-                                       text.index("(placement"))) + 1
+    # into the structure scope, just ahead of its via declaration
+    cut = text.index("    (via ", 0, text.index("(placement"))
     text = text[:cut] + "\n".join(outs) + "\n" + text[cut:]
     with open(dsn, "w") as f:
         f.write(text)
@@ -238,7 +244,9 @@ def bus_keepouts(pcb, dsn, nets=BUS):
 def drop_plane(dsn, net, layer):
     """Take one `(plane ...)` scope out of the DSN.
 
-    All four ground pours go. Freerouting treats a plane as copper a trace may
+    The F, In2 and B ground pours go; In1's stays (see POURED: it is what makes
+    ground finished in the router's eyes, and Freerouting 2.5 turns a power layer
+    with no plane back into a signal layer). On v2 all four went: Freerouting treats a plane as copper a trace may
     cross, and it extends that licence to the pads sitting inside it: with the
     pours declared it put twelve vias between 0.14 and 0.22 mm from D21's and
     C17's ground pads, and KiCad's DRC called every one of them. Leaving the
@@ -269,6 +277,79 @@ def drop_plane(dsn, net, layer):
     with open(dsn, "w") as f:
         f.write(text)
     return dropped
+
+
+# Freerouting lands a few um short of the clearance it was given (rounding in
+# its own geometry): 0.189 for 0.2 at a USB pin, 0.298 for the 0.3 edge rule at a
+# rounded corner. It routes against these margins added on top, DRC checks the
+# real numbers.
+CLEAR_MARGIN_UM = 15
+EDGE_FENCE = 0.4
+
+
+def add_clearance_margin(dsn, um=CLEAR_MARGIN_UM):
+    """Every plain `(clearance N)` in the DSN's rules gets `um` more."""
+    with open(dsn) as f:
+        text = f.read()
+    pat = re.compile(r"\(clearance (\d+(?:\.\d+)?)\)")
+    text, n = pat.subn(lambda m: f"(clearance {float(m.group(1)) + um:g})", text)
+    with open(dsn, "w") as f:
+        f.write(text)
+    return n
+
+
+def corner_fences(layers=("F.Cu", "B.Cu"), width=EDGE_FENCE, steps=12):
+    """Keep-outs along the four rounded corners, `width` deep: on the arcs the
+    router's edge clearance comes out a hair under KiCad's 0.3 mm."""
+    W, H, R = placement.BOARD_W, placement.BOARD_H, placement.CORNER_R
+    outs = []
+    for cx, cy, a0 in ((R, R, 180.0), (W - R, R, 270.0), (W - R, H - R, 0.0),
+                       (R, H - R, 90.0)):
+        angs = [math.radians(a0 + 90.0 * k / steps) for k in range(steps + 1)]
+        outer = [(cx + (R + 0.1) * math.cos(a), cy + (R + 0.1) * math.sin(a)) for a in angs]
+        inner = [(cx + (R - width) * math.cos(a), cy + (R - width) * math.sin(a))
+                 for a in reversed(angs)]
+        for layer in layers:
+            outs.append(_keepout(layer, outer + inner))
+    return outs
+
+
+def isolate_wiring(dsn, nets=POURED):
+    """Every protected wire and via of a power net gets a net of its own.
+
+    The builder's stubs, ties and via fields are finished copper, but once the
+    pads are split off they are items of a net that no longer reaches them, and
+    the router spends its passes joining them up (it tried VIN 24 times in one
+    run). On a net of their own, with no pins and the original's netclass, they
+    are plain obstacles at the right clearance."""
+    with open(dsn) as f:
+        text = f.read()
+    added = {n: [] for n in nets}
+
+    def rename(m):
+        name = m.group(1)
+        if name not in added:
+            return m.group(0)
+        new = f"{name}_fixed{len(added[name]) + 1}"
+        added[name].append(new)
+        return f"(net {new})"
+
+    head, wiring = text.split("  (wiring", 1)
+    wiring = re.sub(r"\(net ([^)\s]+)\)", rename, wiring)
+    text = head + "  (wiring" + wiring
+    for name, extra in added.items():
+        if not extra:
+            continue
+        m = re.search(r"( *)\(net %s\s*\n" % re.escape(name), text)
+        pre = m.group(1)
+        block = "".join(f"{pre}(net {e}\n{pre}  (pins)\n{pre})\n" for e in extra)
+        text = text[:m.start()] + block + text[m.start():]
+        cm = re.search(r"\(class (\S+)((?:[^()]*?\b%s\b[^()]*?))\(circuit"
+                       % re.escape(name), text)
+        text = text[:cm.end(2)] + " ".join(extra) + "\n      " + text[cm.end(2):]
+    with open(dsn, "w") as f:
+        f.write(text)
+    return sum(len(v) for v in added.values())
 
 
 def check_planes(dsn):
@@ -616,6 +697,22 @@ def normalise_via_drills(board):
     return fixed
 
 
+MIN_TRACK = 0.2
+
+
+def normalise_track_widths(board):
+    """Freerouting's neck-down lands at 0.187 mm where it enters a fine pad,
+    0.013 under the board's 0.2 mm minimum (DSN unit rounding). Put those back
+    to 0.2; DRC afterwards says whether the extra 6 um per side still clears."""
+    fixed = 0
+    want = pcbnew.FromMM(MIN_TRACK)
+    for t in board.Tracks():
+        if t.GetClass() == "PCB_TRACK" and t.GetWidth() < want:
+            t.SetWidth(want)
+            fixed += 1
+    return fixed
+
+
 def drop_foreign_pad_wires(board):
     """Replayed wires that end on a pad of another net.
 
@@ -652,6 +749,7 @@ def drop_foreign_pad_wires(board):
 
 
 def import_ses(pcb, ses):
+    pcbnew.KIID.SeedGenerator(5)     # the imported tracks' KIIDs: see pcb_builder.build
     board = pcbnew.LoadBoard(pcb)
     ok = pcbnew.ImportSpecctraSES(board, ses)
     if not ok:
@@ -659,10 +757,12 @@ def import_ses(pcb, ses):
     foreign = drop_foreign_pad_wires(board)
     n = strip_keepout(board)
     drills = normalise_via_drills(board)
-    stitched = pcb_builder.vbat_stitch(board)
+    widened = normalise_track_widths(board)
+    if widened:
+        print(f"{widened} necked tracks widened to {MIN_TRACK} mm")
     hand = finish_by_hand(board)
     board.BuildConnectivity()
-    added, stranded = stitch_islands(board)
+    added, stranded = stitch_islands(board, ("GND",))
     # aSkipSettings=True, same reason as in pcb_builder: keep the .kicad_pro.
     # kicad-cli normalises that file when it loads it and drops netclasses it does
     # not recognise, so write ours back - DRC after routing has to see them.
@@ -671,7 +771,7 @@ def import_ses(pcb, ses):
     pcb_builder.write_design_rules()
     tracks = [t for t in board.Tracks() if t.GetClass() == "PCB_TRACK"]
     vias = [t for t in board.Tracks() if t.GetClass() == "PCB_VIA"]
-    return n, len(vias), len(tracks), added, stranded, hand, drills, stitched, foreign
+    return n, len(vias), len(tracks), added, stranded, hand, drills, foreign
 
 
 def already_routed(pcb):
@@ -681,38 +781,46 @@ def already_routed(pcb):
     return sum(1 for t in board.Tracks() if t.GetClass() == "PCB_TRACK") > BUILDER_TRACKS
 
 
-def route(pcb=PCB, dsn=DSN, ses=SES, passes=PASSES, reroute=REROUTE):
-    if already_routed(pcb):
-        raise RuntimeError(f"{pcb} is already routed - run gen.pcb_builder first")
+def prepare_dsn(pcb=PCB, dsn=DSN):
+    """The DSN the router gets: power nets split, pours fenced, In1 / In2 planes."""
+    os.makedirs(os.path.dirname(dsn), exist_ok=True)
     export_dsn(pcb, dsn)
     kept = protect_existing(dsn)
     split = split_bus_nets(dsn, POURED)
-    fenced = bus_keepouts(PCB, dsn)
+    fenced = bus_keepouts(pcb, dsn)
     inner = dedicate_power_layers(dsn)
-    for layer in ("F.Cu", "In1.Cu", "In2.Cu", "B.Cu"):
-        drop_plane(dsn, "GND", layer)
+    for net in POURED:
+        for layer in ("F.Cu", "In1.Cu", "In2.Cu", "B.Cu"):
+            if (net, layer) not in INNER_PLANES:
+                drop_plane(dsn, net, layer)
+    fixed = isolate_wiring(dsn)
+    print(f"{fixed} power wires / vias moved to nets of their own")
+    margin = add_clearance_margin(dsn)
     planes = check_planes(dsn)
-    layers = keepout_layers(dsn)
+    print(f"{margin} clearance rules + {CLEAR_MARGIN_UM} um for the router")
     print(f"dsn: {dsn} ({os.path.getsize(dsn) // 1024} kB), {kept} wires/vias protected, "
-          f"{split} bus pads split off, {fenced} pour keep-outs, "
-          f"{inner} inner layers marked as power planes, "
-          f"{len(planes)} planes: {planes}, "
-          f"antenna keep-out on {sorted(layers)}")
-    if placement.ANTENNA_KEEPOUT and layers != set(INNER) | {"F.Cu", "B.Cu"}:
-        raise RuntimeError("the antenna keep-out is missing from the DSN")
+          f"{split} power pads split off, {fenced} keep-outs, "
+          f"{inner} inner layers marked as power planes, {len(planes)} planes: {planes}")
+
+
+def route(pcb=PCB, dsn=DSN, ses=SES, passes=PASSES, reroute=REROUTE):
+    if already_routed(pcb):
+        raise RuntimeError(f"{pcb} is already routed - run gen.pcb_builder first")
+    prepare_dsn(pcb, dsn)
+    if STAGE == "dsn":
+        return
     if reroute or not os.path.exists(ses):
         secs, log = run_freerouting(dsn, ses, passes)
         print(summarize(log))
         print(f"freerouting: {passes} passes, {secs:.0f} s")
     else:
         print(f"replaying {ses} ({os.path.getsize(ses) // 1024} kB) - "
-              f"set DA2_REROUTE=1 to draw a new one")
-    (stripped, vias, tracks, added, stranded, hand, drills, stitched,
+              f"set DA3_REROUTE=1 to draw a new one")
+    (stripped, vias, tracks, added, stranded, hand, drills,
      foreign) = import_ses(pcb, ses)
     print(f"imported: {tracks} tracks, {vias} vias, {stripped} removed from the "
           f"keep-out, {drills} via drills restored, "
-          f"{hand} connections finished by hand, "
-          f"{len(stitched)} extra VBAT vias F.Cu <-> In2"
+          f"{hand} connections finished by hand"
           + (f", {len(foreign)} replayed wires dropped off foreign pads: {foreign}"
              if foreign else ""))
     print(f"stitched: {len(added)} vias into cut-off pour islands"

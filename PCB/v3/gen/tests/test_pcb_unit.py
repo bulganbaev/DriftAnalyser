@@ -1,9 +1,9 @@
 """Board checks that need pcbnew -> run with KiCad's python: KICAD_PY -m unittest gen.tests.test_pcb_unit"""
-import os, sys, unittest
+import json, os, re, shutil, subprocess, sys, tempfile, unittest
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 import pcbnew
-from gen import env, model, placement, pcb_builder
+from gen import env, model, placement, pcb_builder, route, sch_writer
 
 PCB = os.path.join(env.PROJECT_DIR, env.PROJECT_NAME + ".kicad_pcb")
 THT = ("J1", "J2")          # the only through-hole parts; everything else is JLC one-side SMD
@@ -25,6 +25,11 @@ class TestPcb(unittest.TestCase):
         # the board is the artifact under test - only rebuild on demand
         if os.environ.get("DA3_REBUILD") == "1" or not os.path.exists(PCB):
             pcb_builder.build(PCB)
+        # sch_writer (and kicad-cli) rewrite the .kicad_pro without the board's
+        # netclasses; put them back or DRC checks this board against KiCad's
+        # defaults and every number in these tests means something else
+        pcb_builder.write_project_netclasses()
+        pcb_builder.write_design_rules()
         cls.board = pcbnew.LoadBoard(PCB)
         cls.fps = {fp.GetReference(): fp for fp in cls.board.GetFootprints()}
 
@@ -115,6 +120,109 @@ class TestPcb(unittest.TestCase):
         for want in ("DriftAnalyser v3", "1", "+12V", "JP1 K-LINE", "JP2 CAN TERM",
                      "BOOT", "EN", "USB", "IMU", "X", "Y"):
             self.assertIn(want, texts)
+
+
+    # ---- routing / DRC -----------------------------------------------------
+
+    _drc_cache = {}
+
+    @classmethod
+    def _drc(cls, name="drc.json", extra=()):
+        if name in cls._drc_cache:
+            return cls._drc_cache[name]
+        rpt = os.path.join(env.PROJECT_DIR, "fab", name)
+        if os.path.exists(rpt):        # never let a stale report pass a test
+            os.remove(rpt)
+        r = subprocess.run([env.KICAD_CLI, "pcb", "drc", "--format", "json",
+                            "--severity-error", *extra, "-o", rpt, PCB],
+                           capture_output=True, text=True)
+        # 0 = clean, 5 = kicad-cli's "DRC violations found"
+        assert r.returncode in (0, 5), r.stdout[-800:] + r.stderr[-800:]
+        sch_writer.strip_timestamp(rpt, r'"date": "[^"]*"', '"date": ""')
+        with open(rpt) as f:
+            cls._drc_cache[name] = json.load(f)
+        return cls._drc_cache[name]
+
+    def test_drc_clean(self):
+        """The board as it ships: no DRC error, nothing unrouted."""
+        data = self._drc()
+        self.assertEqual(data["violations"], [],
+                         json.dumps(data["violations"][:5], indent=1, ensure_ascii=False))
+        self.assertEqual(data.get("unconnected_items", []), [],
+                         json.dumps(data.get("unconnected_items", [])[:5], indent=1,
+                                    ensure_ascii=False))
+
+    def test_routed(self):
+        tracks = [t for t in self.board.Tracks() if t.GetClass() == "PCB_TRACK"]
+        self.assertGreater(len(tracks), route.BUILDER_TRACKS)
+
+    def test_led_channels_on_pours(self):
+        """Every LED channel's switch outputs and J1 pin sit in a pour of their own
+        net on F.Cu (the cap stubs are the only tracks on these nets)."""
+        for net in pcb_builder.LED_NETS:
+            zones = [z for z in self.board.Zones() if z.GetNetname() == net
+                     and not z.GetIsRuleArea() and z.IsOnLayer(pcbnew.F_Cu)]
+            self.assertTrue(zones, net)
+            for fp in self.board.GetFootprints():
+                for pad in fp.Pads():
+                    if pad.GetNetname() != net or fp.GetReference().startswith("C"):
+                        continue
+                    self.assertTrue(any(z.GetFilledPolysList(pcbnew.F_Cu).Collide(pad.GetPosition())
+                                        for z in zones), f"{net} {fp.GetReference()}.{pad.GetNumber()}")
+
+    def test_switch_exposed_pads_stitched(self):
+        """12 vias in each BTS7008's exposed pad, down to the B.Cu VBUS copper."""
+        for u in placement.SW_X:
+            ep = self.fps[u].FindPadByNumber("15")
+            vias = [t for t in self.board.Tracks() if t.GetClass() == "PCB_VIA"
+                    and t.GetNetname() == "VBUS" and ep.HitTest(t.GetPosition())]
+            self.assertGreaterEqual(len(vias), 12, u)
+
+
+def _normalised(path):
+    """The board file without what changes on every save: uuids and the like."""
+    with open(path) as f:
+        text = f.read()
+    text = re.sub(r'\((uuid|tstamp)\s+"?[0-9a-fA-F-]+"?\)', "", text)
+    text = re.sub(r'\(generator_version "[^"]*"\)', "", text)
+    return text
+
+
+class TestDeterministic(unittest.TestCase):
+    def test_build_deterministic(self):
+        """Two builds from scratch (builder + replayed session) give the same board,
+        and the same as the committed one. Freerouting is never run here: the
+        session the build replays is the committed fab/route.ses."""
+        tmp = tempfile.mkdtemp(prefix="da3-det-")
+        try:
+            outs = []
+            for k in (1, 2):
+                # each build in a process of its own, as build.sh runs them: two
+                # builds in one process do not get the same KIIDs (the seeded
+                # generator is not the only source of them inside pcbnew)
+                pcb = os.path.join(tmp, f"b{k}.kicad_pcb")
+                # the routed board is filled against the project's netclasses and
+                # rules, which pcbnew finds next to the board by name
+                for ext in (".kicad_pro", ".kicad_dru"):
+                    shutil.copy(os.path.join(env.PROJECT_DIR, env.PROJECT_NAME + ext),
+                                os.path.join(tmp, f"b{k}{ext}"))
+                code = ("import sys; sys.path.insert(0, '.'); "
+                        "from gen import pcb_builder, route; "
+                        f"pcb_builder.build({pcb!r}); "
+                        f"route.route(pcb={pcb!r}, dsn={os.path.join(tmp, f'b{k}.dsn')!r}, "
+                        "ses=route.SES, reroute=False)")
+                r = subprocess.run([env.KICAD_PY, "-c", code], cwd=env.PROJECT_DIR,
+                                   capture_output=True, text=True)
+                self.assertEqual(r.returncode, 0, r.stderr[-2000:])
+                outs.append(_normalised(pcb))
+            self.assertEqual(outs[0], outs[1], "two builds differ")
+            self.assertEqual(outs[0], _normalised(PCB),
+                             "the committed board is not what the generator builds")
+        finally:
+            shutil.rmtree(tmp, ignore_errors=True)
+            # the builds above rewrote the project's netclasses into the .kicad_pro;
+            # that is the same content, but leave it as the real build left it
+            pcb_builder.write_project_netclasses()
 
 
 if __name__ == "__main__":

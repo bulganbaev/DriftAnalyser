@@ -108,3 +108,23 @@ to ~0.25 mA. Firmware should still keep HOLD low when VBAT_SENSE shows no batter
 Footprint is KiCad `Texas_HTSOP-8-1EP_..._EP2.95x4.9mm_Mask2.4x3.1mm_ThermalVias`, the default of
 KiCad's LMR3x DDA symbols. TI's DDA0008B example layout has a 2.71 × 3.4 mm mask opening on the EP.
 KiCad's is 2.4 × 3.1 mm, so slightly less pad is soldered. Fine for this load, but look at it during layout.
+
+## Copper and routing (Task 11)
+
+Layers: F.Cu power pours near the parts + signals, **In1.Cu solid GND**, In2.Cu VBUS (middle of
+the board from the switches down to the drains, and under the CAN / K-line block) / VIN (under the
+stud) / GND in the rest, B.Cu signals + VBUS copper under each switch's exposed pad. Everything is
+drawn by `gen/pcb_builder.py`.
+
+- **Thermal pad: the B.Cu copper under U10..U13 is VBUS** (12 vias from each switch's exposed pad).
+  The case's thermal pad that presses on it must be electrically insulating (silicone gap pad,
+  not graphite or metal).
+- J1 pinout (task 11 ruling, replaces the spec's 12V | DO | GND triplets): row 1 = the eight
+  LEDn_12V, each above its own switch output, row 4 = the eight strip grounds in the same columns,
+  rows 2-3 = data, CAN, K-line, IGN, IN1..3, 5V_SENS. Each LED channel is one short F.Cu pour.
+- U1 (ESP32) sits under U14 and the data resistor rows; the CAN / K-line / input block moved
+  below it as one piece (`placement.COMMS_BLOCK`).
+- C8 (bootstrap cap) is turned 180 degrees against the first placement so its BST pad faces U7 pin 7.
+- Routing: the session `fab/route.ses` is committed and the build replays it, so `build.sh` is
+  deterministic. New draws run on the compute server: `bash gen/route_remote.sh push|status|pull|stop`
+  (variants in `gen/route_variants.sh`), then copy the chosen `.ses` to `fab/route.ses`.

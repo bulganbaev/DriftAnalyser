@@ -68,8 +68,25 @@
       },
       {
         "name": "Power",
-        "clearance": 0.25,
-        "track_width": 0.5,
+        "clearance": 0.2,
+        "track_width": 0.4,
+        "via_diameter": 0.6,
+        "via_drill": 0.3,
+        "diff_pair_gap": 0.25,
+        "diff_pair_via_gap": 0.25,
+        "diff_pair_width": 0.2,
+        "microvia_diameter": 0.3,
+        "microvia_drill": 0.1,
+        "wire_width": 6,
+        "bus_width": 12,
+        "line_style": 0,
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
+        "schematic_color": "rgba(0, 0, 0, 0.000)"
+      },
+      {
+        "name": "Bus",
+        "clearance": 0.3,
+        "track_width": 1.0,
         "via_diameter": 0.8,
         "via_drill": 0.4,
         "diff_pair_gap": 0.25,
@@ -84,11 +101,11 @@
         "schematic_color": "rgba(0, 0, 0, 0.000)"
       },
       {
-        "name": "Bus12V",
-        "clearance": 0.4,
-        "track_width": 3.0,
-        "via_diameter": 1.0,
-        "via_drill": 0.5,
+        "name": "Led12V",
+        "clearance": 0.3,
+        "track_width": 2.0,
+        "via_diameter": 0.8,
+        "via_drill": 0.4,
         "diff_pair_gap": 0.25,
         "diff_pair_via_gap": 0.25,
         "diff_pair_width": 0.2,
@@ -106,12 +123,16 @@
     },
     "netclass_patterns": [
       {
-        "netclass": "Bus12V",
-        "pattern": "VBAT"
+        "netclass": "Bus",
+        "pattern": "VIN"
       },
       {
-        "netclass": "Bus12V",
-        "pattern": "12V_LED"
+        "netclass": "Bus",
+        "pattern": "VBUS"
+      },
+      {
+        "netclass": "Led12V",
+        "pattern": "LED*_12V"
       },
       {
         "netclass": "Power",
