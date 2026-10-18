@@ -10,7 +10,9 @@ passives, the expander and the data buffers. Below that the board splits:
 power on the left (stud in the bottom-left corner, ideal diode above it, buck
 and LDO above that), logic on the right: the ESP32 right under the expander and
 the buffers' resistor rows (u.FL toward the right wall), the CAN / K-line /
-input block below it, comms between them.
+input block below it, comms between them. The battery-negative stud J5 sits
+in the bottom-right corner, beside J2 (both cables come in through the
+lid); USB and BOOT sit under J2.
 """
 
 BOARD_W, BOARD_H = 55.0, 112.0

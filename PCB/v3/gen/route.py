@@ -580,6 +580,21 @@ def _groups(board, net, islands):
         for h in hits[1:]:
             union(hits[0], h)
 
+    # two pours of the net that meet on one layer (J5's GND disc and the
+    # board-wide fill: the fill stops exactly at the disc's edge) are one piece
+    # of copper too
+    grow = pcbnew.FromMM(0.01)
+    for i, (la, pa) in enumerate(islands):
+        box = pa.BBox()
+        box.Inflate(grow)
+        for j in range(i + 1, len(islands)):
+            lb, pb = islands[j]
+            if la == lb and box.Intersects(pb.BBox()):
+                both = pcbnew.SHAPE_POLY_SET(pa)
+                both.Inflate(grow, pcbnew.CORNER_STRATEGY_ROUND_ALL_CORNERS, grow)
+                both.BooleanIntersection(pb)
+                if not both.IsEmpty():
+                    union(i, j)
     for t in board.Tracks():
         if t.GetNetname() != net:
             continue
@@ -667,32 +682,30 @@ def stitch_islands(board, nets=POURED):
 # wherever the layer changes, so the two points either side of it are the same
 # point. F, In2, In4 and B: In1 and In3 are planes here too. Default netclass:
 # 0.25 mm track, 0.6/0.3 via.
-# The 6 layer draw (fab/route.ses) stalls at three links in every variant; these
-# were found by a grid search over F / In2 / In4 / B on the routed board, at the
-# board minimum 0.2 mm and 0.2 mm (+0.05) clear of everything.
+# The 55 x 112 draw (fab/route.ses) leaves one link; it was found by a grid A*
+# (0.05 mm grid) over F / In2 / In4 / B on the routed board, at the board minimum
+# 0.2 mm and 0.25 mm clear of everything (0.35 of Bus / Led12V copper).
 HAND_ROUTES = [
-    # J1.12 west round pin 5 on In4, then diagonally under the LED5 / LED6 pours
-    # and past U12's exposed-pad vias, then F along the east end of the control
-    # rows to D16
-    ("LED6_DO", 0.2, [(32.0, 18.0, "In4"), (29.55, 16.65, "In4"), (29.2, 16.55, "In4"),
-                      (28.75, 16.55, "In4"), (28.45, 16.65, "In4"), (28.1, 16.85, "In4"),
-                      (27.85, 17.1, "In4"), (27.6, 17.55, "In4"), (27.55, 17.9, "In4"),
-                      (27.6, 18.65, "In4"), (28.2, 19.25, "In4"), (28.25, 19.25, "In4"),
-                      (28.45, 19.4, "In4"), (28.65, 19.6, "In4"), (28.9, 20.05, "In4"),
-                      (28.95, 20.4, "In4"), (29.0, 21.2, "In4"), (34.3, 26.5, "In4"),
-                      (34.4, 26.7, "In4"), (35.05, 30.25, "In4"), (35.05, 30.25, "F"),
-                      (36.85, 35.55, "F"), (36.85, 38.15, "F"), (36.7, 38.4, "F"),
-                      (34.7, 40.4, "F"), (33.95, 42.1, "F")]),
-    # U7 EN west round C7's VBUS pad, B.Cu under the drains to R19
-    ("BUCK_EN", 0.2, [(5.025, 52.235, "F"), (3.65, 53.035, "F"), (3.6, 53.185, "F"),
-                      (3.6, 53.885, "F"), (4.4, 54.635, "F"), (5.6, 54.635, "F"),
-                      (5.6, 54.635, "B"), (7.9, 56.835, "B"), (11.3, 60.085, "B"),
-                      (13.65, 61.435, "B"), (26.75, 66.435, "B"), (30.35, 66.435, "B"),
-                      (30.5, 66.485, "B"), (32.75, 68.685, "B"), (32.75, 68.685, "F"),
-                      (32.2, 69.575, "F")]),
-    # R80.1 down to In2 and across to the router's IN2_SENSE via east of R81
-    ("IN2_SENSE", 0.2, [(39.8, 88.895, "F"), (39.1, 88.07, "F"), (39.1, 88.07, "In2"),
-                        (40.45, 88.67, "In2"), (41.35, 88.62, "In2"), (42.66, 88.02, "In2")]),
+    # U7 EN (pin 3) to R19 (task 11, 55 x 112 draw): In4 under the drains between
+    # the VBUS via fields, B under SW2, back up on In4, F into R19
+    ("BUCK_EN", 0.2, [(5.025, 52.235, "F"), (5.05, 52.3, "F"), (5.05, 52.3, "In4"), (8.8, 56.05, "In4"),
+                     (8.85, 56.05, "In4"), (8.9, 56.1, "In4"), (8.95, 56.1, "In4"), (9.0, 56.15, "In4"),
+                     (9.05, 56.15, "In4"), (9.5, 56.6, "In4"), (9.5, 57.25, "In4"), (9.55, 57.3, "In4"),
+                     (9.55, 57.45, "In4"), (9.65, 57.55, "In4"), (9.65, 57.6, "In4"),
+                     (10.45, 58.4, "In4"), (10.5, 58.4, "In4"), (17.9, 65.8, "In4"),
+                     (17.9, 66.1, "In4"), (17.95, 66.15, "In4"), (17.95, 66.25, "In4"),
+                     (18.05, 66.35, "In4"), (18.05, 66.4, "In4"), (24.3, 72.65, "In4"),
+                     (24.3, 72.65, "B"), (28.55, 76.9, "B"), (28.55, 77.6, "B"), (32.1, 81.15, "B"),
+                     (32.1, 81.15, "In4"), (32.1, 80.1, "In4"), (31.4, 79.4, "In4"),
+                     (31.4, 79.35, "In4"), (31.35, 79.3, "In4"), (31.35, 79.25, "In4"),
+                     (31.3, 79.2, "In4"), (31.3, 71.4, "In4"), (30.65, 70.75, "In4"),
+                     (30.65, 70.7, "In4"), (30.6, 70.65, "In4"), (30.6, 70.5, "In4"),
+                     (30.55, 70.45, "In4"), (30.55, 70.35, "In4"), (30.6, 70.3, "In4"),
+                     (30.6, 70.2, "In4"), (30.65, 70.15, "In4"), (30.65, 70.1, "In4"),
+                     (30.7, 70.05, "In4"), (30.7, 70.0, "In4"), (31.25, 69.45, "In4"),
+                     (31.25, 68.4, "In4"), (31.25, 68.4, "F"), (32.0, 69.15, "F"), (32.0, 69.2, "F"),
+                     (32.05, 69.25, "F"), (32.05, 69.3, "F"), (32.1, 69.35, "F"), (32.1, 69.4, "F"),
+                     (32.15, 69.45, "F"), (32.15, 69.55, "F"), (32.2, 69.575, "F")]),
 ]
 
 

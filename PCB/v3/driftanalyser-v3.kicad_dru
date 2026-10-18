@@ -16,10 +16,11 @@
 	(condition "A.Type == 'Pad' && B.Type == 'Pad' && A.memberOfFootprint('U2') && B.memberOfFootprint('U2')"))
 
 # U2's ground pin has no way out but the 0.66 mm gap between C2's pads: a
-# 0.2 mm run there keeps 0.23 mm to each of them
+# 0.2 mm run there keeps 0.23 mm to each of them. Only that run: a ground track
+# inside C2's courtyard
 (rule "U2 ground escape between C2 pads"
 	(constraint clearance (min 0.2mm))
-	(condition "A.memberOfFootprint('C2') && B.Type == 'Track' && B.NetName == 'GND'"))
+	(condition "A.memberOfFootprint('C2') && B.Type == 'Track' && B.NetName == 'GND' && B.intersectsCourtyard('C2')"))
 
 (rule "U3 LGA-14 land pattern"
 	(constraint clearance (min 0.15mm))
