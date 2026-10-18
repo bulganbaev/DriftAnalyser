@@ -96,3 +96,11 @@ def render_all(parts, out_dir):
           (270, 200, 190), (35.0, -45.0, 70.0), 1.45)
     _shot(actors(skip=("gasket", "tpads")), os.path.join(out_dir, "render-top-studs.png"),
           (29.0, -95.0, 400.0), (29.0, -95.0, 30.0), 2.4, up=(0, 1, 0))
+
+
+def render_mated(parts, out_dir):
+    tmp = tempfile.mkdtemp(prefix="da3_mated_")
+    acts = [_actor(_stl(shp, os.path.join(tmp, n + ".stl")), col) for n, shp, col, _ in parts]
+    _shot(acts, os.path.join(out_dir, "render-board-mated-iso-j1.png"), (-150, 230, 150), (27.5, -35.0, 25.0), 1.7)
+    _shot(acts, os.path.join(out_dir, "render-board-mated-iso-studs.png"), (230, -330, 170), (27.5, -80.0, 25.0), 1.7)
+    _shot(acts, os.path.join(out_dir, "render-board-mated-top.png"), (27.5, -30.0, 600.0), (27.5, -30.0, 10.0), 1.7, up=(0, 1, 0))

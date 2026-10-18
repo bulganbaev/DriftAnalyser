@@ -8,15 +8,16 @@ CAD frame here: X = board x, Y = -board y (so +Y is the J1 end), Z up, base bott
 Layout: J1 (Superseal 34, right angle) on the board's top short edge drops into a U-slot in the
 front end wall, the wall web sits in the header's groove between the flange plates. The seam is
 flat at Z_SEAM; the lid is a flat plate over the low rear part plus a hood over J1 (J1 is
-27.9 mm tall, the rest of the board ~10.5). The two M6 studs (J2 +12 V, J5 battery negative)
-come up under the rear lid; a brass spacer through an insulating sleeve in the lid brings each to
-the lid top, ring lug + M6 bolt on top, red / black boot over it. Fingers on the sleeve flange
+27.9 mm tall, the rest of the board ~10.5). The two Wurth 7461059 REDCUBE
+terminals (J2 +12 V, J5 battery negative, 13 mm square brass blocks 13.5 high) poke 1 mm into a pocket
+in the lid underside; a 12 mm brass riser through an insulating cup/sleeve brings each to the lid top,
+ring lug + washer + M6x20 bolt into the block's thread, red / black boot over it. Fingers on the sleeve flange
 keep both lugs pointing to the rear so they can't swing into each other. SMA bulkhead in the
 right wall next to the u.FL. The four switches and the ideal-diode FETs sink into pedestals on
 the base floor through an insulating thermal pad (their exposed pads are VBUS).
 
 Run:  enclosure/.venv/bin/python enclosure/v3/enclosure_v3.py [--no-render] [--clash]
-Out:  enclosure/v3/out/{base,lid}.stl, enclosure.step, render-*.png
+Out:  enclosure/v3/out/{base,lid}.stl, enclosure.step, render-*.png (incl. render-board-mated-*: bare board with all mating parts)
 """
 import math
 import os
@@ -44,7 +45,7 @@ PAD_T = 1.0           # insulating thermal pad (compressed) between pedestal and
 CAV_R = 3.5           # cavity vertical corner radius (board corner R3 + CLR)
 OUT_R = 4.0           # outer vertical corner radius
 
-REAR_H = 12.5         # board top -> rear lid underside: C3 8x10.5 is 10.54, stud 10 (assumed)
+REAR_H = 12.5         # board top -> rear lid underside: C3 8x10.5 is 10.54; REDCUBE block 13.5 pokes 1.0 into a lid pocket
 LID_T = 4.0           # rear lid plate
 HOOD_T = 3.5          # hood walls and roof over J1
 HOOD_CLR = 1.0        # J1 top -> hood roof
@@ -91,18 +92,21 @@ PED_INSET = 0.3
 PEDESTALS = [(x0 + PED_INSET, x0 + 6.0 - PED_INSET, 25.9 + PED_INSET, 30.9 - PED_INSET)
              for x0 in (10.1, 19.7, 29.3, 38.9)] + [(13.65, 23.9, 61.8, 66.3)]
 
-# M6 studs Würth WP-BUCF 7461059 (internal M6), height not verified; body Ø14 from the fab layer
+# M6 terminals Würth WP-BUCF 7461059 REDCUBE press-fit (internal M6)
 STUDS = {"J2": P.PLACE["J2"][:2],    # (14, 86.5) +12 V, red
          "J5": P.PLACE["J5"][:2]}    # (44.4, 96.3) battery negative / GND, black
 STUD_COL = {"J2": (0.85, 0.06, 0.06), "J5": (0.07, 0.07, 0.08)}
 CABLE_COL = {"J2": (0.75, 0.08, 0.08), "J5": (0.10, 0.10, 0.11)}
-STUD_H, STUD_D = 10.0, 14.0
+BLOCK, BLOCK_H, THREAD_DEPTH = 13.0, 13.5, 12.5   # Wurth 7461059 (drawing rev 001.003); thread depth read off the section, ~full height
+BOLT_ENGAGE = 10.4                     # M6x20 thread engagement into the block (>= 1.5 d)
+LUG_T = 1.6
 LUG_OD, LUG_TONGUE_W = 14.0, 8.0       # M6 ring lug for 16-25 mm2, tongue points to the rear (+board y)
 STUD_BOSS_D, STUD_BOSS_H = 26.0, 2.0   # raised boss on the lid around the stud
-SLEEVE_OD, SLEEVE_ID = 16.0, 10.4      # PA66/PEEK insulating sleeve in the lid hole
+SLEEVE_OD, SLEEVE_ID = 16.0, 12.4      # PA66/PEEK insulating sleeve in the lid hole, round the 12 mm riser
 SLEEVE_FL_D, SLEEVE_FL_T = 22.0, 1.5
 FINGER = (4.3, 5.5, 5.8, 8.6)          # anti-rotation fingers on the flange: |x| range, y range from the stud
-SPACER_D = 10.0                        # brass spacer stud top -> above the sleeve flange
+POCKET_D = 22.2                        # lid underside pocket round the block (corners reach 18.4)
+SPACER_D = 12.0                        # brass spacer stud top -> above the sleeve flange
 CAP_D, CAP_H = 24.0, 12.0              # red boot over lug + bolt
 
 # SMA bulkhead (1/4-36) in the right wall at the u.FL's y, nut AF8 inside
@@ -119,6 +123,7 @@ Z_PCB_BOT = FLOOR + STANDOFF
 T = Z_PCB_BOT + PCB_T            # board top
 Z_SEAM = T + REAR_H
 Z_LID_TOP = Z_SEAM + LID_T
+Z_POCKET = T + 14.8              # lid pocket ceiling: block top T+13.5, insulating cup roof 1.1 thick
 HOOD_TOP = T + J1_H + HOOD_CLR + HOOD_T
 X0, X1 = -CLR - WALL, BW + CLR + WALL                 # outer X
 Y0, Y1 = FRONT_OUT, BH + CLR + WALL                   # outer board-y (front, rear)
@@ -248,7 +253,8 @@ def make_lid():
         lid = lid.union(pilaster(x, y, Z_SEAM, Z_LID_TOP)).cut(cyl(x, y, Z_SEAM - 1, Z_LID_TOP + 1, CLEAR_D))
     for sx, sy in STUDS.values():
         lid = lid.union(cyl(sx, sy, Z_LID_TOP - 0.5, Z_LID_TOP + STUD_BOSS_H, STUD_BOSS_D))
-        lid = lid.cut(cyl(sx, sy, Z_SEAM - 1, Z_LID_TOP + STUD_BOSS_H + 1, SLEEVE_OD))
+        lid = lid.cut(cyl(sx, sy, Z_SEAM - 1, Z_POCKET, POCKET_D)).cut(
+            cyl(sx, sy, Z_SEAM - 1, Z_LID_TOP + STUD_BOSS_H + 1, SLEEVE_OD))
     return lid
 
 
@@ -292,26 +298,43 @@ def make_plug():
     return body.union(cover), latch, union(*wires).cut(loom), loom
 
 
+def make_block(sx, sy):
+    """Wurth 7461059 REDCUBE: 13.0 square brass block, 13.5 high, M6 thread from the top (bore drawn 5.0, 12.5 deep)."""
+    h = BLOCK / 2
+    blk = box(sx - h, sx + h, sy - h, sy + h, T, T + BLOCK_H)
+    return blk.cut(cyl(sx, sy, T + BLOCK_H - THREAD_DEPTH, T + BLOCK_H + 1, 5.0))
+
+
+def make_lugset(sx, sy, z0, shank):
+    """ring lug lying on z0, tongue + barrel + cable to the rear, washer, M6 bolt of `shank` mm under the head."""
+    z_lug = z0 + LUG_T
+    tw = LUG_TONGUE_W / 2
+    lug = ring(sx, sy, z0, z_lug, LUG_OD, 6.5).union(box(sx - tw, sx + tw, sy + 4.0, sy + 15.0, z0, z_lug))
+    lug = lug.union(cyl_y(sy + 14.0, sy + 26.0, sx, z_lug + 3.0, 8.5)).union(
+        box(sx - 3, sx + 3, sy + 12, sy + 15, z0, z_lug + 3.0))
+    cable = cyl_y(sy + 26.0, sy + 75.0, sx, z_lug + 3.0, 7.5)
+    washer = ring(sx, sy, z_lug, z_lug + 1.2, 12.0, 6.4)
+    bolt = hex_z(sx, sy, z_lug + 1.2, z_lug + 5.2, 10.0).union(cyl(sx, sy, z_lug + 1.2 - shank, z_lug + 1.2, 6.0))
+    return dict(lug=lug, cable=cable, washer=washer, bolt=bolt)
+
+
 def make_stud_stack(sx, sy):
-    stud = cyl(sx, sy, T, T + STUD_H, STUD_D).cut(cyl(sx, sy, T + 1, T + STUD_H + 1, 6.0))
+    """block (drawn separately) -> brass riser through the lid sleeve -> ring lug -> washer -> M6x20 into the block thread."""
     z_fl = Z_LID_TOP + STUD_BOSS_H
     z_ft = z_fl + SLEEVE_FL_T
-    sleeve = ring(sx, sy, Z_SEAM, z_fl, SLEEVE_OD - 0.1, SLEEVE_ID).union(
-        ring(sx, sy, z_fl, z_ft, SLEEVE_FL_D, SLEEVE_ID))
+    sleeve = ring(sx, sy, Z_SEAM, Z_POCKET, POCKET_D - 0.2, POCKET_D - 2.6)                  # wall round the block
+    sleeve = sleeve.union(ring(sx, sy, T + BLOCK_H + 0.2, Z_POCKET, POCKET_D - 0.2, SLEEVE_ID))  # roof over the block
+    sleeve = sleeve.union(ring(sx, sy, Z_POCKET, z_fl, SLEEVE_OD - 0.1, SLEEVE_ID))
+    sleeve = sleeve.union(ring(sx, sy, z_fl, z_ft, SLEEVE_FL_D, SLEEVE_ID))
     z_sp = z_ft + 0.3
-    spacer = ring(sx, sy, T + STUD_H, z_sp, SPACER_D, 6.4)
-    z_lug = z_sp + 1.6
+    spacer = ring(sx, sy, T + BLOCK_H, z_sp, SPACER_D, 6.4)
     fx0, fx1, fy0, fy1 = FINGER
+    z_lug = z_sp + LUG_T
     for side in (-1, 1):   # fingers either side of the lug tongue: the lug can't turn toward the other stud
         xa, xb = sorted((sx + side * fx0, sx + side * fx1))
         sleeve = sleeve.union(box(xa, xb, sy + fy0, sy + fy1, z_ft - 0.1, z_lug + 0.5))
+    ls = make_lugset(sx, sy, z_sp, z_sp + LUG_T + 1.2 - (T + BLOCK_H - BOLT_ENGAGE))
     tw = LUG_TONGUE_W / 2
-    lug = ring(sx, sy, z_sp, z_lug, LUG_OD, 6.5).union(box(sx - tw, sx + tw, sy + 4.0, sy + 15.0, z_sp, z_lug))
-    barrel = cyl_y(sy + 14.0, sy + 26.0, sx, z_lug + 3.0, 8.5)
-    lug = lug.union(barrel).union(box(sx - 3, sx + 3, sy + 12, sy + 15, z_sp, z_lug + 3.0))
-    cable = cyl_y(sy + 26.0, sy + 75.0, sx, z_lug + 3.0, 7.5)
-    washer = ring(sx, sy, z_lug, z_lug + 1.2, 12.0, 6.4)
-    bolt = hex_z(sx, sy, z_lug + 1.2, z_lug + 5.2, 10.0).union(cyl(sx, sy, z_lug - 12.0, z_lug + 1.2, 6.0))
     z_cap = z_ft + 0.1     # boot sits on the sleeve flange
     cap = (cyl(sx, sy, z_cap, z_cap + CAP_H, CAP_D).union(
         cq.Workplane("XY").sphere(CAP_D / 2).translate((sx, -sy, z_cap + CAP_H)).intersect(
@@ -321,7 +344,33 @@ def make_stud_stack(sx, sy):
     cap = cap.cut(cyl(sx, sy, z_cap - 1, z_cap + CAP_H - 1.5, CAP_D - 3.0)).cut(
         cyl_y(sy + 8.0, sy + 31.0, sx, z_lug + 3.0, 9.0)).cut(
         box(sx - tw - 0.3, sx + tw + 0.3, sy, sy + 16.0, z_cap - 1, z_lug + 3.0))    # tongue channel
-    return dict(stud=stud, sleeve=sleeve, spacer=spacer, lug=lug, cable=cable, washer=washer, bolt=bolt, cap=cap)
+    return dict(stud=make_block(sx, sy), sleeve=sleeve, spacer=spacer, cap=cap, **ls)
+
+
+def make_usb_plug():
+    """USB-C plug into J3 (receptacle opens to +board y, axis z = T + 1.6): metal shell, overmold, strain relief, cable."""
+    x, z = J3_X, T + 1.6
+    shell = box(x - 4.15, x + 4.15, 111.3, 112.6, z - 1.3, z + 1.3)
+    mold = box(x - 6.0, x + 6.0, 112.6, 131.0, z - 3.25, z + 3.25).edges("|Y").fillet(1.5)
+    relief = cyl_y(131.0, 145.0, x, z, 6.0)
+    cable = cyl_y(145.0, 165.0, x, z, 4.2).union(cyl_x(x - 45.0, x + 2.1, 165.0, z, 4.2))   # elbows off to the side, clear of J2's cable
+    return union(shell, mold, relief), cable
+
+
+def make_jumpers():
+    """shunts on JP1/JP2 (vertical 1x02, pins along +y) and a 4-way Dupont housing + 4 wires on J4 (1x04)."""
+    pins = {"JP1": (53.05, 69.6, 2), "JP2": (49.3, 69.6, 2), "J4": (53.1, 77.7, 4)}
+    shunts = []
+    for ref in ("JP1", "JP2"):
+        x, y, n = pins[ref]
+        shunts.append(box(x - 1.25, x + 1.25, y - 1.27, y + 2.54 + 1.27, T + 2.5, T + 9.0))
+    x, y, n = pins["J4"]
+    housing = box(x - 1.3, x + 1.3, y - 1.27, y + 2.54 * 3 + 1.27, T + 2.5, T + 11.5)
+    wires = []
+    for i in range(4):
+        yy = y + 2.54 * i
+        wires.append(cyl(x, yy, T + 11.5, T + 21.0, 1.4).union(cyl_x(x, x + 70.0, yy, T + 21.0, 1.4)))
+    return union(*shunts), housing, union(*wires)
 
 
 def make_sma():
@@ -436,6 +485,30 @@ def build():
     return parts
 
 
+def build_mated():
+    """bare board with every mating part in place: no base, no lid (renders only)."""
+    board, comps = load_board()
+    plug_body, plug_latch, plug_wires, loom = make_plug()
+    sma_body, pig, ant_nut, whip = make_sma()
+    usb, usb_cable = make_usb_plug()
+    shunts, dup, dup_wires = make_jumpers()
+    parts = [("board", board, (0.04, 0.36, 0.16), (0, 0, 0)), ("comps", comps, (0.18, 0.18, 0.20), (0, 0, 0)),
+             ("extras", make_onboard_extras(), (0.75, 0.75, 0.78), (0, 0, 0)), ("j1", make_j1(), (0.10, 0.10, 0.11), (0, 0, 0)),
+             ("plug", plug_body, (0.12, 0.12, 0.13), (0, 0, 0)), ("latch", plug_latch, (0.30, 0.30, 0.32), (0, 0, 0)),
+             ("wires", plug_wires, (0.05, 0.05, 0.05), (0, 0, 0)), ("loom", loom, (0.06, 0.06, 0.07), (0, 0, 0)),
+             ("sma", sma_body, (0.85, 0.70, 0.30), (0, 0, 0)), ("pigtail", pig, (0.55, 0.55, 0.55), (0, 0, 0)),
+             ("antnut", ant_nut, (0.10, 0.10, 0.10), (0, 0, 0)), ("whip", whip, (0.08, 0.08, 0.09), (0, 0, 0)),
+             ("usb", usb, (0.55, 0.57, 0.60), (0, 0, 0)), ("usbcable", usb_cable, (0.07, 0.07, 0.08), (0, 0, 0)),
+             ("shunts", shunts, (0.08, 0.08, 0.09), (0, 0, 0)), ("dupont", dup, (0.12, 0.12, 0.13), (0, 0, 0)),
+             ("dupwires", dup_wires, (0.85, 0.75, 0.10), (0, 0, 0))]
+    for ref, (sx, sy) in STUDS.items():
+        parts.append((f"block_{ref}", make_block(sx, sy), (0.80, 0.62, 0.25), (0, 0, 0)))
+        ls = make_lugset(sx, sy, T + BLOCK_H, 12.0)
+        parts += [(f"lug_{ref}", ls["lug"], (0.78, 0.78, 0.80), (0, 0, 0)), (f"cable_{ref}", ls["cable"], CABLE_COL[ref], (0, 0, 0)),
+                  (f"washer_{ref}", ls["washer"], (0.65, 0.65, 0.68), (0, 0, 0)), (f"bolt_{ref}", ls["bolt"], (0.55, 0.55, 0.58), (0, 0, 0))]
+    return parts
+
+
 # pairs allowed to overlap: screws in their tap holes, the M6 bolts in the studs' threads
 CLASH_OK = {("base", "screws")} | {(f"bolt_{r}", f"stud_{r}") for r in STUDS}
 
@@ -464,7 +537,14 @@ if __name__ == "__main__":
     parts = build()
     if "--clash" in sys.argv:
         clash(parts)
+    if "--mated" in sys.argv or "--no-render" not in sys.argv:
+        mated = build_mated()
+        if "--clash" in sys.argv:
+            CLASH_OK.update({(f"bolt_{r}", f"block_{r}") for r in STUDS} | {("comps", "shunts"), ("comps", "dupont")})  # plugs sit over header pins
+            print("mated board:")
+            clash(mated)
     if "--no-render" not in sys.argv:
         sys.path.insert(0, HERE)
         import render_v3
         render_v3.render_all(parts, OUT)
+        render_v3.render_mated(mated, OUT)
