@@ -616,6 +616,45 @@ def _groups(board, net, islands):
     return list(out.values())
 
 
+# J5's GND disc outranks the board-wide GND fill, so the fill is cut back to the
+# disc's edge and the two only meet edge to edge. A row of vias on that seam
+# (centre on the disc's radius, half the barrel in the disc, half in the fill,
+# on all six layers) makes them one piece of copper for real. Drawn after the
+# session import, so they go only where the routed board leaves room; offset
+# half a step from the builder's ring at r 9.3.
+J5_SEAM_STEP = 10.0
+J5_SEAM_VIA = (0.8, 0.4)
+# same-net vias: keep the holes apart (0.4 drill + 0.15 web), copper may touch
+J5_SEAM_HOLE_GAP = 0.55
+
+
+def j5_seam_vias(board):
+    gx, gy, _, _ = placement.PLACE["J5"]
+    d, drill = J5_SEAM_VIA
+    foreign = pcbnew.FromMM(d / 2) + CLEARANCE
+    own = pcbnew.FromMM(J5_SEAM_HOLE_GAP)
+    pads = [pad for fp in board.GetFootprints() for pad in fp.Pads()]
+    tracks = list(board.Tracks())
+    out = []
+    a = J5_SEAM_STEP / 2
+    while a < 360.0:
+        x = round(gx + pcb_builder.J5_DISC_R * math.cos(math.radians(a)), 3)
+        y = round(gy + pcb_builder.J5_DISC_R * math.sin(math.radians(a)), 3)
+        p = MM(x, y)
+        a += J5_SEAM_STEP
+        if not pcb_builder._inside_board(x, y, 0.9):
+            continue
+        if any(pad.HitTest(p, foreign) for pad in pads):
+            continue
+        if any(t.HitTest(p, own if (t.GetClass() == "PCB_VIA" and t.GetNetname() == "GND")
+                         else foreign)
+               for t in tracks if t.GetClass() == "PCB_VIA" or t.GetNetname() != "GND"):
+            continue
+        _add_via(board, "GND", (x, y), d, drill)
+        out.append((x, y))
+    return out
+
+
 def _add_via(board, net, spot, d, drill):
     v = pcbnew.PCB_VIA(board)
     v.SetPosition(MM(*spot))
@@ -818,6 +857,8 @@ def import_ses(pcb, ses):
     if widened:
         print(f"{widened} necked tracks widened to {MIN_TRACK} mm")
     hand = finish_by_hand(board)
+    seam = j5_seam_vias(board)
+    print(f"{len(seam)} vias on the J5 disc / GND fill seam")
     board.BuildConnectivity()
     added, stranded = stitch_islands(board, ("GND",))
     # aSkipSettings=True, same reason as in pcb_builder: keep the .kicad_pro.

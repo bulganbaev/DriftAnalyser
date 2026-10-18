@@ -980,7 +980,8 @@ def _silk(board):
 
     # ---- buttons and USB: their bodies cover their own footprints, so beside them
     x, y, _, _ = placement.PLACE["SW1"]
-    _text(board, "BOOT", x - 5.75, y, size=0.8, rot=90, bold=True)
+    # below U9's pads, between R18 and SW1's left pads
+    _text(board, "BOOT", x - 5.65, y + 0.9, size=0.8, rot=90, bold=True)
     x, y, _, _ = placement.PLACE["SW2"]
     _text(board, "EN", x - 5.9, y + 1.2, size=1.0, rot=90, bold=True)
     x, y, _, _ = placement.PLACE["J3"]

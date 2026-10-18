@@ -4,15 +4,14 @@ from gen import env, model, placement
 
 def test_board_size_target():
     # The target was 55 x 75. Width holds: J1's courtyard is 46.5 of the 55 mm edge.
-    # Height does not: with everything single-sided on F, the parts below J1's
-    # 23.5 mm body need ~2700 mm2 of courtyard alone (stud 20 mm round, WROOM-1U,
-    # two 6 x 6 buttons, 8 x 10.5 bulk cap, four TSDSO-14 + ~150 small parts),
-    # plus ~150 for the M3 holes, and 55 x 51.5 below J1 is 2830 mm2 - 100 %
-    # fill, nothing left to route. 100 is what the placement packs into at ~68 %
-    # courtyard fill below J1 (holes included); the author decides on the size.
-    # 112 since the battery-negative stud J5 (author ruling, task 11): a second
-    # 20 mm stud courtyard does not fit in 100, and 112 is what J5 needs in the
-    # bottom right with the USB / BOOT group moved under J2.
+    # Height does not. Everything is single-sided on F, and below J1's 23.5 mm body
+    # the parts need ~2700 mm2 of courtyard (a 20 mm stud, WROOM-1U, two 6 x 6
+    # buttons, the 8 x 10.5 bulk cap, four TSDSO-14, ~150 small parts) plus ~150
+    # for the M3 holes, against 2830 mm2 in 55 x 51.5: nothing left to route.
+    # One stud packed into 100 (~68 % courtyard fill). 112 is for two studs
+    # (author ruling, task 11): the battery-negative stud J5 is a second 20 mm
+    # courtyard, it does not fit in 100, and 112 is what it takes in the bottom
+    # right with USB / BOOT moved under J2.
     assert placement.BOARD_W <= 55 and placement.BOARD_H <= 112
 
 

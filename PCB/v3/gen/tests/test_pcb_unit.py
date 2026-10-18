@@ -1,5 +1,5 @@
 """Board checks that need pcbnew -> run with KiCad's python: KICAD_PY -m unittest gen.tests.test_pcb_unit"""
-import json, os, re, shutil, subprocess, sys, tempfile, unittest
+import json, math, os, re, shutil, subprocess, sys, tempfile, unittest
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 import pcbnew
@@ -237,6 +237,30 @@ class TestPcb(unittest.TestCase):
             vias = [t for t in self.board.Tracks() if t.GetClass() == "PCB_VIA"
                     and t.GetNetname() == "VBUS" and ep.HitTest(t.GetPosition())]
             self.assertGreaterEqual(len(vias), 12, u)
+
+    def test_j5_disc_joined_to_gnd_fill(self):
+        """The J5 disc and the board GND fill only meet edge to edge; the seam vias
+        have to share copper area with both, on every layer."""
+        gx, gy, _, _ = placement.PLACE["J5"]
+        r = pcb_builder.J5_DISC_R
+        seam = [v for v in self.board.Tracks() if v.GetClass() == "PCB_VIA"
+                and v.GetNetname() == "GND"
+                and abs(math.hypot(pcbnew.ToMM(v.GetPosition().x) - gx,
+                                   pcbnew.ToMM(v.GetPosition().y) - gy) - r) < 0.05]
+        self.assertGreaterEqual(len(seam), 12)
+        pcbnew.ZONE_FILLER(self.board).Fill(self.board.Zones())
+        for layer in pcb_builder.CU:
+            fills = {}
+            for z in self.board.Zones():
+                if z.GetNetname() == "GND" and z.IsOnLayer(layer) and not z.GetIsRuleArea():
+                    fills[z.GetAssignedPriority()] = z.GetFilledPolysList(layer)
+            joined = 0
+            for v in seam:
+                c = pcbnew.SHAPE_POLY_SET()
+                v.TransformShapeToPolygon(c, layer, 0, pcbnew.FromMM(0.005),
+                                          pcbnew.ERROR_INSIDE)
+                joined += all(_intersects(c, fills[k]) for k in (0, 2))
+            self.assertGreaterEqual(joined, 12, self.board.GetLayerName(layer))
 
 
 def _normalised(path):
