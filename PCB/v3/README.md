@@ -135,13 +135,14 @@ from the datasheets (estimate, **not measured**):
 ## Bring-up checklist (first board)
 
 1. **Before fab, still open:**
-   - **J1 (TE 6437288-1) footprint is not verified against TE's customer drawing.** It is copied
-     from edash pdm30; TE's drawing could not be downloaded (te.com returns 403, and the LCSC
-     datasheet for C574787 is TE's catalogue with no pin numbering or PCB layout). **Must-check
-     before ordering, and in any case before crimping a harness:** get drawing 6437288 (TE customer
-     drawing) and compare pin-1 side, row order (row 1 = pins 1–9 nearest the switches, row 4 =
-     26–34 nearest the board edge) and the pin numbering against `da3:TE_6437288-1`, and the
-     housing's moulded numbers against the J1 table above.
+   - **J1 (TE 6437288-1) geometry checked 2026-10-18** against TE customer drawing
+     C-9-1437287-8 rev A1, sheet 2 (34 pos): mounting holes Ø3.3 at 38.5, nearest pin row 6.5 from
+     them, rows 2.5 / 3 / 2.5 apart, 3 mm pitch, 8-pin rows offset 1.5, outer 9-pin row starts 7.25
+     from the mounting hole, through holes Ø1.3 +0.2 (ours drill 1.4) — all match
+     `da3:TE_6437288-1`. **Still must-check before crimping a harness: pin numbering.** That drawing
+     gives no cavity numbers; our footprint puts 1–9 in the row farthest from the mounting holes
+     (top row of the mating face), pin 1 at the left seen from the component side. Confirm with the
+     mating plug 4-1437290-0 drawing or the moulded numbers on the housing.
    - LMR36520 exposed-pad mask: KiCad's footprint opens 2.4 × 3.1 mm, TI's DDA0008B example
      2.71 × 3.4 mm. Decide whether to enlarge it.
    - Thermal pad in the case must be electrically insulating: the B.Cu under U10..U13 is VBUS.
