@@ -50,7 +50,7 @@ def parts_on(sheet):
 
 # ---------------- power sheet ----------------
 # Stud -> TVS -> LM74700-Q1 ideal diode (VIN -> VBUS) -> buck 12->5 V -> LDO 3V3.
-# Buck EN (PWR_EN) = IGN (divided) OR HOLD (GPIO41); 100k pull-downs so a blank board sleeps.
+# Buck EN (PWR_EN) = IGN (divided) OR HOLD (GPIO41); pull-downs (R7 100k, R8 10k) so a blank board sleeps.
 _FET = dict(symbol="Transistor_FET:Q_NMOS_SSSGD_AvalancheRated", footprint="Package_TO_SOT_SMD:TDSON-8-1")
 _add(
     # Wurth 7461059 WP-BUCF REDCUBE press-fit terminals (13 x 13 mm brass block, internal M6
@@ -90,9 +90,11 @@ _add(
          {"1": "VBUS", "2": "GND"}, "power", lcsc="C2983550", mpn="GVZ1H107M0810CNVC", mfr="HRK"),
     C("C4", "10uF 50V", "VBUS", "GND", "power", "1210", lcsc="C2918502", mpn="CS3225X7R106K500NRL", mfr="SAMWHA"),
 
-    # battery sense, as v2: 47k/10k from VBUS -> 16 V = 2.81 V; BAT54S clamp to GND/3V3.
-    R("R1", "47k", "VBUS", "VBAT_SENSE", "power", "0603", lcsc="C25819", mpn="0603WAF4702T5E", mfr="UNI-ROYAL"),
-    R("R2", "10k", "VBAT_SENSE", "GND", "power", "0603", lcsc="C25804", mpn="0603WAF1002T5E", mfr="UNI-ROYAL"),
+    # battery sense: 470k/100k from VBUS (v2 ratio, 10x the resistance) -> 16 V = 2.81 V,
+    # ~22 uA at 12.6 V always on (47k/10k was ~220 uA). C5 holds the ADC sample: 82k source,
+    # tau 8 ms. BAT54S clamp to GND/3V3.
+    R("R1", "470k", "VBUS", "VBAT_SENSE", "power", "0603", lcsc="C23178", mpn="0603WAF4703T5E", mfr="UNI-ROYAL"),
+    R("R2", "100k", "VBAT_SENSE", "GND", "power", "0603", lcsc="C25803", mpn="0603WAF1003T5E", mfr="UNI-ROYAL"),
     C("C5", "100nF", "VBAT_SENSE", "GND", "power", "0603", lcsc="C14663", mpn="CC0603KRX7R9BB104", mfr="YAGEO"),
     # BAT54S (KiCad Diode:BAT54S, SOT-23): 1 = A of lower diode, 2 = K of upper diode, 3 = common.
     Part("D2", "BAT54S", "Diode:BAT54S", "Package_TO_SOT_SMD:SOT-23",
@@ -111,8 +113,8 @@ _add(
     # EN leakage 2.7 nA (no internal pull-up), EN must not exceed VIN + 0.3 V (6.3 note 2).
     # With R7 100k load: IGN 9 V -> EN ~1.6 V (on), 24 V -> ~4.6 V; HOLD 3.3 V -> ~3.0 V.
     # IGN off and HOLD low: R7 holds EN at 0 V < VEN-VCC-L 0.3 V -> shutdown, ISD 5.3 uA typ.
-    # R19 in series: on USB-only power HOLD can sit at 3 V with VIN ~0 V; 10k caps what EN
-    # pushes into VIN at ~0.25 mA. 2.7 nA EN leakage -> no threshold shift. Firmware: keep HOLD low without VBAT.
+    # R19 in series: on USB-only power HOLD can sit at 3 V with VIN ~0 V; 100k caps what EN
+    # pushes into VIN at ~25 uA. 2.7 nA EN leakage -> 0.3 mV, no threshold shift. Firmware: keep HOLD low without VBAT.
     R("R5", "100k", "IGN", "IGN_EN", "power", "0603", lcsc="C25803", mpn="0603WAF1003T5E", mfr="UNI-ROYAL"),
     R("R6", "33k", "IGN_EN", "GND", "power", "0603", lcsc="C4216", mpn="0603WAF3302T5E", mfr="UNI-ROYAL"),
     # BAT54W (KiCad Diode:BAT54W, SOT-323): 1 A, 2 NC, 3 K - as v2 D2.
@@ -121,8 +123,10 @@ _add(
     Part("D5", "BAT54W", "Diode:BAT54W", "Package_TO_SOT_SMD:SOT-323_SC-70",
          {"1": "HOLD", "2": "NC", "3": "PWR_EN"}, "power", lcsc="C77328", mpn="BAT54W", mfr="JSCJ"),
     R("R7", "100k", "PWR_EN", "GND", "power", "0603", lcsc="C25803", mpn="0603WAF1003T5E", mfr="UNI-ROYAL"),
-    R("R8", "100k", "HOLD", "GND", "power", "0603", lcsc="C25803", mpn="0603WAF1003T5E", mfr="UNI-ROYAL"),  # blank flash -> HOLD low -> sleep
-    R("R19", "10k", "PWR_EN", "BUCK_EN", "power", "0603", lcsc="C25804", mpn="0603WAF1002T5E", mfr="UNI-ROYAL"),
+    # HOLD pull-down 10k: GPIO41 may carry a weak pull-up (~45k) through reset; 10k keeps HOLD
+    # <= 0.6 V, so PWR_EN stays far under the 1.157 V EN threshold. Blank flash -> HOLD low -> sleep.
+    R("R8", "10k", "HOLD", "GND", "power", "0603", lcsc="C25804", mpn="0603WAF1002T5E", mfr="UNI-ROYAL"),
+    R("R19", "100k", "PWR_EN", "BUCK_EN", "power", "0603", lcsc="C25803", mpn="0603WAF1003T5E", mfr="UNI-ROYAL"),
 
     # logic buck 12 V -> 5.4 V: LMR36520ADDAR (TI SNVSBF0C, Nov 2025), VIN 4.2-65 V, abs max 70 V
     # (6.1) - above the SMCJ24CA clamp (38.9 V at Ipp) on VBUS; 2 A, 400 kHz, PFM (A variant).

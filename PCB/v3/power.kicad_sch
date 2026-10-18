@@ -4958,7 +4958,7 @@
         )
       )
     )
-    (property "Value" "47k"
+    (property "Value" "470k"
       (at 297.18 59.37 0)
       (effects
         (font
@@ -4993,7 +4993,7 @@
         )
       )
     )
-    (property "LCSC" "C25819"
+    (property "LCSC" "C23178"
       (at 297.18 30.48 0)
       (hide yes)
       (effects
@@ -5002,7 +5002,7 @@
         )
       )
     )
-    (property "MPN" "0603WAF4702T5E"
+    (property "MPN" "0603WAF4703T5E"
       (at 297.18 30.48 0)
       (hide yes)
       (effects
@@ -5101,7 +5101,7 @@
   )
   (symbol
     (lib_id "Device:R")
-    (at 307.34 35.56 0)
+    (at 309.88 35.56 0)
     (unit 1)
     (body_style 1)
     (exclude_from_sim no)
@@ -5111,15 +5111,15 @@
     (dnp no)
     (uuid "53997a02-1266-50de-9d4e-6decc9a9de4d")
     (property "Reference" "R2"
-      (at 307.34 53.6 0)
+      (at 309.88 53.6 0)
       (effects
         (font
           (size 1.27 1.27)
         )
       )
     )
-    (property "Value" "10k"
-      (at 307.34 57.1 0)
+    (property "Value" "100k"
+      (at 309.88 57.1 0)
       (effects
         (font
           (size 1.27 1.27)
@@ -5127,7 +5127,7 @@
       )
     )
     (property "Footprint" "Resistor_SMD:R_0603_1608Metric"
-      (at 307.34 35.56 0)
+      (at 309.88 35.56 0)
       (hide yes)
       (effects
         (font
@@ -5136,7 +5136,7 @@
       )
     )
     (property "Datasheet" ""
-      (at 307.34 35.56 0)
+      (at 309.88 35.56 0)
       (hide yes)
       (effects
         (font
@@ -5145,7 +5145,7 @@
       )
     )
     (property "Description" ""
-      (at 307.34 35.56 0)
+      (at 309.88 35.56 0)
       (hide yes)
       (effects
         (font
@@ -5153,8 +5153,8 @@
         )
       )
     )
-    (property "LCSC" "C25804"
-      (at 307.34 35.56 0)
+    (property "LCSC" "C25803"
+      (at 309.88 35.56 0)
       (hide yes)
       (effects
         (font
@@ -5162,8 +5162,8 @@
         )
       )
     )
-    (property "MPN" "0603WAF1002T5E"
-      (at 307.34 35.56 0)
+    (property "MPN" "0603WAF1003T5E"
+      (at 309.88 35.56 0)
       (hide yes)
       (effects
         (font
@@ -5172,7 +5172,7 @@
       )
     )
     (property "Manufacturer" "UNI-ROYAL"
-      (at 307.34 35.56 0)
+      (at 309.88 35.56 0)
       (hide yes)
       (effects
         (font
@@ -5197,8 +5197,8 @@
   )
   (wire
     (pts
-      (xy 307.34 31.75)
-      (xy 307.34 26.67)
+      (xy 309.88 31.75)
+      (xy 309.88 26.67)
     )
     (stroke
       (width 0)
@@ -5208,7 +5208,7 @@
   )
   (global_label "VBAT_SENSE"
     (shape passive)
-    (at 307.34 26.67 90)
+    (at 309.88 26.67 90)
     (fields_autoplaced yes)
     (effects
       (font
@@ -5218,7 +5218,7 @@
     )
     (uuid "c2b544ef-804d-5fe6-a383-2319bba1aafd")
     (property "Intersheetrefs" "${INTERSHEET_REFS}"
-      (at 307.34 26.67 0)
+      (at 309.88 26.67 0)
       (hide yes)
       (effects
         (font
@@ -5229,8 +5229,8 @@
   )
   (wire
     (pts
-      (xy 307.34 39.37)
-      (xy 307.34 44.45)
+      (xy 309.88 39.37)
+      (xy 309.88 44.45)
     )
     (stroke
       (width 0)
@@ -5240,7 +5240,7 @@
   )
   (global_label "GND"
     (shape passive)
-    (at 307.34 44.45 270)
+    (at 309.88 44.45 270)
     (fields_autoplaced yes)
     (effects
       (font
@@ -5250,7 +5250,7 @@
     )
     (uuid "ae873133-b8a7-502b-b7ca-c159d02585ff")
     (property "Intersheetrefs" "${INTERSHEET_REFS}"
-      (at 307.34 44.45 0)
+      (at 309.88 44.45 0)
       (hide yes)
       (effects
         (font
@@ -5421,7 +5421,7 @@
   )
   (symbol
     (lib_id "Diode:BAT54S")
-    (at 347.98 12.7 0)
+    (at 350.52 12.7 0)
     (unit 1)
     (body_style 1)
     (exclude_from_sim no)
@@ -5431,7 +5431,7 @@
     (dnp no)
     (uuid "a6eb1331-737b-5e40-a10c-ef51efecdeab")
     (property "Reference" "D2"
-      (at 347.98 39.36 0)
+      (at 350.52 39.36 0)
       (effects
         (font
           (size 1.27 1.27)
@@ -5439,7 +5439,7 @@
       )
     )
     (property "Value" "BAT54S"
-      (at 347.98 42.86 0)
+      (at 350.52 42.86 0)
       (effects
         (font
           (size 1.27 1.27)
@@ -5447,7 +5447,7 @@
       )
     )
     (property "Footprint" "Package_TO_SOT_SMD:SOT-23"
-      (at 347.98 12.7 0)
+      (at 350.52 12.7 0)
       (hide yes)
       (effects
         (font
@@ -5456,7 +5456,7 @@
       )
     )
     (property "Datasheet" ""
-      (at 347.98 12.7 0)
+      (at 350.52 12.7 0)
       (hide yes)
       (effects
         (font
@@ -5465,7 +5465,7 @@
       )
     )
     (property "Description" ""
-      (at 347.98 12.7 0)
+      (at 350.52 12.7 0)
       (hide yes)
       (effects
         (font
@@ -5474,7 +5474,7 @@
       )
     )
     (property "LCSC" "C47546"
-      (at 347.98 12.7 0)
+      (at 350.52 12.7 0)
       (hide yes)
       (effects
         (font
@@ -5483,7 +5483,7 @@
       )
     )
     (property "MPN" "BAT54S,215"
-      (at 347.98 12.7 0)
+      (at 350.52 12.7 0)
       (hide yes)
       (effects
         (font
@@ -5492,7 +5492,7 @@
       )
     )
     (property "Manufacturer" "Nexperia"
-      (at 347.98 12.7 0)
+      (at 350.52 12.7 0)
       (hide yes)
       (effects
         (font
@@ -5520,8 +5520,8 @@
   )
   (wire
     (pts
-      (xy 340.36 12.7)
-      (xy 335.28 12.7)
+      (xy 342.9 12.7)
+      (xy 337.82 12.7)
     )
     (stroke
       (width 0)
@@ -5531,7 +5531,7 @@
   )
   (global_label "GND"
     (shape passive)
-    (at 335.28 12.7 180)
+    (at 337.82 12.7 180)
     (fields_autoplaced yes)
     (effects
       (font
@@ -5541,7 +5541,7 @@
     )
     (uuid "99a1cdaf-8dcd-5bb1-b463-8abe89a85814")
     (property "Intersheetrefs" "${INTERSHEET_REFS}"
-      (at 335.28 12.7 0)
+      (at 337.82 12.7 0)
       (hide yes)
       (effects
         (font
@@ -5552,8 +5552,8 @@
   )
   (wire
     (pts
-      (xy 355.6 12.7)
-      (xy 360.68 12.7)
+      (xy 358.14 12.7)
+      (xy 363.22 12.7)
     )
     (stroke
       (width 0)
@@ -5563,7 +5563,7 @@
   )
   (global_label "3V3"
     (shape passive)
-    (at 360.68 12.7 0)
+    (at 363.22 12.7 0)
     (fields_autoplaced yes)
     (effects
       (font
@@ -5573,7 +5573,7 @@
     )
     (uuid "30c95135-7148-5ad5-b899-16e8aee374df")
     (property "Intersheetrefs" "${INTERSHEET_REFS}"
-      (at 360.68 12.7 0)
+      (at 363.22 12.7 0)
       (hide yes)
       (effects
         (font
@@ -5584,8 +5584,8 @@
   )
   (wire
     (pts
-      (xy 347.98 17.78)
-      (xy 347.98 22.86)
+      (xy 350.52 17.78)
+      (xy 350.52 22.86)
     )
     (stroke
       (width 0)
@@ -5595,7 +5595,7 @@
   )
   (global_label "VBAT_SENSE"
     (shape passive)
-    (at 347.98 22.86 270)
+    (at 350.52 22.86 270)
     (fields_autoplaced yes)
     (effects
       (font
@@ -5605,7 +5605,7 @@
     )
     (uuid "86b23ec8-11c1-5474-9187-e447c25ff9fe")
     (property "Intersheetrefs" "${INTERSHEET_REFS}"
-      (at 347.98 22.86 0)
+      (at 350.52 22.86 0)
       (hide yes)
       (effects
         (font
@@ -5616,7 +5616,7 @@
   )
   (symbol
     (lib_id "Device:R")
-    (at 378.46 27.94 0)
+    (at 381.0 27.94 0)
     (unit 1)
     (body_style 1)
     (exclude_from_sim no)
@@ -5626,7 +5626,7 @@
     (dnp no)
     (uuid "819892c0-470c-585a-a957-6088cf1219ff")
     (property "Reference" "R3"
-      (at 378.46 50.18 0)
+      (at 381.0 50.18 0)
       (effects
         (font
           (size 1.27 1.27)
@@ -5634,7 +5634,7 @@
       )
     )
     (property "Value" "100k"
-      (at 378.46 53.68 0)
+      (at 381.0 53.68 0)
       (effects
         (font
           (size 1.27 1.27)
@@ -5642,7 +5642,7 @@
       )
     )
     (property "Footprint" "Resistor_SMD:R_0603_1608Metric"
-      (at 378.46 27.94 0)
+      (at 381.0 27.94 0)
       (hide yes)
       (effects
         (font
@@ -5651,7 +5651,7 @@
       )
     )
     (property "Datasheet" ""
-      (at 378.46 27.94 0)
+      (at 381.0 27.94 0)
       (hide yes)
       (effects
         (font
@@ -5660,7 +5660,7 @@
       )
     )
     (property "Description" ""
-      (at 378.46 27.94 0)
+      (at 381.0 27.94 0)
       (hide yes)
       (effects
         (font
@@ -5669,7 +5669,7 @@
       )
     )
     (property "LCSC" "C25803"
-      (at 378.46 27.94 0)
+      (at 381.0 27.94 0)
       (hide yes)
       (effects
         (font
@@ -5678,7 +5678,7 @@
       )
     )
     (property "MPN" "0603WAF1003T5E"
-      (at 378.46 27.94 0)
+      (at 381.0 27.94 0)
       (hide yes)
       (effects
         (font
@@ -5687,7 +5687,7 @@
       )
     )
     (property "Manufacturer" "UNI-ROYAL"
-      (at 378.46 27.94 0)
+      (at 381.0 27.94 0)
       (hide yes)
       (effects
         (font
@@ -5712,8 +5712,8 @@
   )
   (wire
     (pts
-      (xy 378.46 24.13)
-      (xy 378.46 19.05)
+      (xy 381.0 24.13)
+      (xy 381.0 19.05)
     )
     (stroke
       (width 0)
@@ -5723,7 +5723,7 @@
   )
   (global_label "IGN"
     (shape passive)
-    (at 378.46 19.05 90)
+    (at 381.0 19.05 90)
     (fields_autoplaced yes)
     (effects
       (font
@@ -5733,7 +5733,7 @@
     )
     (uuid "368c8e2e-f272-54d4-ae39-488ed54a4b37")
     (property "Intersheetrefs" "${INTERSHEET_REFS}"
-      (at 378.46 19.05 0)
+      (at 381.0 19.05 0)
       (hide yes)
       (effects
         (font
@@ -5744,8 +5744,8 @@
   )
   (wire
     (pts
-      (xy 378.46 31.75)
-      (xy 378.46 36.83)
+      (xy 381.0 31.75)
+      (xy 381.0 36.83)
     )
     (stroke
       (width 0)
@@ -5755,7 +5755,7 @@
   )
   (global_label "IGN_DET"
     (shape passive)
-    (at 378.46 36.83 270)
+    (at 381.0 36.83 270)
     (fields_autoplaced yes)
     (effects
       (font
@@ -5765,7 +5765,7 @@
     )
     (uuid "3e4cf4ab-d5dc-5cd8-a813-e90b8d348055")
     (property "Intersheetrefs" "${INTERSHEET_REFS}"
-      (at 378.46 36.83 0)
+      (at 381.0 36.83 0)
       (hide yes)
       (effects
         (font
@@ -5936,7 +5936,7 @@
   )
   (symbol
     (lib_id "Device:C")
-    (at 401.32 33.02 0)
+    (at 403.86 33.02 0)
     (unit 1)
     (body_style 1)
     (exclude_from_sim no)
@@ -5946,7 +5946,7 @@
     (dnp no)
     (uuid "765df048-57a0-54d6-be2d-66e3f2b7cc73")
     (property "Reference" "C6"
-      (at 401.32 51.06 0)
+      (at 403.86 51.06 0)
       (effects
         (font
           (size 1.27 1.27)
@@ -5954,7 +5954,7 @@
       )
     )
     (property "Value" "100nF"
-      (at 401.32 54.56 0)
+      (at 403.86 54.56 0)
       (effects
         (font
           (size 1.27 1.27)
@@ -5962,7 +5962,7 @@
       )
     )
     (property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
-      (at 401.32 33.02 0)
+      (at 403.86 33.02 0)
       (hide yes)
       (effects
         (font
@@ -5971,7 +5971,7 @@
       )
     )
     (property "Datasheet" ""
-      (at 401.32 33.02 0)
+      (at 403.86 33.02 0)
       (hide yes)
       (effects
         (font
@@ -5980,7 +5980,7 @@
       )
     )
     (property "Description" ""
-      (at 401.32 33.02 0)
+      (at 403.86 33.02 0)
       (hide yes)
       (effects
         (font
@@ -5989,7 +5989,7 @@
       )
     )
     (property "LCSC" "C14663"
-      (at 401.32 33.02 0)
+      (at 403.86 33.02 0)
       (hide yes)
       (effects
         (font
@@ -5998,7 +5998,7 @@
       )
     )
     (property "MPN" "CC0603KRX7R9BB104"
-      (at 401.32 33.02 0)
+      (at 403.86 33.02 0)
       (hide yes)
       (effects
         (font
@@ -6007,7 +6007,7 @@
       )
     )
     (property "Manufacturer" "YAGEO"
-      (at 401.32 33.02 0)
+      (at 403.86 33.02 0)
       (hide yes)
       (effects
         (font
@@ -6032,8 +6032,8 @@
   )
   (wire
     (pts
-      (xy 401.32 29.21)
-      (xy 401.32 24.13)
+      (xy 403.86 29.21)
+      (xy 403.86 24.13)
     )
     (stroke
       (width 0)
@@ -6043,7 +6043,7 @@
   )
   (global_label "IGN_DET"
     (shape passive)
-    (at 401.32 24.13 90)
+    (at 403.86 24.13 90)
     (fields_autoplaced yes)
     (effects
       (font
@@ -6053,7 +6053,7 @@
     )
     (uuid "312a61df-8112-5232-a1cc-6ec284a92839")
     (property "Intersheetrefs" "${INTERSHEET_REFS}"
-      (at 401.32 24.13 0)
+      (at 403.86 24.13 0)
       (hide yes)
       (effects
         (font
@@ -6064,8 +6064,8 @@
   )
   (wire
     (pts
-      (xy 401.32 36.83)
-      (xy 401.32 41.91)
+      (xy 403.86 36.83)
+      (xy 403.86 41.91)
     )
     (stroke
       (width 0)
@@ -6075,7 +6075,7 @@
   )
   (global_label "GND"
     (shape passive)
-    (at 401.32 41.91 270)
+    (at 403.86 41.91 270)
     (fields_autoplaced yes)
     (effects
       (font
@@ -6085,7 +6085,7 @@
     )
     (uuid "ab42ef48-d11a-562c-b7da-ba1bab517f2f")
     (property "Intersheetrefs" "${INTERSHEET_REFS}"
-      (at 401.32 41.91 0)
+      (at 403.86 41.91 0)
       (hide yes)
       (effects
         (font
@@ -7122,7 +7122,7 @@
         )
       )
     )
-    (property "Value" "100k"
+    (property "Value" "10k"
       (at 185.42 105.36 0)
       (effects
         (font
@@ -7157,7 +7157,7 @@
         )
       )
     )
-    (property "LCSC" "C25803"
+    (property "LCSC" "C25804"
       (at 185.42 83.82 0)
       (hide yes)
       (effects
@@ -7166,7 +7166,7 @@
         )
       )
     )
-    (property "MPN" "0603WAF1003T5E"
+    (property "MPN" "0603WAF1002T5E"
       (at 185.42 83.82 0)
       (hide yes)
       (effects
@@ -7282,7 +7282,7 @@
         )
       )
     )
-    (property "Value" "10k"
+    (property "Value" "100k"
       (at 198.12 112.1 0)
       (effects
         (font
@@ -7317,7 +7317,7 @@
         )
       )
     )
-    (property "LCSC" "C25804"
+    (property "LCSC" "C25803"
       (at 198.12 86.36 0)
       (hide yes)
       (effects
@@ -7326,7 +7326,7 @@
         )
       )
     )
-    (property "MPN" "0603WAF1002T5E"
+    (property "MPN" "0603WAF1003T5E"
       (at 198.12 86.36 0)
       (hide yes)
       (effects

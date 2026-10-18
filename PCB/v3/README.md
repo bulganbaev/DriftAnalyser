@@ -102,11 +102,11 @@ from the datasheets (estimate, **not measured**):
 
 | what | current |
 | --- | --- |
-| R1/R2 battery sense divider (47k + 10k) | ~220 µA at 12.6 V (≤ 270 µA even if D2 back-feeds the unpowered 3V3) |
+| R1/R2 battery sense divider (470k + 100k) | ~22 µA at 12.6 V (≤ 30 µA even if D2 back-feeds the unpowered 3V3) |
 | U2 LM74700 (EN tied to the anode, always on) | ~80 µA typ |
 | U7 LMR36520 in shutdown | ~5 µA |
 | U10..U13 BTS7008 standby, U5 TJA1027 VBAT, TVS leakage | a few µA each |
-| total | ~0.3..0.4 mA |
+| total | ~0.1..0.2 mA |
 
 ## Firmware notes (fw-v3)
 
@@ -119,7 +119,8 @@ from the datasheets (estimate, **not measured**):
   scale (clamped). Only one DEN high at a time.
 - Power: IGN wakes the buck. Firmware sets **HOLD (GPIO41) high** to stay on after IGN drops, and
   low to power off. **Keep HOLD low on USB-only power** (VBAT_SENSE ≈ 0): the buck's EN must not sit
-  above VIN + 0.3 V. IGN_DET (GPIO40) is a digital IGN-present input. VBAT_SENSE (GPIO1) = VBUS × 10/57.
+  above VIN + 0.3 V. IGN_DET (GPIO40) is a digital IGN-present input. VBAT_SENSE (GPIO1) = VBUS × 100/570 (470k / 100k, 82k source: sample
+  slowly, C5 100 nF holds it).
 - CAN: **CAN_S (P15) high = silent** (listen-only), and R70 pulls it high, so the board never drives
   the bus until firmware sets CAN_S low.
 - Inputs IN1..3: the 10k pull on `INn_PULL` acts on the ADC node (`INn_SENSE`), behind the 10k / 33k
@@ -140,7 +141,7 @@ from the datasheets (estimate, **not measured**):
    - Thermal pad in the case must be electrically insulating: the B.Cu under U10..U13 is VBUS.
 2. **Stud polarity:** J2 = +12 V (silk "+12V"), J5 = GND (silk "GND −"). Check with a meter that J5
    is GND (to J1 pin 5) and J2 is not shorted to it.
-3. **Quiescent current:** bench supply 12.6 V on the studs, IGN open: ≤ 1 mA (expect ~0.3..0.4 mA).
+3. **Quiescent current:** bench supply 12.6 V on the studs, IGN open: ≤ 1 mA (expect ~0.1..0.2 mA).
 4. Rails: IGN to 12 V → 5 V across C11, 3V3 across C13 (no test points on this board).
 5. Flash over USB, check U14 at 0x20 and U3 at 0x6A on I2C.
 6. **Each channel's IS:** load each strip channel in turn (a power resistor), DENk + DSEL, compare
@@ -154,7 +155,7 @@ LCSC codes checked on 2026-10-18 against the JLCPCB assembly parts API
 (`POST https://jlcpcb.com/api/overseas-pcb-order/v1/shoppingCart/smtGood/selectSmtComponentList`,
 body `{"keyword": "<MPN or C-code>", "currentPage": 1, "pageSize": 10}`). The `jlcsearch.tscircuit.com`
 mirror v2 used returns junk for text search now, so it was not used. Stock is the JLC assembly
-stock at lookup time and will drift. 49 unique LCSC parts: 17 Basic, 32 Extended (each Extended
+stock at lookup time and will drift. 50 unique LCSC parts: 18 Basic, 32 Extended (each Extended
 part is a JLC feeder fee). "Source" = code reused from v2, from an earlier v3 task, or new here.
 
 | Ref(s) | Value | MPN (mfr) | LCSC | JLC type | Stock seen | Source | Date |
@@ -183,9 +184,10 @@ part is a JLC feeder fee). "Source" = code reused from v2, from an earlier v3 ta
 | JP1, JP2 | CAN TERM / K PULLUP | PZ254V-11-02P (XFCN) | C492401 | Extended | 1,093,386 | v2 | 2026-10-18 |
 | L1 | 10uH | SRN6045TA-100M (Bourns) | C2046332 | Extended | 798 | new (Task 9) | 2026-10-18 |
 | Q1, Q2 | BSC016N06NS | BSC016N06NS (Infineon) | C454269 | Extended | 10,577 | new (Task 9) | 2026-10-18 |
-| R1, R4 | 47k | 0603WAF4702T5E (UNI-ROYAL) | C25819 | Basic | 1,887,562 | v2 | 2026-10-18 |
-| R2, R12, R14, R15, R19, R20, R22, R24, R26, R28, R30, R32, R34, R36, R37, R40, R43, R46, R51, R70, R72, R74, R76, R77, R78, R80, R81, R82, R84, R85 | 10k | 0603WAF1002T5E (UNI-ROYAL) | C25804 | Basic | 31,147,494 | v2 | 2026-10-18 |
-| R3, R5, R7, R8, R9, R13 | 100k | 0603WAF1003T5E (UNI-ROYAL) | C25803 | Basic | 19,378,358 | v2 | 2026-10-18 |
+| R1 | 470k | 0603WAF4703T5E (UNI-ROYAL) | C23178 | Basic | 1,260,261 | final review | 2026-10-18 |
+| R4 | 47k | 0603WAF4702T5E (UNI-ROYAL) | C25819 | Basic | 1,887,562 | v2 | 2026-10-18 |
+| R8, R12, R14, R15, R20, R22, R24, R26, R28, R30, R32, R34, R36, R37, R40, R43, R46, R51, R70, R72, R74, R76, R77, R78, R80, R81, R82, R84, R85 | 10k | 0603WAF1002T5E (UNI-ROYAL) | C25804 | Basic | 31,147,494 | v2 | 2026-10-18 |
+| R2, R3, R5, R7, R9, R13, R19 | 100k | 0603WAF1003T5E (UNI-ROYAL) | C25803 | Basic | 19,378,358 | v2 | 2026-10-18 |
 | R6, R75, R79, R83 | 33k | 0603WAF3302T5E (UNI-ROYAL) | C4216 | Basic | 3,602,591 | new (Task 9) | 2026-10-18 |
 | R10 | 22.6k | CR0603FA2262G (LIZ Elec) | C100874 | Extended | 4,947 | new (Task 9) | 2026-10-18 |
 | R11 | 210k | 0603WAF2103T5E (UNI-ROYAL) | C22952 | Extended | 30,792 | new (Task 9) | 2026-10-18 |
@@ -247,8 +249,9 @@ Shutdown current is 5.3 µA typ at EN = 0 V, and EN has no internal pull-up (2.7
 R7 holds EN at 0 V, so the buck adds about 5 µA to the stud current in sleep.
 
 The EN pin must not exceed VIN + 0.3 V (Recommended Operating Conditions, note 2). On USB-only power
-HOLD can be at 3.3 V while VBUS is ~0 V. R19 (10k, PWR_EN → EN) limits what EN can push into VIN
-to ~0.25 mA. Firmware should still keep HOLD low when VBAT_SENSE shows no battery.
+HOLD can be at 3.3 V while VBUS is ~0 V. R19 (100k, PWR_EN → EN) limits what EN can push into VIN
+to ~25 µA. R8 (HOLD pull-down) is 10k, so a weak pull-up on GPIO41 during reset cannot lift HOLD
+(and through D5 the buck's EN) anywhere near the 1.157 V threshold. Firmware should still keep HOLD low when VBAT_SENSE shows no battery.
 
 Footprint is KiCad `Texas_HTSOP-8-1EP_..._EP2.95x4.9mm_Mask2.4x3.1mm_ThermalVias`, the default of
 KiCad's LMR3x DDA symbols. TI's DDA0008B example layout has a 2.71 × 3.4 mm mask opening on the EP.

@@ -2552,13 +2552,13 @@
 		)
 		(comp
 			(ref "R1")
-			(value "47k")
+			(value "470k")
 			(footprint "Resistor_SMD:R_0603_1608Metric")
 			(fields
 				(field
-					(name "LCSC") "C25819")
+					(name "LCSC") "C23178")
 				(field
-					(name "MPN") "0603WAF4702T5E")
+					(name "MPN") "0603WAF4703T5E")
 				(field
 					(name "Manufacturer") "UNI-ROYAL")
 				(field
@@ -2577,11 +2577,11 @@
 			)
 			(property
 				(name "LCSC")
-				(value "C25819")
+				(value "C23178")
 			)
 			(property
 				(name "MPN")
-				(value "0603WAF4702T5E")
+				(value "0603WAF4703T5E")
 			)
 			(property
 				(name "Manufacturer")
@@ -2624,13 +2624,13 @@
 		)
 		(comp
 			(ref "R2")
-			(value "10k")
+			(value "100k")
 			(footprint "Resistor_SMD:R_0603_1608Metric")
 			(fields
 				(field
-					(name "LCSC") "C25804")
+					(name "LCSC") "C25803")
 				(field
-					(name "MPN") "0603WAF1002T5E")
+					(name "MPN") "0603WAF1003T5E")
 				(field
 					(name "Manufacturer") "UNI-ROYAL")
 				(field
@@ -2649,11 +2649,11 @@
 			)
 			(property
 				(name "LCSC")
-				(value "C25804")
+				(value "C25803")
 			)
 			(property
 				(name "MPN")
-				(value "0603WAF1002T5E")
+				(value "0603WAF1003T5E")
 			)
 			(property
 				(name "Manufacturer")
@@ -3056,13 +3056,13 @@
 		)
 		(comp
 			(ref "R8")
-			(value "100k")
+			(value "10k")
 			(footprint "Resistor_SMD:R_0603_1608Metric")
 			(fields
 				(field
-					(name "LCSC") "C25803")
+					(name "LCSC") "C25804")
 				(field
-					(name "MPN") "0603WAF1003T5E")
+					(name "MPN") "0603WAF1002T5E")
 				(field
 					(name "Manufacturer") "UNI-ROYAL")
 				(field
@@ -3081,11 +3081,11 @@
 			)
 			(property
 				(name "LCSC")
-				(value "C25803")
+				(value "C25804")
 			)
 			(property
 				(name "MPN")
-				(value "0603WAF1003T5E")
+				(value "0603WAF1002T5E")
 			)
 			(property
 				(name "Manufacturer")
@@ -3488,13 +3488,13 @@
 		)
 		(comp
 			(ref "R19")
-			(value "10k")
+			(value "100k")
 			(footprint "Resistor_SMD:R_0603_1608Metric")
 			(fields
 				(field
-					(name "LCSC") "C25804")
+					(name "LCSC") "C25803")
 				(field
-					(name "MPN") "0603WAF1002T5E")
+					(name "MPN") "0603WAF1003T5E")
 				(field
 					(name "Manufacturer") "UNI-ROYAL")
 				(field
@@ -3513,11 +3513,11 @@
 			)
 			(property
 				(name "LCSC")
-				(value "C25804")
+				(value "C25803")
 			)
 			(property
 				(name "MPN")
-				(value "0603WAF1002T5E")
+				(value "0603WAF1003T5E")
 			)
 			(property
 				(name "Manufacturer")
