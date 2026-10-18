@@ -13,8 +13,8 @@ the fab and how to order it: [`fab/README-fab.md`](fab/README-fab.md).
 
 | block | parts |
 | --- | --- |
-| +12 V in | **J2** M6 stud (Würth WP-BUCF 7461059, hand-fit, red boot), D1 SMCJ24CA TVS, **U2 LM74700-Q1** ideal diode with **Q1/Q2 2 × BSC016N06NS** (60 V) VIN → VBUS |
-| battery negative | **J5** M6 stud (same part, hand-fit, black boot) = GND. The strips' return (35..40 A) comes in here and goes through In1 (solid GND) and the GND fills to J1 row 4 |
+| +12 V in | **J2** M6 terminal (Würth WP-BUCF REDCUBE PRESS-FIT 7461059: 13 × 13 mm brass block, internal M6 thread, 16 press-fit pins; we press it in, red boot), D1 SMCJ24CA TVS, **U2 LM74700-Q1** ideal diode with **Q1/Q2 2 × BSC016N06NS** (60 V) VIN → VBUS |
+| battery negative | **J5** M6 terminal (same part, pressed in by us, black boot) = GND. The strips' return (35..40 A) comes in here and goes through In1 (solid GND) and the GND fills to J1 row 4 |
 | logic supply | **U7 LMR36520** buck (VIN 4.2..65 V, abs max 70 V; replaces v2's AP63200) → 5.4 V → D6 → 5V, U8 AP7361C → 3V3; USB-C J3 (U9 ESD) feeds 5V through D8 |
 | wake / hold | IGN (J1.24) or HOLD (GPIO41) enables the buck through D4/D5; IGN off and HOLD low = buck off |
 | strip outputs | **U10..U13 BTS7008-2EPA** (dual high-side, exposed pad = VBUS), 8 channels × 5 A; inputs, DEN, DSEL from **U14 PCA9555 @ 0x20**; one shared IS line (R49 1.2k) to GPIO2 |
@@ -128,26 +128,46 @@ from the datasheets (estimate, **not measured**):
   GND **≈ 1.48 V**; with the pull-down on (GPIO low), 12 V on the input reads **≈ 1.25 V**. GPIO as
   input = no pull.
 - 5V_SENS: enable with P17, overcurrent = SENS_5V_FLT (GPIO47) low.
+- **Strip data while a channel is off:** drive LEDn_DATA low (GPIO low, or idle the RMT channel low)
+  whenever that channel's switch is off. U15/U16 (74HCT245) run from 5 V and keep driving their
+  outputs: a high DATA line into an unpowered strip back-powers its first LED through the data pin.
 
 ## Bring-up checklist (first board)
 
 1. **Before fab, still open:**
-   - **Stud_M6 footprint is not verified against the Würth 7461059 drawing** (the download was
-     blocked; the footprint is copied from edash pdm30). Check hole 6.4 mm / pad 14 mm against the
-     drawing before ordering.
+   - **J1 (TE 6437288-1) footprint is not verified against TE's customer drawing.** It is copied
+     from edash pdm30; TE's drawing could not be downloaded (te.com returns 403, and the LCSC
+     datasheet for C574787 is TE's catalogue with no pin numbering or PCB layout). **Must-check
+     before ordering, and in any case before crimping a harness:** get drawing 6437288 (TE customer
+     drawing) and compare pin-1 side, row order (row 1 = pins 1–9 nearest the switches, row 4 =
+     26–34 nearest the board edge) and the pin numbering against `da3:TE_6437288-1`, and the
+     housing's moulded numbers against the J1 table above.
    - LMR36520 exposed-pad mask: KiCad's footprint opens 2.4 × 3.1 mm, TI's DDA0008B example
      2.71 × 3.4 mm. Decide whether to enlarge it.
-   - BSC016N06NS TDSON-8 (KiCad `TDSON-8-1`) land pattern vs the Infineon package drawing.
    - Thermal pad in the case must be electrically insulating: the B.Cu under U10..U13 is VBUS.
-2. **Stud polarity:** J2 = +12 V (silk "+12V"), J5 = GND (silk "GND −"). Check with a meter that J5
+   - Order with **ENIG** and the press-fit hole note (`fab/README-fab.md`): 32 holes at J2/J5,
+     finished **1.475 ± 0.05 mm**.
+   - Done in the final review: J2/J5 footprint `da3:Wurth_REDCUBE_7461059` drawn from Würth drawing
+     7461059 rev 001.003 (2025-02-04); Q1/Q2 land `da3:Infineon_TDSON-8_FL` checked against
+     the BSC016N06NS datasheet rev 2.6 Fig 2 (KiCad's `TDSON-8-1` lead pads were 0.85 long with a
+     1.25 gap; now 1.10 long with Infineon's 1.00 gap, gate 0.90 - see the footprint's descr).
+2. **Press the studs in** (J2, J5, Würth 7461059) after JLC's assembly: arbor press, one straight
+   stroke, ~640 N (40 N per pin), flat stamp on the block, the board supported right under the pin
+   field (Würth: support plate with 1.75 mm holes under the 16 pins), no soldering. If pressing is
+   not possible, Würth's REDCUBE THR with internal thread (series WP-THRBU, soldered) is the
+   alternative - different pins, so a new footprint; no part number checked.
+3. **Stud polarity:** J2 = +12 V (silk "+12V"), J5 = GND (silk "GND −"). Check with a meter that J5
    is GND (to J1 pin 5) and J2 is not shorted to it.
-3. **Quiescent current:** bench supply 12.6 V on the studs, IGN open: ≤ 1 mA (expect ~0.1..0.2 mA).
-4. Rails: IGN to 12 V → 5 V across C11, 3V3 across C13 (no test points on this board).
-5. Flash over USB, check U14 at 0x20 and U3 at 0x6A on I2C.
-6. **Each channel's IS:** load each strip channel in turn (a power resistor), DENk + DSEL, compare
+4. **Quiescent current:** bench supply 12.6 V on the studs, IGN open: ≤ 1 mA (expect ~0.1..0.2 mA).
+   Measure it twice: jumpers open, and then **with JP1 fitted and the car's K-line connected** -
+   JP1's 510 R pull-up sits on always-on VBUS, so a K-line held low by the car draws ~24 mA through
+   it in sleep. If it does, leave JP1 open (most ECUs pull K-line up themselves).
+5. Rails: IGN to 12 V → 5 V across C11, 3V3 across C13 (no test points on this board).
+6. Flash over USB, check U14 at 0x20 and U3 at 0x6A on I2C.
+7. **Each channel's IS:** load each strip channel in turn (a power resistor), DENk + DSEL, compare
    the ADC reading with ~0.22 V/A; check that every other channel stays off.
-7. **CAN silent by default:** on a bus, the board must not ACK anything until firmware drives CAN_S low.
-8. K-line and the inputs with the jumpers as fitted for the car.
+8. **CAN silent by default:** on a bus, the board must not ACK anything until firmware drives CAN_S low.
+9. K-line and the inputs with the jumpers as fitted for the car.
 
 ## BOM sources
 
@@ -178,7 +198,7 @@ part is a JLC feeder fee). "Source" = code reused from v2, from an earlier v3 ta
 | D20 | PESD1CAN | PESD1CAN,215 (Nexperia) | C15771 | Extended | 177,855 | v2 | 2026-10-18 |
 | D21, D22, D23, D24 | SMAJ24A | SMAJ24A (Littelfuse) | C148222 | Extended | 16,530 | v2 | 2026-10-18 |
 | J1 | 6437288-1 | 6437288-1 (TE Connectivity) | C574787 | Extended | 14 | new (Task 9) | 2026-10-18 |
-| J2 | Stud_M6 | 7461059 (Wurth) | — | hand-fit | JLC C5525467: 0 | — | 2026-10-18 |
+| J2, J5 | 7461059 M6 | 7461059 (Wurth) | — | pressed in by us, not in BOM.csv / CPL.csv | JLC C5525467: 0 | — | 2026-10-18 |
 | J3 | USB-C 16P | TYPE-C 16PIN 2MD(073) (SHOU HAN) | C2765186 | Extended | 949,892 | v2 | 2026-10-18 |
 | J4 | UART0 | PZ254V-11-04P (XFCN) | C2691448 | Extended | 890,157 | v2 | 2026-10-18 |
 | JP1, JP2 | CAN TERM / K PULLUP | PZ254V-11-02P (XFCN) | C492401 | Extended | 1,093,386 | v2 | 2026-10-18 |
@@ -214,9 +234,11 @@ part is a JLC feeder fee). "Source" = code reused from v2, from an earlier v3 ta
 
 ### Notes
 
-- **J2** (Würth 7461059 M6 stud) is listed at JLC (C5525467) with 0 stock: we fit it by hand.
-  J5 (battery negative) is the same part. The model marks both with `(hand-fit)` in `mpn`;
-  `test_bom.py` lets only J1/J2/J5 carry that mark.
+- **J2, J5** (Würth 7461059 REDCUBE press-fit M6 terminal) are listed at JLC (C5525467) with 0
+  stock, and JLC does not press-fit anyway: **we assemble them** (arbor press, see the bring-up
+  list). The model marks both with `(hand-fit)` in `mpn`; `gen/export.py` leaves those out of
+  BOM.csv / BOM-cn.csv / CPL.csv so the JLC upload is clean (`test_hand_fit_parts_not_in_jlc_files`),
+  and `test_bom.py` lets only J1/J2/J5 carry that mark.
 - **J1** (TE 6437288-1 Superseal, THT) is at JLC (C574787) with only 14 in stock, about $18.65 each.
   As built, **JLC solders it** (THT assembly, it is in BOM.csv / CPL.csv with its LCSC code). If it runs out before the order, hand-fit it too: change the `mpn` to `6437288-1 (hand-fit)`
   and clear `lcsc`.
@@ -259,8 +281,9 @@ KiCad's is 2.4 × 3.1 mm, so slightly less pad is soldered. Fine for this load, 
 
 ## Copper and routing (Task 11)
 
-Six layers (task 11 ruling), JLCPCB **JLC06161H-3313**, 1.6 mm, 1 oz outer, **1 oz inner** (order
-option). Top to bottom: F.Cu power pours near the parts + signals, **In1.Cu solid GND** (0.1 mm under
+Six layers (task 11 ruling): JLC 6-layer 1.6 mm, 1 oz outer, **1 oz inner** (order option); no
+impedance control needed. The board file declares JLC06161H-3313 for the record, but a named JLC
+stack may not apply with 1 oz inner, and nothing here depends on the dielectric stack. Top to bottom: F.Cu power pours near the parts + signals, **In1.Cu solid GND** (0.1 mm under
 F), In2.Cu signals + GND fill, In3.Cu VBUS (middle of the board from the switches down to the drains,
 and under the CAN / K-line block) / VIN (under the stud) / the outer four LED channels' lanes / GND in
 the rest, In4.Cu signals + GND fill, B.Cu signals + VBUS copper under each switch's exposed pad.
@@ -272,9 +295,16 @@ Everything is drawn by `gen/pcb_builder.py`.
 - J1 pinout (task 11 ruling, replaces the spec's 12V | DO | GND triplets): row 1 = the eight
   LEDn_12V, each above its own switch output, row 4 = the eight strip grounds in the same columns,
   rows 2-3 = data, CAN, K-line, IGN, IN1..3, 5V_SENS. Each LED channel is one short F.Cu pour.
-- **J5 (battery negative):** a GND disc (r 9.9 mm) on all six layers over its courtyard, a ring of
-  0.8/0.4 vias at r 9.3 round the pad, and 29 more 0.8/0.4 GND vias centred on the disc's edge
-  (`route.j5_seam_vias`, drawn after the session import). The disc outranks the board GND fill, so
+- **Studs (Würth 7461059):** 16 press-fit pins (perimeter of a 5 × 5 grid, 2.54 mm pitch), 2.0 mm
+  pads, 1.475 mm finished holes (ENIG), all pad 1. The 16 barrels tie every layer. No via sits under
+  the 13 × 13 mm block (`pcb_builder.STUD_BODY`, `test_studs_are_redcube_with_nothing_under_the_body`).
+  J2's pins are in the F and In3 VIN pours; on the other four layers a 14.6 mm VIN square keeps the
+  GND fill out of the pin field. The committed session predates this footprint: the signals never
+  came near the studs, so `route.restud` redraws the stud copper after the replay (drops the old
+  VIN / GND vias under the block, draws J5's new via ring) instead of a new route.
+- **J5 (battery negative):** a GND disc (r 9.9 mm, the block's corners are at r 9.19) on all six
+  layers, a square ring of 0.8/0.4 vias 0.5 mm outside the block (32), and 29 more 0.8/0.4 GND vias
+  centred on the disc's edge (`route.j5_seam_vias`, drawn after the session import). The disc outranks the board GND fill, so
   the fill stops at the disc's edge; the seam vias sit half in each, on every layer, so the stud
   cannot end up on a copper island (`test_j5_disc_joined_to_gnd_fill`). From there In1 and the GND
   fills carry the return to J1 row 4 (about 1 mΩ at 1 oz inner copper).

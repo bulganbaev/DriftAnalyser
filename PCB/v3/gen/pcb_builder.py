@@ -134,9 +134,10 @@ def write_design_rules():
         f.write(DRU)
 
 
-# JLCPCB's 6 layer 1.6 mm stack JLC06161H-3313 (their default 6 layer build) with
-# the **1 oz inner copper** option: 3313 prepreg (0.0994) / 0.55 core / 2116 prepreg
-# (0.1164) / 0.55 core / 3313 prepreg (0.0994). In1 (GND) sits 0.1 mm under F, so
+# JLCPCB's 6 layer 1.6 mm stack JLC06161H-3313 (their default 6 layer build), for the
+# record - with the **1 oz inner copper** option JLC may use another stack; no
+# impedance control is needed, so it does not matter: 3313 prepreg (0.0994) /
+# 0.55 core / 2116 prepreg (0.1164) / 0.55 core / 3313 prepreg (0.0994). In1 (GND) sits 0.1 mm under F, so
 # every F.Cu signal has its return right under it; In2 / In3 are the tight pair in
 # the middle, In4 sits 0.1 mm over B. The inner weight is what lets the In3 VBUS
 # plane carry the strip current; at the stock 0.5 oz it is half of everything below.

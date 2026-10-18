@@ -10,12 +10,13 @@ all on the board's bottom-left corner as the origin), assemble from `BOM.csv` +
 | --- | --- | --- |
 | size | 55 x 112 mm, R 3 mm corners, 4 x M3 (3.2 mm NPTH) | two M6 studs (J2 +12 V, J5 battery negative) need the 112 |
 | layers | 6 | F = parts, signals, power pours; In1 = solid GND; In2 = signals; In3 = VBUS / VIN planes + the outer four LED channels' lanes; In4 = signals; B = signals, VBUS copper under the four switches |
-| thickness | 1.6 mm | stackup **JLC06161H-3313** (JLC's default 6 layer build, the one the board file declares): 3313 0.0994 / core 0.55 / 2116 0.1164 / core 0.55 / 3313 0.0994 |
+| thickness | 1.6 mm | JLC 6-layer 1.6 mm with the 1 oz inner option, **no impedance control needed** (pick whatever stackup JLC offers for that). The board file declares JLC06161H-3313 for the record only: a named JLC stack may not apply with the 1 oz inner option, and this board does not care which dielectric stack JLC builds |
 | outer copper | 1 oz | |
 | **inner copper** | **1 oz - must be picked** | the stock option is 0.5 oz. The strip current (8 x 5 A) runs from the drains to the switches on the In3 VBUS plane, the outer four LED channels share their current with In3 lanes, and the whole return from the J5 stud to J1's ground row is the In1 plane plus the GND fills. Every number in the design notes assumes 1 oz |
 | via | 0.3 mm hole / 0.6 mm pad (signals, ties, LED lanes), 0.4 / 0.8 (VIN / VBUS / GND fields) | all through vias, no blind / buried, no via in pad |
-| surface finish | HASL lead free or ENIG | ENIG if the LGA-14 IMU (U3) is hand-reworked |
-| min hole | 0.2 mm | only the ESP32-S3-WROOM-1U footprint's own 12 heatsink vias; everything we drew is 0.3 mm or more. Largest: the two stud holes, 6.4 mm plated, each ringed by 8 x 0.5 mm |
+| **surface finish** | **ENIG** | the stud press-fit holes are drawn for the chemical-finish tolerance (below); flat pads also suit the LGA-14 IMU (U3) |
+| **press-fit holes** | **32 x finished 1.475 +-0.05 mm (ENIG)**, J2 + J5 | Wurth 7461059 drawing: drill 1.60 -0.03, plating 25..60 um Cu. Put in the order remark: *"press-fit holes (32 x 1.475 mm at J2/J5): finished 1.475 +-0.05 mm, ENIG"*. Standard PTH tolerance (+-0.08) is not enough; if JLC will not hold +-0.05, do not order these as press-fit (see the THR note below) |
+| min hole | 0.2 mm | only the ESP32-S3-WROOM-1U footprint's own 12 heatsink vias; everything we drew is 0.3 mm or more. Largest plated: the 32 stud press-fit holes, 1.475 finished |
 | min track / clearance | 0.2 mm / 0.2 mm | our own copper. Inside land patterns: **U2 (LM74700, SOT-23-8) pad to pad 0.13 mm** (drawn 0.14) is the board minimum, U3 LGA-14 0.15, other footprints 0.2 - all above JLC's 0.127 mm multilayer floor |
 | silkscreen | white on green (any) | min text height on the board is 0.8 mm |
 
@@ -26,9 +27,17 @@ all on the board's bottom-left corner as the origin), assemble from `BOM.csv` +
   LCSC code (C574787) - **JLC solders it** (THT assembly option). JLC stock was
   low at design time (14 pcs, about $18.65 each): if it is gone at order time,
   hand-fit it (`mpn` -> `6437288-1 (hand-fit)`, clear `lcsc`, rebuild).
-- **J2 and J5 are hand-fit**: Wurth WP-BUCF 7461059 M6 press-fit studs, no LCSC code
-  in the BOM (the `Stud_M6` line). They are in the CPL; tell JLC "do not place"
-  for that line. J2 = +12 V in (red boot), J5 = battery negative / GND (black).
+- **J2 and J5 are not in BOM.csv / CPL.csv** - we press them in. Wurth WP-BUCF
+  REDCUBE PRESS-FIT 7461059: a 13 x 13 x 13.5 mm brass block with an internal M6
+  thread (the cable's ring lug is bolted on top), 16 press-fit pins. No solder (wave
+  or reflow is not allowed on press-fit). Press each one in a single straight stroke
+  with an arbor press, ~640 N (40 N per pin), board supported under the pin field
+  (Wurth: support matrix with 1.75 mm holes under the pins), a flat stamp on the
+  block - not on the thread. J2 = +12 V in (red boot), J5 = battery negative / GND
+  (black). If pressing is not possible: Wurth's REDCUBE THR series with internal
+  thread (WP-THRBU) is soldered instead, but it has a different pin pattern - new
+  footprint, and the part number has to be picked from Wurth's catalogue (not
+  checked here).
 - `CPL.csv` is in mm with rotations as KiCad has them. Check JLC's preview
   before paying: their library rotates some SOT/SOIC parts 90 or 180 degrees
   from the KiCad convention, and the preview is the only place that shows it.
@@ -65,7 +74,7 @@ tracked at all - run `KICAD_PY -m gen.export` to get them back.
   "GND -").** The LM74700 ideal diode blocks a reversed battery, but check
   anyway.
 - There are no test points: probe 5 V across C11 and 3V3 across C13 (both
-  0603 next to their regulator).
+  0805 next to their regulator).
 - CAN termination jumper JP2 fitted only if this board is an end of the bus.
 - JP1 (K-line pull-up, 510 R to VBUS) fitted for K-line, left open on a
   CAN-only car.

@@ -21,3 +21,16 @@ def test_superseal_and_stud_marked_hand_or_jlc():
 
 def test_only_connectors_are_hand_fit():
     assert {p.ref for p in model.PARTS if HAND_FIT in p.mpn} <= {"J1", "J2", "J5"}
+
+
+def test_hand_fit_parts_not_in_jlc_files():
+    """The studs are pressed in by us: not in what JLC gets."""
+    import csv, os
+    from gen import env
+    fab = os.path.join(env.PROJECT_DIR, "fab")
+    hand = {p.ref for p in model.PARTS if HAND_FIT in p.mpn}
+    with open(os.path.join(fab, "CPL.csv")) as f:
+        assert not hand & {r["Designator"] for r in csv.DictReader(f)}
+    with open(os.path.join(fab, "BOM.csv")) as f:
+        refs = {x for r in csv.DictReader(f) for x in r["Designator"].split(",")}
+    assert not hand & refs
