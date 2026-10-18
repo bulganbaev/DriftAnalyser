@@ -1,4 +1,4 @@
-"""DriftAnalyser v3 customer datasheet (RU) -> datasheet.html, PDF and page PNGs.
+"""DriftAnalyser V1.0 (hardware: PCB v3) customer datasheet (RU) -> datasheet.html, PDF and page PNGs.
 
 Pinout from PCB/v3/gen/model.py (J1_PIN), enclosure sizes from enclosure/v3/enclosure_v3.py.
 Run with the enclosure venv (needs cadquery for the enclosure import):
@@ -17,13 +17,13 @@ sys.path.insert(0, os.path.join(ROOT, "enclosure", "v3"))
 from gen.model import J1_PIN  # noqa: E402
 import enclosure_v3 as E  # noqa: E402
 
-DOC = "DA3-TD-001"
+DOC = "DA-TD-001"
 REV = "rev 0.3"
 DATE = "2026-10"
 STATUS = "предварительная"
 CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 HTML = os.path.join(HERE, "datasheet.html")
-PDF = os.path.join(HERE, "DriftAnalyser_v3_datasheet.pdf")
+PDF = os.path.join(HERE, "DriftAnalyser_V1.0_datasheet.pdf")
 
 INK = "#15171A"
 ACC = "#FF5A1F"  # signal orange, used sparingly
@@ -344,7 +344,7 @@ def svg_power():
     # unit
     s.append(f'<rect x="250" y="40" width="190" height="165" fill="#F4F5F6" stroke="{blk}" stroke-width="1.6"/>')
     s.append(f'<rect x="250" y="40" width="190" height="6" fill="{blk}"/>')
-    s.append(f'<text x="345" y="125" text-anchor="middle" font-size="15" font-weight="700" fill="{blk}">DriftAnalyser v3</text>')
+    s.append(f'<text x="345" y="125" text-anchor="middle" font-size="15" font-weight="700" fill="{blk}">DriftAnalyser V1.0</text>')
     s.append(f'<rect x="272" y="49" width="26" height="26" fill="{RED}" stroke="{blk}"/><text x="285" y="67" text-anchor="middle" '
              'font-size="13" fill="#fff" font-weight="700">+</text>')
     s.append(f'<rect x="272" y="170" width="26" height="26" fill="{blk}" stroke="{blk}"/><text x="285" y="188" text-anchor="middle" '
@@ -673,8 +673,8 @@ def alert(title, body):
 
 
 def page(n, body, cover=False):
-    band = (f'<div class="band"><div class="vt">DRIFTANALYSER V3 <i>■</i> {DOC}</div></div>')
-    head = "" if cover else (f'<div class="rh"><b>DriftAnalyser v3</b>'
+    band = (f'<div class="band"><div class="vt">DRIFTANALYSER V1.0 <i>■</i> {DOC}</div></div>')
+    head = "" if cover else (f'<div class="rh"><b>DriftAnalyser V1.0</b>'
                              f'<span>{DOC} · {REV} · {DATE}</span></div>')
     return (f'<section class="page">{band}{head}{body}'
             f'<div class="ftr"><div class="meta"><b>{DOC}</b> · {REV} · {DATE} · {STATUS}<br>'
@@ -687,8 +687,8 @@ def cover():
           ("9–16 В", "питание, номинал 12 В"), ("≤1 мА", "ток покоя, IGN выкл."), ("34", "конт. J1, Superseal 1.0")]
     cells = "".join(f'<div><div class="v">{v}</div><div class="l">{lbl}</div></div>' for v, lbl in kf)
     return (f'<div class="cover"><div class="mast"><div class="k">ТЕХНИЧЕСКОЕ ОПИСАНИЕ · {DOC}</div>'
-            f'<div class="nm">DRIFTANALYSER<i>V3</i></div>'
-            f'<div class="sub">Контроллер светодиодных лент</div>'
+            f'<div class="nm">DRIFTANALYSER<i>V1.0</i></div>'
+            f'<div class="sub">Контроллер светодиодных лент · аппаратная ревизия 3</div>'
             f'<div class="st">{REV} · {DATE} · {STATUS}</div></div>'
             f'<div class="kf">{cells}</div></div>')
 
@@ -847,7 +847,7 @@ TE Superseal 1.0, 34 конт.: <span class="m">6437288-1</span> (блок), <sp
 <p>Спереди оставить место под ответную часть разъёма и жгут: ≈ 40 мм + изгиб жгута.</p>
 <p>Силовые кабели к клеммам +12V / GND подходят сзади, антенна SMA — на боковой стенке. Корпус закрытый: USB-C внутри, доступ — со снятой крышкой.</p>
 </div>
-<img class="iso" src="data:image/jpeg;base64,{iso}" alt="DriftAnalyser v3">
+<img class="iso" src="data:image/jpeg;base64,{iso}" alt="DriftAnalyser V1.0">
 </div>
 </div>
 {svg_wrap(svb, sbody, "side")}
@@ -857,7 +857,7 @@ TE Superseal 1.0, 34 конт.: <span class="m">6437288-1</span> (блок), <sp
              "&family=IBM+Plex+Sans:wght@400;500;600;700&display=block")
     html = ('<!doctype html><html lang="ru"><head><meta charset="utf-8">'
             '<meta name="viewport" content="width=device-width, initial-scale=1">'
-            f'<title>DriftAnalyser v3 · {DOC}</title>'
+            f'<title>DriftAnalyser V1.0 · {DOC}</title>'
             f'<link href="{fonts.replace("&", "&amp;")}" rel="stylesheet">'
             f'<style>{CSS}</style></head><body>' + "".join(pages).replace("@@TOTAL@@", f"{len(pages):02d}")
             + "</body></html>")
