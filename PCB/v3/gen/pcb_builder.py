@@ -101,10 +101,11 @@ DRU = """(version 1)
 	(condition "A.Type == 'Pad' && B.Type == 'Pad' && A.memberOfFootprint('U2') && B.memberOfFootprint('U2')"))
 
 # U2's ground pin has no way out but the 0.66 mm gap between C2's pads: a
-# 0.2 mm run there keeps 0.23 mm to each of them
+# 0.2 mm run there keeps 0.23 mm to each of them. Only that run: a ground track
+# inside C2's courtyard
 (rule "U2 ground escape between C2 pads"
 	(constraint clearance (min 0.2mm))
-	(condition "A.memberOfFootprint('C2') && B.Type == 'Track' && B.NetName == 'GND'"))
+	(condition "A.memberOfFootprint('C2') && B.Type == 'Track' && B.NetName == 'GND' && B.intersectsCourtyard('C2')"))
 
 (rule "U3 LGA-14 land pattern"
 \t(constraint clearance (min 0.15mm))
@@ -461,10 +462,11 @@ LED_F = {
     "LED2_12V": [(38.6, 20.5, 44.4, 22.6), (42.2, 22.6, 44.4, 25.7)],
 }
 
-# The outer four channels shift sideways past a neighbour and neck down to
-# 1.0..1.2 mm on F.Cu. Each gets the same lane again on In3 (no pads there to
-# neck it), joined to the F pour by 0.6 / 0.3 vias wherever both overlap, and
-# to the J1 pin through the pin's own barrel.
+# The outer four channels shift sideways past a neighbour; their F.Cu is
+# 1.75..2.05 mm at the narrowest. Each gets the same lane again on In3 (no pads
+# there to neck it), joined to the F pour by vias wherever both overlap (the
+# Led12V 0.8 / 0.4 where they fit, 0.6 / 0.3 in what is left), and to the J1 pin
+# through the pin's own barrel.
 LED_IN3 = {
     "LED7_12V": [(10.6, 19.6, 16.4, 22.6), (10.6, 22.6, 12.8, 25.0)],
     "LED8_12V": [(13.3, 23.0, 19.4, 25.0), (17.6, 19.6, 19.4, 23.0)],
@@ -481,7 +483,7 @@ VIN_F = [(13.3, 67.2, 23.0, 70.9), (13.3, 67.2, 20.6, 79.0), (4.8, 77.5, 23.3, 9
 VIN_IN3 = [(7.0, 67.3, 24.5, 99.2), (4.8, 78.6, 24.5, 99.2)]
 # ---- VBUS: the two drain tabs and the strip north of them (In3 vias), west
 # over the top of C3's ground pad to C3's and C37's VBUS pads.
-VBUS_F = [(13.4, 58.6, 24.2, 66.6), (0.8, 59.6, 13.6, 62.35),
+VBUS_F = [(13.4, 58.6, 24.2, 66.6), (0.8, 59.6, 13.6, 62.35), (3.4, 57.9, 11.2, 59.6),
           (0.8, 59.6, 5.3, 66.0), (0.8, 55.6, 3.2, 59.6)]
 # In3: the whole middle of the board from just under the switches down to the
 # drains, and a strip down the west edge to C4 and U2's sense pin
@@ -501,8 +503,11 @@ def _disc(cx, cy, r, n=48):
             for k in range(n)]
 # B.Cu under each switch: the exposed pad's vias land here, and this is the
 # side the case's thermal pad presses on (it has to be an insulating one)
-SW_B = (1.9, 26.2, 29.2)        # half width, top, bottom: the exposed pad, no more (B.Cu
-                                # between the switches is where J1's signals get through)
+# Half width, top, bottom: the whole package outline. The top stops below the
+# LED pours' bottom edge (25.7), so the LED lanes' F-In3 vias stay clear of it,
+# the bottom above the ground pin 1's tie,
+# and 3.6 mm of B.Cu stays free between neighbours for J1's signals.
+SW_B = (3.0, 25.9, 30.9)
 # 12 vias in each switch's exposed pad (4 x 3, 0.6 / 0.3): that pad is VS, so
 # they are also how VBUS gets from In3 into the switch
 EP_VIA_DX = (-1.35, -0.45, 0.45, 1.35)
@@ -632,11 +637,13 @@ def _stub_tracks(board, nets):
             _via(board, nets[name], x, y, 0.6, 0.3)
 
 
-# VBUS F.Cu <-> In3 right above the two drain tabs (no via in the tabs: JLC
-# assembles this board): two rows of nine, 18 x 0.8 / 0.4. Only here - the strip
-# over C3's ground pad is F.Cu path with In3 under it anyway, and a row of vias
-# there walls off B.Cu.
-DRAIN_VIAS = [(14.0 + 1.2 * i, y) for y in (59.45, 60.65) for i in range(9)]
+# VBUS F.Cu <-> In3 at the two drain tabs (no via in the tabs: JLC assembles
+# this board): two rows of nine right above them, a column of four in the gap
+# between them, and (power_stitch, VBUS_WEST) a grid in the strip west of them
+# over C3: 46 x 0.8 / 0.4 in all, ~1.3 A each at the 60 A peak.
+DRAIN_VIAS = ([(14.0 + 1.2 * i, y) for y in (59.45, 60.65) for i in range(9)]
+              + [(18.775, y) for y in (62.3, 63.5, 64.7, 65.9)])
+VBUS_WEST = (0.8, 57.9, 13.4, 62.4)
 
 
 def _j5_vias(board, nets):
@@ -754,8 +761,12 @@ def power_stitch(board):
     """The vias between the outer power pours and their inner planes."""
     out = {}
     out["VIN F-In3"] = stitch(board, "VIN", pcbnew.F_Cu, PWR)
+    # the strip west of the drain tabs, over C3: the drain rows alone are 18 vias
+    # for up to 60 A
+    out["VBUS F-In3"] = stitch(board, "VBUS", pcbnew.F_Cu, PWR, box=VBUS_WEST)
     for name in LED_IN3:
-        out[f"{name} F-In3"] = stitch(board, name, pcbnew.F_Cu, PWR, step=0.7, d=0.6, drill=0.3)
+        out[f"{name} F-In3"] = (stitch(board, name, pcbnew.F_Cu, PWR, step=0.5)
+                                + stitch(board, name, pcbnew.F_Cu, PWR, step=0.5, d=0.6, drill=0.3))
     return out
 
 

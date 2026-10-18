@@ -761,9 +761,9 @@ def drop_foreign_pad_wires(board):
     """Replayed wires that end on a pad of another net.
 
     The session is a recording: it was drawn against the netlist of the day, and
-    a pad that changes net (J1's two power pins swapped when the XT60's polarity
-    was corrected) turns a wire that was fine into a short. The router itself
-    cannot be asked again without redrawing the whole board, so the replay drops
+    a pad that changes net (a J1 re-pin, say) turns a wire that was fine into a
+    short. The router itself cannot be asked again without redrawing the whole
+    board, so the replay drops
     those wires and says so - DRC then has to still come back with nothing
     unconnected, which is what says the copper was redundant."""
     # a plated pad only: an NPTH slot or a mounting hole is a drilled hole with

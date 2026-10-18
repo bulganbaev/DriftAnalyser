@@ -180,14 +180,19 @@ class TestPcb(unittest.TestCase):
         self.assertEqual(stack.count('(type "copper")'), 6)
         self.assertIn('(material "3313")', stack)
 
-    def _channel_width(self, net, layer):
-        """Narrowest width of the net's fill on `layer` between the middle switch
-        output pin and its J1 pin: the widest disc that still gets through."""
-        j1 = [p for p in self.fps["J1"].Pads() if p.GetNetname() == net][0]
+    def _mid_pin(self, net):
         outs = sorted((p for r, fp in self.fps.items() if r in placement.SW_X
                        for p in fp.Pads() if p.GetNetname() == net),
                       key=lambda p: p.GetPosition().x)
-        mid = outs[len(outs) // 2]
+        return outs[len(outs) // 2]
+
+    def _channel_width(self, net, layer, to=None):
+        """Narrowest width of the net's fill on `layer` between the middle switch
+        output pin and its J1 pin (or the point `to`): the widest disc that still
+        gets through."""
+        j1 = [p for p in self.fps["J1"].Pads() if p.GetNetname() == net][0]
+        end = to if to is not None else j1.GetPosition()
+        mid = self._mid_pin(net)
         a = pcbnew.VECTOR2I(mid.GetPosition().x, mid.GetBoundingBox().GetTop())
         fill = pcbnew.SHAPE_POLY_SET()
         for z in self.board.Zones():
@@ -202,7 +207,7 @@ class TestPcb(unittest.TestCase):
             for i in range(p.OutlineCount()):
                 o = pcbnew.SHAPE_POLY_SET()
                 o.AddOutline(p.Outline(i))
-                through |= o.Collide(a, pcbnew.FromMM(0.35)) and o.Collide(j1.GetPosition(), pcbnew.FromMM(0.35))
+                through |= o.Collide(a, pcbnew.FromMM(0.35)) and o.Collide(end, pcbnew.FromMM(0.35))
             if not through:
                 break
             best, w = w, w + 0.05
@@ -218,6 +223,11 @@ class TestPcb(unittest.TestCase):
                 vias = [t for t in self.board.Tracks() if t.GetClass() == "PCB_VIA"
                         and t.GetNetname() == net]
                 self.assertGreaterEqual(len(vias), 2, net)
+                # until the current reaches In3 it is all on F.Cu
+                mid = self._mid_pin(net).GetPosition()
+                first = min(vias, key=lambda v: (v.GetPosition() - mid).EuclideanNorm())
+                self.assertGreaterEqual(self._channel_width(net, pcbnew.F_Cu, first.GetPosition()),
+                                        2.0, f"{net}: F.Cu from the switch to its first In3 via")
             self.assertGreaterEqual(w, 2.0, net)
 
     def test_switch_exposed_pads_stitched(self):
