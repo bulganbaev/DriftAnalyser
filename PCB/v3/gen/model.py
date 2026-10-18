@@ -387,13 +387,25 @@ for _i in range(1, 4):
 
 # ---------------- J1 harness connector (comms sheet) ----------------
 # TE 6437288-1 Superseal 1.0, 34 pos, rows 1-9 / 10-17 / 18-25 / 26-34. Key -> pin; "*_GND" keys sit on net GND.
-# Strip triplets are 12V | DO | GND so the data line runs between its own supply and return.
-# Power in rows 1, 2 (first half) and 4; signals in rows 2-3, each IN / 5V_SENS beside a signal GND.
+# Rows by job, so each 5 A path is a straight F.Cu stub (task 11 ruling, replaces the
+# 12V | DO | GND triplets of the spec):
+#   row 1 (1-9, nearest the switches): all eight LEDn_12V, each right above its switch output
+#     (left to right on the board: LED7 9, LED8 8, LED3 7, LED4 6, SIG1_GND 5, LED5 4, LED6 3,
+#     LED1 2, LED2 1), SIG1_GND on the spare
+#   row 4 (26-34, farthest): the eight strip grounds, each in the same column as its 12V pin,
+#     SIG2_GND on the spare
+#   rows 2-3: data, CAN pair (adjacent, row 3), K-line, IGN, IN1..IN3 and 5V_SENS; IN1 beside
+#     SIG1_GND, IN2 / IN3 beside SIG2_GND
+_LED_12V_PIN = {7: 9, 8: 8, 3: 7, 4: 6, 5: 4, 6: 3, 1: 2, 2: 1}
 J1_PIN = {
-    **{f"LED{i}_{s}": str(3 * (i - 1) + k + 1) for i in range(1, 6) for k, s in enumerate(("12V", "DO", "GND"))},
-    "CANH": "16", "CANL": "17", "KLINE": "18", "IGN": "19", "SIG1_GND": "20", "5V_SENS": "21",
-    "IN1": "22", "IN2": "23", "SIG2_GND": "24", "IN3": "25",
-    **{f"LED{i}_{s}": str(26 + 3 * (i - 6) + k) for i in range(6, 9) for k, s in enumerate(("12V", "DO", "GND"))},
+    **{f"LED{i}_12V": str(p) for i, p in _LED_12V_PIN.items()},
+    "SIG1_GND": "5",
+    **{f"LED{i}_GND": str(25 + p) for i, p in _LED_12V_PIN.items()},
+    "SIG2_GND": "30",
+    "LED2_DO": "10", "LED1_DO": "11", "LED6_DO": "12", "LED5_DO": "13", "IN1": "14",
+    "LED4_DO": "15", "LED3_DO": "16", "LED8_DO": "17",
+    "CANH": "18", "CANL": "19", "KLINE": "20", "IN2": "21", "IN3": "22", "5V_SENS": "23",
+    "IGN": "24", "LED7_DO": "25",
 }
 
 _add(Part("J1", "6437288-1", "da3:TE_6437288-1", "da3:TE_6437288-1",

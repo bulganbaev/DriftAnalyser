@@ -8,13 +8,26 @@ def row(p):
 def test_all_34_pins_assigned_once():
     assert sorted(int(p) for p in model.J1_PIN.values()) == list(range(1, 35))
 
-def test_strip_triplets_adjacent():
+def test_all_strip_supplies_in_row_1():
+    """The row nearest the switches: every 5 A path is a short stub up from its switch."""
     for i in range(1, 9):
-        ps = sorted(int(model.J1_PIN[k]) for k in (f"LED{i}_12V", f"LED{i}_DO", f"LED{i}_GND"))
-        assert ps[2] - ps[0] == 2 and row(ps[0]) == row(ps[2]), i
+        assert row(model.J1_PIN[f"LED{i}_12V"]) == 0, i
+
+
+def test_all_strip_grounds_in_row_4():
+    for i in range(1, 9):
+        assert row(model.J1_PIN[f"LED{i}_GND"]) == 3, i
+
+
+def test_strip_ground_in_its_supply_column():
+    """Row 4 has the same x grid as row 1: pin p of row 1 sits under pin p + 25."""
+    for i in range(1, 9):
+        assert int(model.J1_PIN[f"LED{i}_GND"]) == int(model.J1_PIN[f"LED{i}_12V"]) + 25, i
+
 
 def test_can_pair_adjacent():
-    assert abs(int(model.J1_PIN["CANH"]) - int(model.J1_PIN["CANL"])) == 1
+    h, l = model.J1_PIN["CANH"], model.J1_PIN["CANL"]
+    assert abs(int(h) - int(l)) == 1 and row(h) == row(l)
 
 def test_j1_part_matches_table():
     j1 = model.by_ref("J1")
