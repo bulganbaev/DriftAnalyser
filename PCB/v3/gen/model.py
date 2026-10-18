@@ -53,9 +53,12 @@ def parts_on(sheet):
 # Buck EN (PWR_EN) = IGN (divided) OR HOLD (GPIO41); 100k pull-downs so a blank board sleeps.
 _FET = dict(symbol="Transistor_FET:Q_NMOS_SSSGD_AvalancheRated", footprint="Package_TO_SOT_SMD:TDSON-8-1")
 _add(
-    # Wurth 7461059 M6 stud, single pad = +12 V in. GND returns through J1 (Task 7).
+    # Wurth 7461059 M6 studs: J2 = +12 V in, J5 = battery negative (the strips' 35-40 A
+    # return; J1's SIG_GND pins are 5 A each). JLC C5525467 has 0 stock (2026-10-18): we fit them.
     Part("J2", "Stud_M6", "Connector_Generic:Conn_01x01", "da3:Stud_M6",
-         {"1": "VIN"}, "power", mpn="7461059 (hand-fit)", mfr="Wurth"),  # JLC C5525467 has 0 stock (2026-10-18): we fit it
+         {"1": "VIN"}, "power", mpn="7461059 (hand-fit)", mfr="Wurth"),
+    Part("J5", "Stud_M6", "Connector_Generic:Conn_01x01", "da3:Stud_M6",
+         {"1": "GND"}, "power", mpn="7461059 (hand-fit)", mfr="Wurth"),
     # Bidirectional TVS per LM74700-Q1 SNOSD17G Fig 10-2 (12 V battery, single bi-dir TVS).
     # SMCJ24CA: VBR 26.7 V min > 24 V jump start; 1500 W SMC.
     Part("D1", "SMCJ24CA", "Device:D_TVS", "Diode_SMD:D_SMC",

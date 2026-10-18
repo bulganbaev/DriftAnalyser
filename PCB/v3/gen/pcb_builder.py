@@ -264,7 +264,7 @@ def _nets(board):
 # leave the plane in shreds, and a spoke into a shred is a starved thermal relief.
 SOLID_TO_ZONE = {("J3", "SH"), ("J4", "2"),
                  # and the stud: the whole board current comes in through it
-                 ("J2", "1"),
+                 ("J2", "1"), ("J5", "1"),
                  # the buck's exposed-pad vias are vias, not something to solder
                  ("U7", "9")}
 # J1's ground pins sit in a 0.7 mm pad grid: no thermal relief survives in it
@@ -905,9 +905,12 @@ def _silk(board):
     jx, jy = placement.J1_AT
     _text(board, "1", jx + 12.0 + 2.3, jy + 14.5, size=1.2, bold=True)
 
-    # ---- stud: the only power input
+    # ---- studs: +12 V in, battery negative beside it
     sx, sy, _, _ = placement.PLACE["J2"]
     _text(board, "+12V", 1.8, sy, size=1.4, rot=90, bold=True)
+    gx, gy, _, _ = placement.PLACE["J5"]
+    _text(board, "GND", gx - 3.5, gy + 12.7, size=1.4, bold=True)
+    _text(board, "\u2212", gx + 0.5, gy + 12.7, size=1.4, bold=True)
 
     # ---- IMU axes. U3 sits at rot 0 with LGA pad 1 top-left, which is the
     # LSM6DS3TR-C datasheet's top view: sensor +X points at the board's right

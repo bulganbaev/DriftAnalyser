@@ -13,7 +13,7 @@ the buffers' resistor rows (u.FL toward the right wall), the CAN / K-line /
 input block below it, comms between them.
 """
 
-BOARD_W, BOARD_H = 55.0, 100.0
+BOARD_W, BOARD_H = 55.0, 112.0
 CORNER_R = 3.0
 
 # M3, 3.2 mm. The top pair sits below J1's body: the connector's courtyard is
@@ -83,7 +83,7 @@ PLACE = {
     # The FETs at rot 90 turn local -x (sources 1..3, gate 4) down to the stud and
     # the drain tab up. U2 sits left of D1: ANODE/GATE/CATHODE (pins 5..8) face the
     # FETs' gates and sources, VCAP (pin 4) faces C2.
-    "J2": (14.0, BOARD_H - 13.5, 0, "F"),
+    "J2": (14.0, 86.5, 0, "F"),
     "D1": (18.8, 72.9, 0, "F"),
     "Q1": (15.85, 65.1, 90, "F"), "Q2": (21.7, 65.1, 90, "F"),
     "C3": (6.5, 64.0, 0, "F"), "C4": (2.0, 73.6, 90, "F"),
@@ -106,11 +106,7 @@ PLACE = {
     "U1": (45.1, 57.3, 0, "F"),
     "R14": (26.1, 72.9, 0, "F"), "C18": (29.4, 72.9, 0, "F"), "C17": (32.7, 72.9, 0, "F"),
     "SW2": (29.6, 78.0, 0, "F"),
-    "D8": (28.5, 83.6, 0, "F"), "C16": (33.9, 83.6, 90, "F"),
-    "U9": (27.0, 87.8, 0, "F"), "R17": (30.5, 87.9, 90, "F"), "R18": (32.2, 87.9, 90, "F"),
-    "R15": (33.9, 87.9, 90, "F"),
-    "J3": (29.6, BOARD_H - 4.4, 0, "F"),
-    "SW1": (41.4, BOARD_H - 3.7, 0, "F"),
+    "C16": (33.9, 83.6, 90, "F"),
 
     # ---- CAN, K-line, battery / ignition sense, input dividers, headers: below the
     # ESP32 (COMMS_SHIFT moves the whole block down as one, see the end of the file)
@@ -138,3 +134,19 @@ COMMS_SHIFT = 20.3
 for _ref in COMMS_BLOCK:
     _x, _y, _rot, _side = PLACE[_ref]
     PLACE[_ref] = (_x, round(_y + COMMS_SHIFT, 3), _rot, _side)
+
+# ---- battery-negative stud J5 beside J2 (task 11 ruling): it takes the bottom right,
+# under the comms block. USB, its ESD / CC parts and BOOT go under J2; the comms
+# block's lower rows that J5 covers move into the middle column the USB parts left.
+B = BOARD_H
+PLACE.update({
+    "J5": (44.4, B - 15.7, 0, "F"),
+    "J3": (14.0, B - 4.4, 0, "F"),
+    "U9": (22.3, B - 11.5, 0, "F"), "R17": (21.0, B - 7.0, 90, "F"), "R18": (22.7, B - 7.0, 90, "F"),
+    "D8": (23.6, B - 2.4, 0, "F"), "SW1": (29.65, B - 9.0, 0, "F"), "R15": (33.5, B - 3.0, 90, "F"),
+    **{r: (25.4 + 1.7 * (i % 4), 87.2 + 3.2 * (i // 4), 90, "F")
+       for i, r in enumerate(("R4", "C6", "R80", "R81", "R82", "R83", "R84", "R85"))},
+    **{r: (32.4 + 1.7 * (i % 2), 87.2 + 3.2 * (i // 2), 90, "F")
+       for i, r in enumerate(("R76", "R77", "R78", "R79"))},
+    "D3": (26.6, 94.3, 0, "F"), "D9": (30.0, 94.3, 90, "F"), "R16": (31.7, 94.3, 90, "F"),
+})

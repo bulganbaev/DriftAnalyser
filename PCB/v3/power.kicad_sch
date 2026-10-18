@@ -3180,7 +3180,7 @@
     )
   )
   (symbol
-    (lib_id "Device:D_TVS")
+    (lib_id "Connector_Generic:Conn_01x01")
     (at 55.88 12.7 0)
     (unit 1)
     (body_style 1)
@@ -3189,24 +3189,24 @@
     (on_board yes)
     (in_pos_files yes)
     (dnp no)
-    (uuid "9f8894ca-c432-511d-a9f8-25d7f3675a23")
-    (property "Reference" "D1"
-      (at 55.88 15.97 0)
+    (uuid "48e10515-114e-5fc3-9e51-40483f539123")
+    (property "Reference" "J5"
+      (at 47.86 15.97 0)
       (effects
         (font
           (size 1.27 1.27)
         )
       )
     )
-    (property "Value" "SMCJ24CA"
-      (at 55.88 19.47 0)
+    (property "Value" "Stud_M6"
+      (at 47.86 19.47 0)
       (effects
         (font
           (size 1.27 1.27)
         )
       )
     )
-    (property "Footprint" "Diode_SMD:D_SMC"
+    (property "Footprint" "da3:Stud_M6"
       (at 55.88 12.7 0)
       (hide yes)
       (effects
@@ -3233,8 +3233,124 @@
         )
       )
     )
-    (property "LCSC" "C151279"
+    (property "MPN" "7461059 (hand-fit)"
       (at 55.88 12.7 0)
+      (hide yes)
+      (effects
+        (font
+          (size 1.27 1.27)
+        )
+      )
+    )
+    (property "Manufacturer" "Wurth"
+      (at 55.88 12.7 0)
+      (hide yes)
+      (effects
+        (font
+          (size 1.27 1.27)
+        )
+      )
+    )
+    (pin "1"
+      (uuid "f0bb8530-df06-54aa-9e81-f58eff9d4773")
+    )
+    (instances
+      (project "driftanalyser-v3"
+        (path "/0d6f1c2a-0000-4000-8000-000000000001/0d6f1c2a-0000-4000-8000-000000000010"
+          (reference "J5")
+          (unit 1)
+        )
+      )
+    )
+  )
+  (wire
+    (pts
+      (xy 50.8 12.7)
+      (xy 45.72 12.7)
+    )
+    (stroke
+      (width 0)
+      (type default)
+    )
+    (uuid "7fd83a83-d303-55cb-b9ff-9f9f50c40245")
+  )
+  (global_label "GND"
+    (shape passive)
+    (at 45.72 12.7 180)
+    (fields_autoplaced yes)
+    (effects
+      (font
+        (size 1.27 1.27)
+      )
+      (justify right)
+    )
+    (uuid "21ba1c11-169b-5ec9-af2a-ac61ccd7cc51")
+    (property "Intersheetrefs" "${INTERSHEET_REFS}"
+      (at 45.72 12.7 0)
+      (hide yes)
+      (effects
+        (font
+          (size 1.27 1.27)
+        )
+      )
+    )
+  )
+  (symbol
+    (lib_id "Device:D_TVS")
+    (at 81.28 12.7 0)
+    (unit 1)
+    (body_style 1)
+    (exclude_from_sim no)
+    (in_bom yes)
+    (on_board yes)
+    (in_pos_files yes)
+    (dnp no)
+    (uuid "9f8894ca-c432-511d-a9f8-25d7f3675a23")
+    (property "Reference" "D1"
+      (at 81.28 15.97 0)
+      (effects
+        (font
+          (size 1.27 1.27)
+        )
+      )
+    )
+    (property "Value" "SMCJ24CA"
+      (at 81.28 19.47 0)
+      (effects
+        (font
+          (size 1.27 1.27)
+        )
+      )
+    )
+    (property "Footprint" "Diode_SMD:D_SMC"
+      (at 81.28 12.7 0)
+      (hide yes)
+      (effects
+        (font
+          (size 1.27 1.27)
+        )
+      )
+    )
+    (property "Datasheet" ""
+      (at 81.28 12.7 0)
+      (hide yes)
+      (effects
+        (font
+          (size 1.27 1.27)
+        )
+      )
+    )
+    (property "Description" ""
+      (at 81.28 12.7 0)
+      (hide yes)
+      (effects
+        (font
+          (size 1.27 1.27)
+        )
+      )
+    )
+    (property "LCSC" "C151279"
+      (at 81.28 12.7 0)
       (hide yes)
       (effects
         (font
@@ -3243,7 +3359,7 @@
       )
     )
     (property "MPN" "SMCJ24CA"
-      (at 55.88 12.7 0)
+      (at 81.28 12.7 0)
       (hide yes)
       (effects
         (font
@@ -3252,7 +3368,7 @@
       )
     )
     (property "Manufacturer" "Littelfuse"
-      (at 55.88 12.7 0)
+      (at 81.28 12.7 0)
       (hide yes)
       (effects
         (font
@@ -3277,8 +3393,8 @@
   )
   (wire
     (pts
-      (xy 52.07 12.7)
-      (xy 46.99 12.7)
+      (xy 77.47 12.7)
+      (xy 72.39 12.7)
     )
     (stroke
       (width 0)
@@ -3288,7 +3404,7 @@
   )
   (global_label "VIN"
     (shape passive)
-    (at 46.99 12.7 180)
+    (at 72.39 12.7 180)
     (fields_autoplaced yes)
     (effects
       (font
@@ -3298,7 +3414,7 @@
     )
     (uuid "037d3fb3-5802-59a9-bbd7-3d3502f00e00")
     (property "Intersheetrefs" "${INTERSHEET_REFS}"
-      (at 46.99 12.7 0)
+      (at 72.39 12.7 0)
       (hide yes)
       (effects
         (font
@@ -3309,8 +3425,8 @@
   )
   (wire
     (pts
-      (xy 59.69 12.7)
-      (xy 64.77 12.7)
+      (xy 85.09 12.7)
+      (xy 90.17 12.7)
     )
     (stroke
       (width 0)
@@ -3320,7 +3436,7 @@
   )
   (global_label "GND"
     (shape passive)
-    (at 64.77 12.7 0)
+    (at 90.17 12.7 0)
     (fields_autoplaced yes)
     (effects
       (font
@@ -3330,7 +3446,7 @@
     )
     (uuid "f65f2f24-333a-5834-9b38-584683bc256a")
     (property "Intersheetrefs" "${INTERSHEET_REFS}"
-      (at 64.77 12.7 0)
+      (at 90.17 12.7 0)
       (hide yes)
       (effects
         (font
@@ -3341,7 +3457,7 @@
   )
   (symbol
     (lib_id "Device:C")
-    (at 83.82 27.94 0)
+    (at 109.22 27.94 0)
     (unit 1)
     (body_style 1)
     (exclude_from_sim no)
@@ -3351,7 +3467,7 @@
     (dnp no)
     (uuid "6a415523-82d9-515f-9342-541606f45d60")
     (property "Reference" "C1"
-      (at 83.82 45.98 0)
+      (at 109.22 45.98 0)
       (effects
         (font
           (size 1.27 1.27)
@@ -3359,7 +3475,7 @@
       )
     )
     (property "Value" "100nF 50V"
-      (at 83.82 49.48 0)
+      (at 109.22 49.48 0)
       (effects
         (font
           (size 1.27 1.27)
@@ -3367,7 +3483,7 @@
       )
     )
     (property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
-      (at 83.82 27.94 0)
+      (at 109.22 27.94 0)
       (hide yes)
       (effects
         (font
@@ -3376,7 +3492,7 @@
       )
     )
     (property "Datasheet" ""
-      (at 83.82 27.94 0)
+      (at 109.22 27.94 0)
       (hide yes)
       (effects
         (font
@@ -3385,7 +3501,7 @@
       )
     )
     (property "Description" ""
-      (at 83.82 27.94 0)
+      (at 109.22 27.94 0)
       (hide yes)
       (effects
         (font
@@ -3394,7 +3510,7 @@
       )
     )
     (property "LCSC" "C14663"
-      (at 83.82 27.94 0)
+      (at 109.22 27.94 0)
       (hide yes)
       (effects
         (font
@@ -3403,7 +3519,7 @@
       )
     )
     (property "MPN" "CC0603KRX7R9BB104"
-      (at 83.82 27.94 0)
+      (at 109.22 27.94 0)
       (hide yes)
       (effects
         (font
@@ -3412,7 +3528,7 @@
       )
     )
     (property "Manufacturer" "YAGEO"
-      (at 83.82 27.94 0)
+      (at 109.22 27.94 0)
       (hide yes)
       (effects
         (font
@@ -3437,8 +3553,8 @@
   )
   (wire
     (pts
-      (xy 83.82 24.13)
-      (xy 83.82 19.05)
+      (xy 109.22 24.13)
+      (xy 109.22 19.05)
     )
     (stroke
       (width 0)
@@ -3448,7 +3564,7 @@
   )
   (global_label "VIN"
     (shape passive)
-    (at 83.82 19.05 90)
+    (at 109.22 19.05 90)
     (fields_autoplaced yes)
     (effects
       (font
@@ -3458,7 +3574,7 @@
     )
     (uuid "3e1ece01-e2ba-5bc2-8ab6-f50f32fe262c")
     (property "Intersheetrefs" "${INTERSHEET_REFS}"
-      (at 83.82 19.05 0)
+      (at 109.22 19.05 0)
       (hide yes)
       (effects
         (font
@@ -3469,8 +3585,8 @@
   )
   (wire
     (pts
-      (xy 83.82 31.75)
-      (xy 83.82 36.83)
+      (xy 109.22 31.75)
+      (xy 109.22 36.83)
     )
     (stroke
       (width 0)
@@ -3480,7 +3596,7 @@
   )
   (global_label "GND"
     (shape passive)
-    (at 83.82 36.83 270)
+    (at 109.22 36.83 270)
     (fields_autoplaced yes)
     (effects
       (font
@@ -3490,7 +3606,7 @@
     )
     (uuid "5734e894-cfa4-54fe-bde8-5aa13739808a")
     (property "Intersheetrefs" "${INTERSHEET_REFS}"
-      (at 83.82 36.83 0)
+      (at 109.22 36.83 0)
       (hide yes)
       (effects
         (font
@@ -3501,7 +3617,7 @@
   )
   (symbol
     (lib_id "da3:LM74700-Q1")
-    (at 119.38 17.78 0)
+    (at 144.78 17.78 0)
     (unit 1)
     (body_style 1)
     (exclude_from_sim no)
@@ -3511,7 +3627,7 @@
     (dnp no)
     (uuid "301846b4-a6f3-5ec0-a7af-db50e03f186a")
     (property "Reference" "U2"
-      (at 119.38 26.13 0)
+      (at 144.78 26.13 0)
       (effects
         (font
           (size 1.27 1.27)
@@ -3519,7 +3635,7 @@
       )
     )
     (property "Value" "LM74700-Q1"
-      (at 119.38 29.63 0)
+      (at 144.78 29.63 0)
       (effects
         (font
           (size 1.27 1.27)
@@ -3527,7 +3643,7 @@
       )
     )
     (property "Footprint" "Package_TO_SOT_SMD:SOT-23-8"
-      (at 119.38 17.78 0)
+      (at 144.78 17.78 0)
       (hide yes)
       (effects
         (font
@@ -3536,7 +3652,7 @@
       )
     )
     (property "Datasheet" ""
-      (at 119.38 17.78 0)
+      (at 144.78 17.78 0)
       (hide yes)
       (effects
         (font
@@ -3545,7 +3661,7 @@
       )
     )
     (property "Description" ""
-      (at 119.38 17.78 0)
+      (at 144.78 17.78 0)
       (hide yes)
       (effects
         (font
@@ -3554,7 +3670,7 @@
       )
     )
     (property "LCSC" "C3236229"
-      (at 119.38 17.78 0)
+      (at 144.78 17.78 0)
       (hide yes)
       (effects
         (font
@@ -3563,7 +3679,7 @@
       )
     )
     (property "MPN" "LM74700QDDFRQ1"
-      (at 119.38 17.78 0)
+      (at 144.78 17.78 0)
       (hide yes)
       (effects
         (font
@@ -3572,7 +3688,7 @@
       )
     )
     (property "Manufacturer" "Texas Instruments"
-      (at 119.38 17.78 0)
+      (at 144.78 17.78 0)
       (hide yes)
       (effects
         (font
@@ -3615,8 +3731,8 @@
   )
   (wire
     (pts
-      (xy 111.76 13.97)
-      (xy 106.68 13.97)
+      (xy 137.16 13.97)
+      (xy 132.08 13.97)
     )
     (stroke
       (width 0)
@@ -3626,7 +3742,7 @@
   )
   (global_label "VIN"
     (shape passive)
-    (at 106.68 13.97 180)
+    (at 132.08 13.97 180)
     (fields_autoplaced yes)
     (effects
       (font
@@ -3635,106 +3751,6 @@
       (justify right)
     )
     (uuid "edee3cff-170f-57cc-a77e-e36b6b64beb5")
-    (property "Intersheetrefs" "${INTERSHEET_REFS}"
-      (at 106.68 13.97 0)
-      (hide yes)
-      (effects
-        (font
-          (size 1.27 1.27)
-        )
-      )
-    )
-  )
-  (wire
-    (pts
-      (xy 111.76 16.51)
-      (xy 106.68 16.51)
-    )
-    (stroke
-      (width 0)
-      (type default)
-    )
-    (uuid "29f84a95-2417-58f3-8aff-d7f9f0b1d3b1")
-  )
-  (global_label "GND"
-    (shape passive)
-    (at 106.68 16.51 180)
-    (fields_autoplaced yes)
-    (effects
-      (font
-        (size 1.27 1.27)
-      )
-      (justify right)
-    )
-    (uuid "55e8dfec-2970-52f6-8fb9-e67eca76e736")
-    (property "Intersheetrefs" "${INTERSHEET_REFS}"
-      (at 106.68 16.51 0)
-      (hide yes)
-      (effects
-        (font
-          (size 1.27 1.27)
-        )
-      )
-    )
-  )
-  (no_connect
-    (at 111.76 19.05)
-    (uuid "f4693503-8b6f-5a45-8e3d-c0c7c693808c")
-  )
-  (wire
-    (pts
-      (xy 111.76 21.59)
-      (xy 106.68 21.59)
-    )
-    (stroke
-      (width 0)
-      (type default)
-    )
-    (uuid "fdce493f-a7d2-5f30-a93a-f69cdbd021e3")
-  )
-  (global_label "LM_VCAP"
-    (shape passive)
-    (at 106.68 21.59 180)
-    (fields_autoplaced yes)
-    (effects
-      (font
-        (size 1.27 1.27)
-      )
-      (justify right)
-    )
-    (uuid "792c2f2a-25dc-5d9d-8c95-7ee82782e9db")
-    (property "Intersheetrefs" "${INTERSHEET_REFS}"
-      (at 106.68 21.59 0)
-      (hide yes)
-      (effects
-        (font
-          (size 1.27 1.27)
-        )
-      )
-    )
-  )
-  (wire
-    (pts
-      (xy 127.0 13.97)
-      (xy 132.08 13.97)
-    )
-    (stroke
-      (width 0)
-      (type default)
-    )
-    (uuid "e8c0f1ef-ff52-5c13-873f-713b81f2b507")
-  )
-  (global_label "VIN"
-    (shape passive)
-    (at 132.08 13.97 0)
-    (fields_autoplaced yes)
-    (effects
-      (font
-        (size 1.27 1.27)
-      )
-      (justify left)
-    )
-    (uuid "7ca5a6ff-1aaf-5d66-8bec-d91693c3bcab")
     (property "Intersheetrefs" "${INTERSHEET_REFS}"
       (at 132.08 13.97 0)
       (hide yes)
@@ -3747,26 +3763,26 @@
   )
   (wire
     (pts
-      (xy 127.0 16.51)
+      (xy 137.16 16.51)
       (xy 132.08 16.51)
     )
     (stroke
       (width 0)
       (type default)
     )
-    (uuid "52d81de4-f942-5607-8b17-b621fe4acd41")
+    (uuid "29f84a95-2417-58f3-8aff-d7f9f0b1d3b1")
   )
-  (global_label "LM_GATE"
+  (global_label "GND"
     (shape passive)
-    (at 132.08 16.51 0)
+    (at 132.08 16.51 180)
     (fields_autoplaced yes)
     (effects
       (font
         (size 1.27 1.27)
       )
-      (justify left)
+      (justify right)
     )
-    (uuid "bafef1b3-1020-52f3-bcd6-8f2a013b09ab")
+    (uuid "55e8dfec-2970-52f6-8fb9-e67eca76e736")
     (property "Intersheetrefs" "${INTERSHEET_REFS}"
       (at 132.08 16.51 0)
       (hide yes)
@@ -3778,31 +3794,31 @@
     )
   )
   (no_connect
-    (at 127.0 19.05)
-    (uuid "ebb47a03-6ec4-5f6f-96f3-57f8dd0e2dae")
+    (at 137.16 19.05)
+    (uuid "f4693503-8b6f-5a45-8e3d-c0c7c693808c")
   )
   (wire
     (pts
-      (xy 127.0 21.59)
+      (xy 137.16 21.59)
       (xy 132.08 21.59)
     )
     (stroke
       (width 0)
       (type default)
     )
-    (uuid "72eda809-4b46-57b2-8d23-61f056eeb120")
+    (uuid "fdce493f-a7d2-5f30-a93a-f69cdbd021e3")
   )
-  (global_label "VBUS"
+  (global_label "LM_VCAP"
     (shape passive)
-    (at 132.08 21.59 0)
+    (at 132.08 21.59 180)
     (fields_autoplaced yes)
     (effects
       (font
         (size 1.27 1.27)
       )
-      (justify left)
+      (justify right)
     )
-    (uuid "e0d849fe-cb66-509e-9c5c-082d60ae4f0a")
+    (uuid "792c2f2a-25dc-5d9d-8c95-7ee82782e9db")
     (property "Intersheetrefs" "${INTERSHEET_REFS}"
       (at 132.08 21.59 0)
       (hide yes)
@@ -3813,9 +3829,109 @@
       )
     )
   )
+  (wire
+    (pts
+      (xy 152.4 13.97)
+      (xy 157.48 13.97)
+    )
+    (stroke
+      (width 0)
+      (type default)
+    )
+    (uuid "e8c0f1ef-ff52-5c13-873f-713b81f2b507")
+  )
+  (global_label "VIN"
+    (shape passive)
+    (at 157.48 13.97 0)
+    (fields_autoplaced yes)
+    (effects
+      (font
+        (size 1.27 1.27)
+      )
+      (justify left)
+    )
+    (uuid "7ca5a6ff-1aaf-5d66-8bec-d91693c3bcab")
+    (property "Intersheetrefs" "${INTERSHEET_REFS}"
+      (at 157.48 13.97 0)
+      (hide yes)
+      (effects
+        (font
+          (size 1.27 1.27)
+        )
+      )
+    )
+  )
+  (wire
+    (pts
+      (xy 152.4 16.51)
+      (xy 157.48 16.51)
+    )
+    (stroke
+      (width 0)
+      (type default)
+    )
+    (uuid "52d81de4-f942-5607-8b17-b621fe4acd41")
+  )
+  (global_label "LM_GATE"
+    (shape passive)
+    (at 157.48 16.51 0)
+    (fields_autoplaced yes)
+    (effects
+      (font
+        (size 1.27 1.27)
+      )
+      (justify left)
+    )
+    (uuid "bafef1b3-1020-52f3-bcd6-8f2a013b09ab")
+    (property "Intersheetrefs" "${INTERSHEET_REFS}"
+      (at 157.48 16.51 0)
+      (hide yes)
+      (effects
+        (font
+          (size 1.27 1.27)
+        )
+      )
+    )
+  )
+  (no_connect
+    (at 152.4 19.05)
+    (uuid "ebb47a03-6ec4-5f6f-96f3-57f8dd0e2dae")
+  )
+  (wire
+    (pts
+      (xy 152.4 21.59)
+      (xy 157.48 21.59)
+    )
+    (stroke
+      (width 0)
+      (type default)
+    )
+    (uuid "72eda809-4b46-57b2-8d23-61f056eeb120")
+  )
+  (global_label "VBUS"
+    (shape passive)
+    (at 157.48 21.59 0)
+    (fields_autoplaced yes)
+    (effects
+      (font
+        (size 1.27 1.27)
+      )
+      (justify left)
+    )
+    (uuid "e0d849fe-cb66-509e-9c5c-082d60ae4f0a")
+    (property "Intersheetrefs" "${INTERSHEET_REFS}"
+      (at 157.48 21.59 0)
+      (hide yes)
+      (effects
+        (font
+          (size 1.27 1.27)
+        )
+      )
+    )
+  )
   (symbol
     (lib_id "Device:C")
-    (at 154.94 33.02 0)
+    (at 182.88 33.02 0)
     (unit 1)
     (body_style 1)
     (exclude_from_sim no)
@@ -3825,7 +3941,7 @@
     (dnp no)
     (uuid "74e3cb11-f46a-5959-b590-d50d7db63f53")
     (property "Reference" "C2"
-      (at 154.94 51.06 0)
+      (at 182.88 51.06 0)
       (effects
         (font
           (size 1.27 1.27)
@@ -3833,7 +3949,7 @@
       )
     )
     (property "Value" "220nF 25V"
-      (at 154.94 54.56 0)
+      (at 182.88 54.56 0)
       (effects
         (font
           (size 1.27 1.27)
@@ -3841,7 +3957,7 @@
       )
     )
     (property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
-      (at 154.94 33.02 0)
+      (at 182.88 33.02 0)
       (hide yes)
       (effects
         (font
@@ -3850,7 +3966,7 @@
       )
     )
     (property "Datasheet" ""
-      (at 154.94 33.02 0)
+      (at 182.88 33.02 0)
       (hide yes)
       (effects
         (font
@@ -3859,7 +3975,7 @@
       )
     )
     (property "Description" ""
-      (at 154.94 33.02 0)
+      (at 182.88 33.02 0)
       (hide yes)
       (effects
         (font
@@ -3868,7 +3984,7 @@
       )
     )
     (property "LCSC" "C21120"
-      (at 154.94 33.02 0)
+      (at 182.88 33.02 0)
       (hide yes)
       (effects
         (font
@@ -3877,7 +3993,7 @@
       )
     )
     (property "MPN" "CL10B224KA8NNNC"
-      (at 154.94 33.02 0)
+      (at 182.88 33.02 0)
       (hide yes)
       (effects
         (font
@@ -3886,7 +4002,7 @@
       )
     )
     (property "Manufacturer" "Samsung Electro-Mechanics"
-      (at 154.94 33.02 0)
+      (at 182.88 33.02 0)
       (hide yes)
       (effects
         (font
@@ -3911,8 +4027,8 @@
   )
   (wire
     (pts
-      (xy 154.94 29.21)
-      (xy 154.94 24.13)
+      (xy 182.88 29.21)
+      (xy 182.88 24.13)
     )
     (stroke
       (width 0)
@@ -3922,7 +4038,7 @@
   )
   (global_label "LM_VCAP"
     (shape passive)
-    (at 154.94 24.13 90)
+    (at 182.88 24.13 90)
     (fields_autoplaced yes)
     (effects
       (font
@@ -3932,7 +4048,7 @@
     )
     (uuid "61511f80-85f3-5669-b3c3-13e3294135ef")
     (property "Intersheetrefs" "${INTERSHEET_REFS}"
-      (at 154.94 24.13 0)
+      (at 182.88 24.13 0)
       (hide yes)
       (effects
         (font
@@ -3943,8 +4059,8 @@
   )
   (wire
     (pts
-      (xy 154.94 36.83)
-      (xy 154.94 41.91)
+      (xy 182.88 36.83)
+      (xy 182.88 41.91)
     )
     (stroke
       (width 0)
@@ -3954,7 +4070,7 @@
   )
   (global_label "VIN"
     (shape passive)
-    (at 154.94 41.91 270)
+    (at 182.88 41.91 270)
     (fields_autoplaced yes)
     (effects
       (font
@@ -3964,7 +4080,7 @@
     )
     (uuid "fab28c9f-72ec-5f02-8197-926111af20cf")
     (property "Intersheetrefs" "${INTERSHEET_REFS}"
-      (at 154.94 41.91 0)
+      (at 182.88 41.91 0)
       (hide yes)
       (effects
         (font
@@ -3975,7 +4091,7 @@
   )
   (symbol
     (lib_id "Transistor_FET:Q_NMOS_SSSGD_AvalancheRated")
-    (at 190.5 30.48 0)
+    (at 215.9 30.48 0)
     (unit 1)
     (body_style 1)
     (exclude_from_sim no)
@@ -3985,7 +4101,7 @@
     (dnp no)
     (uuid "07cd8882-ac6a-5d9f-a6af-3e16bb27c4d8")
     (property "Reference" "Q1"
-      (at 181.9675 49.79 0)
+      (at 207.3675 49.79 0)
       (effects
         (font
           (size 1.27 1.27)
@@ -3993,7 +4109,7 @@
       )
     )
     (property "Value" "BSC016N06NS"
-      (at 181.9675 53.29 0)
+      (at 207.3675 53.29 0)
       (effects
         (font
           (size 1.27 1.27)
@@ -4001,7 +4117,7 @@
       )
     )
     (property "Footprint" "Package_TO_SOT_SMD:TDSON-8-1"
-      (at 190.5 30.48 0)
+      (at 215.9 30.48 0)
       (hide yes)
       (effects
         (font
@@ -4010,7 +4126,7 @@
       )
     )
     (property "Datasheet" ""
-      (at 190.5 30.48 0)
+      (at 215.9 30.48 0)
       (hide yes)
       (effects
         (font
@@ -4019,7 +4135,7 @@
       )
     )
     (property "Description" ""
-      (at 190.5 30.48 0)
+      (at 215.9 30.48 0)
       (hide yes)
       (effects
         (font
@@ -4028,7 +4144,7 @@
       )
     )
     (property "LCSC" "C454269"
-      (at 190.5 30.48 0)
+      (at 215.9 30.48 0)
       (hide yes)
       (effects
         (font
@@ -4037,7 +4153,7 @@
       )
     )
     (property "MPN" "BSC016N06NS"
-      (at 190.5 30.48 0)
+      (at 215.9 30.48 0)
       (hide yes)
       (effects
         (font
@@ -4046,7 +4162,7 @@
       )
     )
     (property "Manufacturer" "Infineon"
-      (at 190.5 30.48 0)
+      (at 215.9 30.48 0)
       (hide yes)
       (effects
         (font
@@ -4080,8 +4196,8 @@
   )
   (wire
     (pts
-      (xy 193.04 35.56)
-      (xy 193.04 40.64)
+      (xy 218.44 35.56)
+      (xy 218.44 40.64)
     )
     (stroke
       (width 0)
@@ -4091,7 +4207,7 @@
   )
   (global_label "VIN"
     (shape passive)
-    (at 193.04 40.64 270)
+    (at 218.44 40.64 270)
     (fields_autoplaced yes)
     (effects
       (font
@@ -4101,7 +4217,7 @@
     )
     (uuid "ba77fd56-c929-5dd9-8eaf-948f60e8d150")
     (property "Intersheetrefs" "${INTERSHEET_REFS}"
-      (at 193.04 40.64 0)
+      (at 218.44 40.64 0)
       (hide yes)
       (effects
         (font
@@ -4112,8 +4228,8 @@
   )
   (wire
     (pts
-      (xy 193.04 35.56)
-      (xy 193.04 40.64)
+      (xy 218.44 35.56)
+      (xy 218.44 40.64)
     )
     (stroke
       (width 0)
@@ -4123,7 +4239,7 @@
   )
   (global_label "VIN"
     (shape passive)
-    (at 193.04 40.64 270)
+    (at 218.44 40.64 270)
     (fields_autoplaced yes)
     (effects
       (font
@@ -4133,7 +4249,7 @@
     )
     (uuid "e7d3af34-9104-5d15-8656-dfd63629ccb3")
     (property "Intersheetrefs" "${INTERSHEET_REFS}"
-      (at 193.04 40.64 0)
+      (at 218.44 40.64 0)
       (hide yes)
       (effects
         (font
@@ -4144,8 +4260,8 @@
   )
   (wire
     (pts
-      (xy 193.04 35.56)
-      (xy 193.04 40.64)
+      (xy 218.44 35.56)
+      (xy 218.44 40.64)
     )
     (stroke
       (width 0)
@@ -4155,7 +4271,7 @@
   )
   (global_label "VIN"
     (shape passive)
-    (at 193.04 40.64 270)
+    (at 218.44 40.64 270)
     (fields_autoplaced yes)
     (effects
       (font
@@ -4165,7 +4281,7 @@
     )
     (uuid "65908ee6-e31a-512f-b5ae-0a56264fc49a")
     (property "Intersheetrefs" "${INTERSHEET_REFS}"
-      (at 193.04 40.64 0)
+      (at 218.44 40.64 0)
       (hide yes)
       (effects
         (font
@@ -4176,8 +4292,8 @@
   )
   (wire
     (pts
-      (xy 185.42 30.48)
-      (xy 180.34 30.48)
+      (xy 210.82 30.48)
+      (xy 205.74 30.48)
     )
     (stroke
       (width 0)
@@ -4187,7 +4303,7 @@
   )
   (global_label "LM_GATE"
     (shape passive)
-    (at 180.34 30.48 180)
+    (at 205.74 30.48 180)
     (fields_autoplaced yes)
     (effects
       (font
@@ -4197,7 +4313,7 @@
     )
     (uuid "dadd4475-bfa2-56e5-9659-e6048174059f")
     (property "Intersheetrefs" "${INTERSHEET_REFS}"
-      (at 180.34 30.48 0)
+      (at 205.74 30.48 0)
       (hide yes)
       (effects
         (font
@@ -4208,8 +4324,8 @@
   )
   (wire
     (pts
-      (xy 193.04 25.4)
-      (xy 193.04 20.32)
+      (xy 218.44 25.4)
+      (xy 218.44 20.32)
     )
     (stroke
       (width 0)
@@ -4219,7 +4335,7 @@
   )
   (global_label "VBUS"
     (shape passive)
-    (at 193.04 20.32 90)
+    (at 218.44 20.32 90)
     (fields_autoplaced yes)
     (effects
       (font
@@ -4229,7 +4345,7 @@
     )
     (uuid "b1267486-fe76-5e88-b31b-2b5c470ad1c0")
     (property "Intersheetrefs" "${INTERSHEET_REFS}"
-      (at 193.04 20.32 0)
+      (at 218.44 20.32 0)
       (hide yes)
       (effects
         (font
@@ -4240,7 +4356,7 @@
   )
   (symbol
     (lib_id "Transistor_FET:Q_NMOS_SSSGD_AvalancheRated")
-    (at 223.52 30.48 0)
+    (at 248.92 30.48 0)
     (unit 1)
     (body_style 1)
     (exclude_from_sim no)
@@ -4250,7 +4366,7 @@
     (dnp no)
     (uuid "4d6d1f5d-0a8e-53ab-89a1-8663a1798c34")
     (property "Reference" "Q2"
-      (at 214.9875 49.79 0)
+      (at 240.3875 49.79 0)
       (effects
         (font
           (size 1.27 1.27)
@@ -4258,7 +4374,7 @@
       )
     )
     (property "Value" "BSC016N06NS"
-      (at 214.9875 53.29 0)
+      (at 240.3875 53.29 0)
       (effects
         (font
           (size 1.27 1.27)
@@ -4266,7 +4382,7 @@
       )
     )
     (property "Footprint" "Package_TO_SOT_SMD:TDSON-8-1"
-      (at 223.52 30.48 0)
+      (at 248.92 30.48 0)
       (hide yes)
       (effects
         (font
@@ -4275,7 +4391,7 @@
       )
     )
     (property "Datasheet" ""
-      (at 223.52 30.48 0)
+      (at 248.92 30.48 0)
       (hide yes)
       (effects
         (font
@@ -4284,7 +4400,7 @@
       )
     )
     (property "Description" ""
-      (at 223.52 30.48 0)
+      (at 248.92 30.48 0)
       (hide yes)
       (effects
         (font
@@ -4293,7 +4409,7 @@
       )
     )
     (property "LCSC" "C454269"
-      (at 223.52 30.48 0)
+      (at 248.92 30.48 0)
       (hide yes)
       (effects
         (font
@@ -4302,7 +4418,7 @@
       )
     )
     (property "MPN" "BSC016N06NS"
-      (at 223.52 30.48 0)
+      (at 248.92 30.48 0)
       (hide yes)
       (effects
         (font
@@ -4311,7 +4427,7 @@
       )
     )
     (property "Manufacturer" "Infineon"
-      (at 223.52 30.48 0)
+      (at 248.92 30.48 0)
       (hide yes)
       (effects
         (font
@@ -4345,8 +4461,8 @@
   )
   (wire
     (pts
-      (xy 226.06 35.56)
-      (xy 226.06 40.64)
+      (xy 251.46 35.56)
+      (xy 251.46 40.64)
     )
     (stroke
       (width 0)
@@ -4356,7 +4472,7 @@
   )
   (global_label "VIN"
     (shape passive)
-    (at 226.06 40.64 270)
+    (at 251.46 40.64 270)
     (fields_autoplaced yes)
     (effects
       (font
@@ -4366,7 +4482,7 @@
     )
     (uuid "61a73b78-8594-5987-856e-ff6ca2648112")
     (property "Intersheetrefs" "${INTERSHEET_REFS}"
-      (at 226.06 40.64 0)
+      (at 251.46 40.64 0)
       (hide yes)
       (effects
         (font
@@ -4377,8 +4493,8 @@
   )
   (wire
     (pts
-      (xy 226.06 35.56)
-      (xy 226.06 40.64)
+      (xy 251.46 35.56)
+      (xy 251.46 40.64)
     )
     (stroke
       (width 0)
@@ -4388,7 +4504,7 @@
   )
   (global_label "VIN"
     (shape passive)
-    (at 226.06 40.64 270)
+    (at 251.46 40.64 270)
     (fields_autoplaced yes)
     (effects
       (font
@@ -4398,7 +4514,7 @@
     )
     (uuid "24870c6a-e238-5ee6-b462-0de8cbbbd7f4")
     (property "Intersheetrefs" "${INTERSHEET_REFS}"
-      (at 226.06 40.64 0)
+      (at 251.46 40.64 0)
       (hide yes)
       (effects
         (font
@@ -4409,8 +4525,8 @@
   )
   (wire
     (pts
-      (xy 226.06 35.56)
-      (xy 226.06 40.64)
+      (xy 251.46 35.56)
+      (xy 251.46 40.64)
     )
     (stroke
       (width 0)
@@ -4420,7 +4536,7 @@
   )
   (global_label "VIN"
     (shape passive)
-    (at 226.06 40.64 270)
+    (at 251.46 40.64 270)
     (fields_autoplaced yes)
     (effects
       (font
@@ -4430,7 +4546,7 @@
     )
     (uuid "7a4a71f4-ad94-5b80-a8d6-db87f1cc5a8b")
     (property "Intersheetrefs" "${INTERSHEET_REFS}"
-      (at 226.06 40.64 0)
+      (at 251.46 40.64 0)
       (hide yes)
       (effects
         (font
@@ -4441,8 +4557,8 @@
   )
   (wire
     (pts
-      (xy 218.44 30.48)
-      (xy 213.36 30.48)
+      (xy 243.84 30.48)
+      (xy 238.76 30.48)
     )
     (stroke
       (width 0)
@@ -4452,7 +4568,7 @@
   )
   (global_label "LM_GATE"
     (shape passive)
-    (at 213.36 30.48 180)
+    (at 238.76 30.48 180)
     (fields_autoplaced yes)
     (effects
       (font
@@ -4462,7 +4578,7 @@
     )
     (uuid "201ae659-5c39-55be-b5fa-d398f6afb8d1")
     (property "Intersheetrefs" "${INTERSHEET_REFS}"
-      (at 213.36 30.48 0)
+      (at 238.76 30.48 0)
       (hide yes)
       (effects
         (font
@@ -4473,8 +4589,8 @@
   )
   (wire
     (pts
-      (xy 226.06 25.4)
-      (xy 226.06 20.32)
+      (xy 251.46 25.4)
+      (xy 251.46 20.32)
     )
     (stroke
       (width 0)
@@ -4484,7 +4600,7 @@
   )
   (global_label "VBUS"
     (shape passive)
-    (at 226.06 20.32 90)
+    (at 251.46 20.32 90)
     (fields_autoplaced yes)
     (effects
       (font
@@ -4494,7 +4610,7 @@
     )
     (uuid "4f8e1d60-6a2d-5f86-8cce-84cb7b79f9b3")
     (property "Intersheetrefs" "${INTERSHEET_REFS}"
-      (at 226.06 20.32 0)
+      (at 251.46 20.32 0)
       (hide yes)
       (effects
         (font
@@ -4505,7 +4621,7 @@
   )
   (symbol
     (lib_id "Device:C_Polarized")
-    (at 241.3 30.48 0)
+    (at 266.7 30.48 0)
     (unit 1)
     (body_style 1)
     (exclude_from_sim no)
@@ -4515,7 +4631,7 @@
     (dnp no)
     (uuid "3ba0bab7-c331-5887-b35e-636ec924f9ca")
     (property "Reference" "C3"
-      (at 241.3 48.52 0)
+      (at 266.7 48.52 0)
       (effects
         (font
           (size 1.27 1.27)
@@ -4523,7 +4639,7 @@
       )
     )
     (property "Value" "100uF 50V"
-      (at 241.3 52.02 0)
+      (at 266.7 52.02 0)
       (effects
         (font
           (size 1.27 1.27)
@@ -4531,7 +4647,7 @@
       )
     )
     (property "Footprint" "Capacitor_SMD:CP_Elec_8x10.5"
-      (at 241.3 30.48 0)
+      (at 266.7 30.48 0)
       (hide yes)
       (effects
         (font
@@ -4540,7 +4656,7 @@
       )
     )
     (property "Datasheet" ""
-      (at 241.3 30.48 0)
+      (at 266.7 30.48 0)
       (hide yes)
       (effects
         (font
@@ -4549,7 +4665,7 @@
       )
     )
     (property "Description" ""
-      (at 241.3 30.48 0)
+      (at 266.7 30.48 0)
       (hide yes)
       (effects
         (font
@@ -4558,7 +4674,7 @@
       )
     )
     (property "LCSC" "C2983550"
-      (at 241.3 30.48 0)
+      (at 266.7 30.48 0)
       (hide yes)
       (effects
         (font
@@ -4567,7 +4683,7 @@
       )
     )
     (property "MPN" "GVZ1H107M0810CNVC"
-      (at 241.3 30.48 0)
+      (at 266.7 30.48 0)
       (hide yes)
       (effects
         (font
@@ -4576,7 +4692,7 @@
       )
     )
     (property "Manufacturer" "HRK"
-      (at 241.3 30.48 0)
+      (at 266.7 30.48 0)
       (hide yes)
       (effects
         (font
@@ -4601,8 +4717,8 @@
   )
   (wire
     (pts
-      (xy 241.3 26.67)
-      (xy 241.3 21.59)
+      (xy 266.7 26.67)
+      (xy 266.7 21.59)
     )
     (stroke
       (width 0)
@@ -4612,7 +4728,7 @@
   )
   (global_label "VBUS"
     (shape passive)
-    (at 241.3 21.59 90)
+    (at 266.7 21.59 90)
     (fields_autoplaced yes)
     (effects
       (font
@@ -4622,7 +4738,7 @@
     )
     (uuid "514a99fa-cafc-5e34-860c-d78cf546a39e")
     (property "Intersheetrefs" "${INTERSHEET_REFS}"
-      (at 241.3 21.59 0)
+      (at 266.7 21.59 0)
       (hide yes)
       (effects
         (font
@@ -4633,8 +4749,8 @@
   )
   (wire
     (pts
-      (xy 241.3 34.29)
-      (xy 241.3 39.37)
+      (xy 266.7 34.29)
+      (xy 266.7 39.37)
     )
     (stroke
       (width 0)
@@ -4644,7 +4760,7 @@
   )
   (global_label "GND"
     (shape passive)
-    (at 241.3 39.37 270)
+    (at 266.7 39.37 270)
     (fields_autoplaced yes)
     (effects
       (font
@@ -4654,7 +4770,7 @@
     )
     (uuid "938c5972-db50-5fb9-a5be-1f72cc3baf79")
     (property "Intersheetrefs" "${INTERSHEET_REFS}"
-      (at 241.3 39.37 0)
+      (at 266.7 39.37 0)
       (hide yes)
       (effects
         (font
@@ -4665,7 +4781,7 @@
   )
   (symbol
     (lib_id "Device:C")
-    (at 256.54 30.48 0)
+    (at 281.94 30.48 0)
     (unit 1)
     (body_style 1)
     (exclude_from_sim no)
@@ -4675,7 +4791,7 @@
     (dnp no)
     (uuid "2a2404e1-80e4-594d-a8f8-1ae5b9af33bf")
     (property "Reference" "C4"
-      (at 256.54 48.52 0)
+      (at 281.94 48.52 0)
       (effects
         (font
           (size 1.27 1.27)
@@ -4683,7 +4799,7 @@
       )
     )
     (property "Value" "10uF 50V"
-      (at 256.54 52.02 0)
+      (at 281.94 52.02 0)
       (effects
         (font
           (size 1.27 1.27)
@@ -4691,7 +4807,7 @@
       )
     )
     (property "Footprint" "Capacitor_SMD:C_1210_3225Metric"
-      (at 256.54 30.48 0)
+      (at 281.94 30.48 0)
       (hide yes)
       (effects
         (font
@@ -4700,7 +4816,7 @@
       )
     )
     (property "Datasheet" ""
-      (at 256.54 30.48 0)
+      (at 281.94 30.48 0)
       (hide yes)
       (effects
         (font
@@ -4709,7 +4825,7 @@
       )
     )
     (property "Description" ""
-      (at 256.54 30.48 0)
+      (at 281.94 30.48 0)
       (hide yes)
       (effects
         (font
@@ -4718,7 +4834,7 @@
       )
     )
     (property "LCSC" "C2918502"
-      (at 256.54 30.48 0)
+      (at 281.94 30.48 0)
       (hide yes)
       (effects
         (font
@@ -4727,7 +4843,7 @@
       )
     )
     (property "MPN" "CS3225X7R106K500NRL"
-      (at 256.54 30.48 0)
+      (at 281.94 30.48 0)
       (hide yes)
       (effects
         (font
@@ -4736,7 +4852,7 @@
       )
     )
     (property "Manufacturer" "SAMWHA"
-      (at 256.54 30.48 0)
+      (at 281.94 30.48 0)
       (hide yes)
       (effects
         (font
@@ -4761,8 +4877,8 @@
   )
   (wire
     (pts
-      (xy 256.54 26.67)
-      (xy 256.54 21.59)
+      (xy 281.94 26.67)
+      (xy 281.94 21.59)
     )
     (stroke
       (width 0)
@@ -4772,7 +4888,7 @@
   )
   (global_label "VBUS"
     (shape passive)
-    (at 256.54 21.59 90)
+    (at 281.94 21.59 90)
     (fields_autoplaced yes)
     (effects
       (font
@@ -4782,7 +4898,7 @@
     )
     (uuid "3e204239-83e7-5b5b-9143-45269d6833e3")
     (property "Intersheetrefs" "${INTERSHEET_REFS}"
-      (at 256.54 21.59 0)
+      (at 281.94 21.59 0)
       (hide yes)
       (effects
         (font
@@ -4793,8 +4909,8 @@
   )
   (wire
     (pts
-      (xy 256.54 34.29)
-      (xy 256.54 39.37)
+      (xy 281.94 34.29)
+      (xy 281.94 39.37)
     )
     (stroke
       (width 0)
@@ -4804,7 +4920,7 @@
   )
   (global_label "GND"
     (shape passive)
-    (at 256.54 39.37 270)
+    (at 281.94 39.37 270)
     (fields_autoplaced yes)
     (effects
       (font
@@ -4814,7 +4930,7 @@
     )
     (uuid "23a31ebf-4554-525e-99e4-b16c7bca7ecf")
     (property "Intersheetrefs" "${INTERSHEET_REFS}"
-      (at 256.54 39.37 0)
+      (at 281.94 39.37 0)
       (hide yes)
       (effects
         (font
@@ -4825,7 +4941,7 @@
   )
   (symbol
     (lib_id "Device:R")
-    (at 269.24 30.48 0)
+    (at 297.18 30.48 0)
     (unit 1)
     (body_style 1)
     (exclude_from_sim no)
@@ -4835,7 +4951,7 @@
     (dnp no)
     (uuid "92fff6a7-f985-5a40-bbbf-f4ed0e31b4d5")
     (property "Reference" "R1"
-      (at 269.24 55.87 0)
+      (at 297.18 55.87 0)
       (effects
         (font
           (size 1.27 1.27)
@@ -4843,7 +4959,7 @@
       )
     )
     (property "Value" "47k"
-      (at 269.24 59.37 0)
+      (at 297.18 59.37 0)
       (effects
         (font
           (size 1.27 1.27)
@@ -4851,7 +4967,7 @@
       )
     )
     (property "Footprint" "Resistor_SMD:R_0603_1608Metric"
-      (at 269.24 30.48 0)
+      (at 297.18 30.48 0)
       (hide yes)
       (effects
         (font
@@ -4860,7 +4976,7 @@
       )
     )
     (property "Datasheet" ""
-      (at 269.24 30.48 0)
+      (at 297.18 30.48 0)
       (hide yes)
       (effects
         (font
@@ -4869,7 +4985,7 @@
       )
     )
     (property "Description" ""
-      (at 269.24 30.48 0)
+      (at 297.18 30.48 0)
       (hide yes)
       (effects
         (font
@@ -4878,7 +4994,7 @@
       )
     )
     (property "LCSC" "C25819"
-      (at 269.24 30.48 0)
+      (at 297.18 30.48 0)
       (hide yes)
       (effects
         (font
@@ -4887,7 +5003,7 @@
       )
     )
     (property "MPN" "0603WAF4702T5E"
-      (at 269.24 30.48 0)
+      (at 297.18 30.48 0)
       (hide yes)
       (effects
         (font
@@ -4896,7 +5012,7 @@
       )
     )
     (property "Manufacturer" "UNI-ROYAL"
-      (at 269.24 30.48 0)
+      (at 297.18 30.48 0)
       (hide yes)
       (effects
         (font
@@ -4921,8 +5037,8 @@
   )
   (wire
     (pts
-      (xy 269.24 26.67)
-      (xy 269.24 21.59)
+      (xy 297.18 26.67)
+      (xy 297.18 21.59)
     )
     (stroke
       (width 0)
@@ -4932,7 +5048,7 @@
   )
   (global_label "VBUS"
     (shape passive)
-    (at 269.24 21.59 90)
+    (at 297.18 21.59 90)
     (fields_autoplaced yes)
     (effects
       (font
@@ -4942,7 +5058,7 @@
     )
     (uuid "fe20288d-0fb9-5e75-9444-556190aaa177")
     (property "Intersheetrefs" "${INTERSHEET_REFS}"
-      (at 269.24 21.59 0)
+      (at 297.18 21.59 0)
       (hide yes)
       (effects
         (font
@@ -4953,8 +5069,8 @@
   )
   (wire
     (pts
-      (xy 269.24 34.29)
-      (xy 269.24 39.37)
+      (xy 297.18 34.29)
+      (xy 297.18 39.37)
     )
     (stroke
       (width 0)
@@ -4964,7 +5080,7 @@
   )
   (global_label "VBAT_SENSE"
     (shape passive)
-    (at 269.24 39.37 270)
+    (at 297.18 39.37 270)
     (fields_autoplaced yes)
     (effects
       (font
@@ -4974,7 +5090,7 @@
     )
     (uuid "0436b207-7135-5798-8778-aa57aafb961c")
     (property "Intersheetrefs" "${INTERSHEET_REFS}"
-      (at 269.24 39.37 0)
+      (at 297.18 39.37 0)
       (hide yes)
       (effects
         (font
@@ -4985,7 +5101,7 @@
   )
   (symbol
     (lib_id "Device:R")
-    (at 281.94 35.56 0)
+    (at 307.34 35.56 0)
     (unit 1)
     (body_style 1)
     (exclude_from_sim no)
@@ -4995,7 +5111,7 @@
     (dnp no)
     (uuid "53997a02-1266-50de-9d4e-6decc9a9de4d")
     (property "Reference" "R2"
-      (at 281.94 53.6 0)
+      (at 307.34 53.6 0)
       (effects
         (font
           (size 1.27 1.27)
@@ -5003,7 +5119,7 @@
       )
     )
     (property "Value" "10k"
-      (at 281.94 57.1 0)
+      (at 307.34 57.1 0)
       (effects
         (font
           (size 1.27 1.27)
@@ -5011,7 +5127,7 @@
       )
     )
     (property "Footprint" "Resistor_SMD:R_0603_1608Metric"
-      (at 281.94 35.56 0)
+      (at 307.34 35.56 0)
       (hide yes)
       (effects
         (font
@@ -5020,7 +5136,7 @@
       )
     )
     (property "Datasheet" ""
-      (at 281.94 35.56 0)
+      (at 307.34 35.56 0)
       (hide yes)
       (effects
         (font
@@ -5029,7 +5145,7 @@
       )
     )
     (property "Description" ""
-      (at 281.94 35.56 0)
+      (at 307.34 35.56 0)
       (hide yes)
       (effects
         (font
@@ -5038,7 +5154,7 @@
       )
     )
     (property "LCSC" "C25804"
-      (at 281.94 35.56 0)
+      (at 307.34 35.56 0)
       (hide yes)
       (effects
         (font
@@ -5047,7 +5163,7 @@
       )
     )
     (property "MPN" "0603WAF1002T5E"
-      (at 281.94 35.56 0)
+      (at 307.34 35.56 0)
       (hide yes)
       (effects
         (font
@@ -5056,7 +5172,7 @@
       )
     )
     (property "Manufacturer" "UNI-ROYAL"
-      (at 281.94 35.56 0)
+      (at 307.34 35.56 0)
       (hide yes)
       (effects
         (font
@@ -5081,8 +5197,8 @@
   )
   (wire
     (pts
-      (xy 281.94 31.75)
-      (xy 281.94 26.67)
+      (xy 307.34 31.75)
+      (xy 307.34 26.67)
     )
     (stroke
       (width 0)
@@ -5092,7 +5208,7 @@
   )
   (global_label "VBAT_SENSE"
     (shape passive)
-    (at 281.94 26.67 90)
+    (at 307.34 26.67 90)
     (fields_autoplaced yes)
     (effects
       (font
@@ -5102,7 +5218,7 @@
     )
     (uuid "c2b544ef-804d-5fe6-a383-2319bba1aafd")
     (property "Intersheetrefs" "${INTERSHEET_REFS}"
-      (at 281.94 26.67 0)
+      (at 307.34 26.67 0)
       (hide yes)
       (effects
         (font
@@ -5113,8 +5229,8 @@
   )
   (wire
     (pts
-      (xy 281.94 39.37)
-      (xy 281.94 44.45)
+      (xy 307.34 39.37)
+      (xy 307.34 44.45)
     )
     (stroke
       (width 0)
@@ -5124,7 +5240,7 @@
   )
   (global_label "GND"
     (shape passive)
-    (at 281.94 44.45 270)
+    (at 307.34 44.45 270)
     (fields_autoplaced yes)
     (effects
       (font
@@ -5134,7 +5250,7 @@
     )
     (uuid "ae873133-b8a7-502b-b7ca-c159d02585ff")
     (property "Intersheetrefs" "${INTERSHEET_REFS}"
-      (at 281.94 44.45 0)
+      (at 307.34 44.45 0)
       (hide yes)
       (effects
         (font
@@ -5145,7 +5261,7 @@
   )
   (symbol
     (lib_id "Device:C")
-    (at 292.1 35.56 0)
+    (at 320.04 35.56 0)
     (unit 1)
     (body_style 1)
     (exclude_from_sim no)
@@ -5155,7 +5271,7 @@
     (dnp no)
     (uuid "e73d0276-07a9-58d4-a84d-d8c0c6901e72")
     (property "Reference" "C5"
-      (at 292.1 53.6 0)
+      (at 320.04 53.6 0)
       (effects
         (font
           (size 1.27 1.27)
@@ -5163,7 +5279,7 @@
       )
     )
     (property "Value" "100nF"
-      (at 292.1 57.1 0)
+      (at 320.04 57.1 0)
       (effects
         (font
           (size 1.27 1.27)
@@ -5171,7 +5287,7 @@
       )
     )
     (property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
-      (at 292.1 35.56 0)
+      (at 320.04 35.56 0)
       (hide yes)
       (effects
         (font
@@ -5180,7 +5296,7 @@
       )
     )
     (property "Datasheet" ""
-      (at 292.1 35.56 0)
+      (at 320.04 35.56 0)
       (hide yes)
       (effects
         (font
@@ -5189,7 +5305,7 @@
       )
     )
     (property "Description" ""
-      (at 292.1 35.56 0)
+      (at 320.04 35.56 0)
       (hide yes)
       (effects
         (font
@@ -5198,7 +5314,7 @@
       )
     )
     (property "LCSC" "C14663"
-      (at 292.1 35.56 0)
+      (at 320.04 35.56 0)
       (hide yes)
       (effects
         (font
@@ -5207,7 +5323,7 @@
       )
     )
     (property "MPN" "CC0603KRX7R9BB104"
-      (at 292.1 35.56 0)
+      (at 320.04 35.56 0)
       (hide yes)
       (effects
         (font
@@ -5216,7 +5332,7 @@
       )
     )
     (property "Manufacturer" "YAGEO"
-      (at 292.1 35.56 0)
+      (at 320.04 35.56 0)
       (hide yes)
       (effects
         (font
@@ -5241,8 +5357,8 @@
   )
   (wire
     (pts
-      (xy 292.1 31.75)
-      (xy 292.1 26.67)
+      (xy 320.04 31.75)
+      (xy 320.04 26.67)
     )
     (stroke
       (width 0)
@@ -5252,7 +5368,7 @@
   )
   (global_label "VBAT_SENSE"
     (shape passive)
-    (at 292.1 26.67 90)
+    (at 320.04 26.67 90)
     (fields_autoplaced yes)
     (effects
       (font
@@ -5262,7 +5378,7 @@
     )
     (uuid "d7f70d91-39d2-53fb-92dc-9b16e0b1f895")
     (property "Intersheetrefs" "${INTERSHEET_REFS}"
-      (at 292.1 26.67 0)
+      (at 320.04 26.67 0)
       (hide yes)
       (effects
         (font
@@ -5273,8 +5389,8 @@
   )
   (wire
     (pts
-      (xy 292.1 39.37)
-      (xy 292.1 44.45)
+      (xy 320.04 39.37)
+      (xy 320.04 44.45)
     )
     (stroke
       (width 0)
@@ -5284,7 +5400,7 @@
   )
   (global_label "GND"
     (shape passive)
-    (at 292.1 44.45 270)
+    (at 320.04 44.45 270)
     (fields_autoplaced yes)
     (effects
       (font
@@ -5294,7 +5410,7 @@
     )
     (uuid "6dd4e423-560d-5e14-b969-1affb4e53ecf")
     (property "Intersheetrefs" "${INTERSHEET_REFS}"
-      (at 292.1 44.45 0)
+      (at 320.04 44.45 0)
       (hide yes)
       (effects
         (font
@@ -5305,7 +5421,7 @@
   )
   (symbol
     (lib_id "Diode:BAT54S")
-    (at 322.58 12.7 0)
+    (at 347.98 12.7 0)
     (unit 1)
     (body_style 1)
     (exclude_from_sim no)
@@ -5315,7 +5431,7 @@
     (dnp no)
     (uuid "a6eb1331-737b-5e40-a10c-ef51efecdeab")
     (property "Reference" "D2"
-      (at 322.58 39.36 0)
+      (at 347.98 39.36 0)
       (effects
         (font
           (size 1.27 1.27)
@@ -5323,7 +5439,7 @@
       )
     )
     (property "Value" "BAT54S"
-      (at 322.58 42.86 0)
+      (at 347.98 42.86 0)
       (effects
         (font
           (size 1.27 1.27)
@@ -5331,7 +5447,7 @@
       )
     )
     (property "Footprint" "Package_TO_SOT_SMD:SOT-23"
-      (at 322.58 12.7 0)
+      (at 347.98 12.7 0)
       (hide yes)
       (effects
         (font
@@ -5340,7 +5456,7 @@
       )
     )
     (property "Datasheet" ""
-      (at 322.58 12.7 0)
+      (at 347.98 12.7 0)
       (hide yes)
       (effects
         (font
@@ -5349,7 +5465,7 @@
       )
     )
     (property "Description" ""
-      (at 322.58 12.7 0)
+      (at 347.98 12.7 0)
       (hide yes)
       (effects
         (font
@@ -5358,7 +5474,7 @@
       )
     )
     (property "LCSC" "C47546"
-      (at 322.58 12.7 0)
+      (at 347.98 12.7 0)
       (hide yes)
       (effects
         (font
@@ -5367,7 +5483,7 @@
       )
     )
     (property "MPN" "BAT54S,215"
-      (at 322.58 12.7 0)
+      (at 347.98 12.7 0)
       (hide yes)
       (effects
         (font
@@ -5376,7 +5492,7 @@
       )
     )
     (property "Manufacturer" "Nexperia"
-      (at 322.58 12.7 0)
+      (at 347.98 12.7 0)
       (hide yes)
       (effects
         (font
@@ -5404,8 +5520,8 @@
   )
   (wire
     (pts
-      (xy 314.96 12.7)
-      (xy 309.88 12.7)
+      (xy 340.36 12.7)
+      (xy 335.28 12.7)
     )
     (stroke
       (width 0)
@@ -5415,7 +5531,7 @@
   )
   (global_label "GND"
     (shape passive)
-    (at 309.88 12.7 180)
+    (at 335.28 12.7 180)
     (fields_autoplaced yes)
     (effects
       (font
@@ -5424,38 +5540,6 @@
       (justify right)
     )
     (uuid "99a1cdaf-8dcd-5bb1-b463-8abe89a85814")
-    (property "Intersheetrefs" "${INTERSHEET_REFS}"
-      (at 309.88 12.7 0)
-      (hide yes)
-      (effects
-        (font
-          (size 1.27 1.27)
-        )
-      )
-    )
-  )
-  (wire
-    (pts
-      (xy 330.2 12.7)
-      (xy 335.28 12.7)
-    )
-    (stroke
-      (width 0)
-      (type default)
-    )
-    (uuid "12ff2fe6-3df6-546b-9e6f-0a249bf909f8")
-  )
-  (global_label "3V3"
-    (shape passive)
-    (at 335.28 12.7 0)
-    (fields_autoplaced yes)
-    (effects
-      (font
-        (size 1.27 1.27)
-      )
-      (justify left)
-    )
-    (uuid "30c95135-7148-5ad5-b899-16e8aee374df")
     (property "Intersheetrefs" "${INTERSHEET_REFS}"
       (at 335.28 12.7 0)
       (hide yes)
@@ -5468,8 +5552,40 @@
   )
   (wire
     (pts
-      (xy 322.58 17.78)
-      (xy 322.58 22.86)
+      (xy 355.6 12.7)
+      (xy 360.68 12.7)
+    )
+    (stroke
+      (width 0)
+      (type default)
+    )
+    (uuid "12ff2fe6-3df6-546b-9e6f-0a249bf909f8")
+  )
+  (global_label "3V3"
+    (shape passive)
+    (at 360.68 12.7 0)
+    (fields_autoplaced yes)
+    (effects
+      (font
+        (size 1.27 1.27)
+      )
+      (justify left)
+    )
+    (uuid "30c95135-7148-5ad5-b899-16e8aee374df")
+    (property "Intersheetrefs" "${INTERSHEET_REFS}"
+      (at 360.68 12.7 0)
+      (hide yes)
+      (effects
+        (font
+          (size 1.27 1.27)
+        )
+      )
+    )
+  )
+  (wire
+    (pts
+      (xy 347.98 17.78)
+      (xy 347.98 22.86)
     )
     (stroke
       (width 0)
@@ -5479,7 +5595,7 @@
   )
   (global_label "VBAT_SENSE"
     (shape passive)
-    (at 322.58 22.86 270)
+    (at 347.98 22.86 270)
     (fields_autoplaced yes)
     (effects
       (font
@@ -5489,7 +5605,7 @@
     )
     (uuid "86b23ec8-11c1-5474-9187-e447c25ff9fe")
     (property "Intersheetrefs" "${INTERSHEET_REFS}"
-      (at 322.58 22.86 0)
+      (at 347.98 22.86 0)
       (hide yes)
       (effects
         (font
@@ -5500,7 +5616,7 @@
   )
   (symbol
     (lib_id "Device:R")
-    (at 353.06 27.94 0)
+    (at 378.46 27.94 0)
     (unit 1)
     (body_style 1)
     (exclude_from_sim no)
@@ -5510,7 +5626,7 @@
     (dnp no)
     (uuid "819892c0-470c-585a-a957-6088cf1219ff")
     (property "Reference" "R3"
-      (at 353.06 50.18 0)
+      (at 378.46 50.18 0)
       (effects
         (font
           (size 1.27 1.27)
@@ -5518,7 +5634,7 @@
       )
     )
     (property "Value" "100k"
-      (at 353.06 53.68 0)
+      (at 378.46 53.68 0)
       (effects
         (font
           (size 1.27 1.27)
@@ -5526,7 +5642,7 @@
       )
     )
     (property "Footprint" "Resistor_SMD:R_0603_1608Metric"
-      (at 353.06 27.94 0)
+      (at 378.46 27.94 0)
       (hide yes)
       (effects
         (font
@@ -5535,7 +5651,7 @@
       )
     )
     (property "Datasheet" ""
-      (at 353.06 27.94 0)
+      (at 378.46 27.94 0)
       (hide yes)
       (effects
         (font
@@ -5544,7 +5660,7 @@
       )
     )
     (property "Description" ""
-      (at 353.06 27.94 0)
+      (at 378.46 27.94 0)
       (hide yes)
       (effects
         (font
@@ -5553,7 +5669,7 @@
       )
     )
     (property "LCSC" "C25803"
-      (at 353.06 27.94 0)
+      (at 378.46 27.94 0)
       (hide yes)
       (effects
         (font
@@ -5562,7 +5678,7 @@
       )
     )
     (property "MPN" "0603WAF1003T5E"
-      (at 353.06 27.94 0)
+      (at 378.46 27.94 0)
       (hide yes)
       (effects
         (font
@@ -5571,7 +5687,7 @@
       )
     )
     (property "Manufacturer" "UNI-ROYAL"
-      (at 353.06 27.94 0)
+      (at 378.46 27.94 0)
       (hide yes)
       (effects
         (font
@@ -5596,8 +5712,8 @@
   )
   (wire
     (pts
-      (xy 353.06 24.13)
-      (xy 353.06 19.05)
+      (xy 378.46 24.13)
+      (xy 378.46 19.05)
     )
     (stroke
       (width 0)
@@ -5607,7 +5723,7 @@
   )
   (global_label "IGN"
     (shape passive)
-    (at 353.06 19.05 90)
+    (at 378.46 19.05 90)
     (fields_autoplaced yes)
     (effects
       (font
@@ -5617,7 +5733,7 @@
     )
     (uuid "368c8e2e-f272-54d4-ae39-488ed54a4b37")
     (property "Intersheetrefs" "${INTERSHEET_REFS}"
-      (at 353.06 19.05 0)
+      (at 378.46 19.05 0)
       (hide yes)
       (effects
         (font
@@ -5628,8 +5744,8 @@
   )
   (wire
     (pts
-      (xy 353.06 31.75)
-      (xy 353.06 36.83)
+      (xy 378.46 31.75)
+      (xy 378.46 36.83)
     )
     (stroke
       (width 0)
@@ -5639,7 +5755,7 @@
   )
   (global_label "IGN_DET"
     (shape passive)
-    (at 353.06 36.83 270)
+    (at 378.46 36.83 270)
     (fields_autoplaced yes)
     (effects
       (font
@@ -5649,7 +5765,7 @@
     )
     (uuid "3e4cf4ab-d5dc-5cd8-a813-e90b8d348055")
     (property "Intersheetrefs" "${INTERSHEET_REFS}"
-      (at 353.06 36.83 0)
+      (at 378.46 36.83 0)
       (hide yes)
       (effects
         (font
@@ -5660,7 +5776,7 @@
   )
   (symbol
     (lib_id "Device:R")
-    (at 363.22 33.02 0)
+    (at 391.16 33.02 0)
     (unit 1)
     (body_style 1)
     (exclude_from_sim no)
@@ -5670,7 +5786,7 @@
     (dnp no)
     (uuid "c6c7eb1f-afa4-55cc-b3b1-b8de0ae89247")
     (property "Reference" "R4"
-      (at 363.22 51.06 0)
+      (at 391.16 51.06 0)
       (effects
         (font
           (size 1.27 1.27)
@@ -5678,7 +5794,7 @@
       )
     )
     (property "Value" "47k"
-      (at 363.22 54.56 0)
+      (at 391.16 54.56 0)
       (effects
         (font
           (size 1.27 1.27)
@@ -5686,7 +5802,7 @@
       )
     )
     (property "Footprint" "Resistor_SMD:R_0603_1608Metric"
-      (at 363.22 33.02 0)
+      (at 391.16 33.02 0)
       (hide yes)
       (effects
         (font
@@ -5695,7 +5811,7 @@
       )
     )
     (property "Datasheet" ""
-      (at 363.22 33.02 0)
+      (at 391.16 33.02 0)
       (hide yes)
       (effects
         (font
@@ -5704,7 +5820,7 @@
       )
     )
     (property "Description" ""
-      (at 363.22 33.02 0)
+      (at 391.16 33.02 0)
       (hide yes)
       (effects
         (font
@@ -5713,7 +5829,7 @@
       )
     )
     (property "LCSC" "C25819"
-      (at 363.22 33.02 0)
+      (at 391.16 33.02 0)
       (hide yes)
       (effects
         (font
@@ -5722,7 +5838,7 @@
       )
     )
     (property "MPN" "0603WAF4702T5E"
-      (at 363.22 33.02 0)
+      (at 391.16 33.02 0)
       (hide yes)
       (effects
         (font
@@ -5731,7 +5847,7 @@
       )
     )
     (property "Manufacturer" "UNI-ROYAL"
-      (at 363.22 33.02 0)
+      (at 391.16 33.02 0)
       (hide yes)
       (effects
         (font
@@ -5756,8 +5872,8 @@
   )
   (wire
     (pts
-      (xy 363.22 29.21)
-      (xy 363.22 24.13)
+      (xy 391.16 29.21)
+      (xy 391.16 24.13)
     )
     (stroke
       (width 0)
@@ -5767,7 +5883,7 @@
   )
   (global_label "IGN_DET"
     (shape passive)
-    (at 363.22 24.13 90)
+    (at 391.16 24.13 90)
     (fields_autoplaced yes)
     (effects
       (font
@@ -5777,7 +5893,7 @@
     )
     (uuid "64f81024-3b54-5580-b539-54d0dca5870d")
     (property "Intersheetrefs" "${INTERSHEET_REFS}"
-      (at 363.22 24.13 0)
+      (at 391.16 24.13 0)
       (hide yes)
       (effects
         (font
@@ -5788,8 +5904,8 @@
   )
   (wire
     (pts
-      (xy 363.22 36.83)
-      (xy 363.22 41.91)
+      (xy 391.16 36.83)
+      (xy 391.16 41.91)
     )
     (stroke
       (width 0)
@@ -5799,7 +5915,7 @@
   )
   (global_label "GND"
     (shape passive)
-    (at 363.22 41.91 270)
+    (at 391.16 41.91 270)
     (fields_autoplaced yes)
     (effects
       (font
@@ -5809,7 +5925,7 @@
     )
     (uuid "85c2f18a-ad04-5b26-982b-0b2b00b95ca9")
     (property "Intersheetrefs" "${INTERSHEET_REFS}"
-      (at 363.22 41.91 0)
+      (at 391.16 41.91 0)
       (hide yes)
       (effects
         (font
@@ -5820,7 +5936,7 @@
   )
   (symbol
     (lib_id "Device:C")
-    (at 375.92 33.02 0)
+    (at 401.32 33.02 0)
     (unit 1)
     (body_style 1)
     (exclude_from_sim no)
@@ -5830,7 +5946,7 @@
     (dnp no)
     (uuid "765df048-57a0-54d6-be2d-66e3f2b7cc73")
     (property "Reference" "C6"
-      (at 375.92 51.06 0)
+      (at 401.32 51.06 0)
       (effects
         (font
           (size 1.27 1.27)
@@ -5838,7 +5954,7 @@
       )
     )
     (property "Value" "100nF"
-      (at 375.92 54.56 0)
+      (at 401.32 54.56 0)
       (effects
         (font
           (size 1.27 1.27)
@@ -5846,7 +5962,7 @@
       )
     )
     (property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
-      (at 375.92 33.02 0)
+      (at 401.32 33.02 0)
       (hide yes)
       (effects
         (font
@@ -5855,7 +5971,7 @@
       )
     )
     (property "Datasheet" ""
-      (at 375.92 33.02 0)
+      (at 401.32 33.02 0)
       (hide yes)
       (effects
         (font
@@ -5864,7 +5980,7 @@
       )
     )
     (property "Description" ""
-      (at 375.92 33.02 0)
+      (at 401.32 33.02 0)
       (hide yes)
       (effects
         (font
@@ -5873,7 +5989,7 @@
       )
     )
     (property "LCSC" "C14663"
-      (at 375.92 33.02 0)
+      (at 401.32 33.02 0)
       (hide yes)
       (effects
         (font
@@ -5882,7 +5998,7 @@
       )
     )
     (property "MPN" "CC0603KRX7R9BB104"
-      (at 375.92 33.02 0)
+      (at 401.32 33.02 0)
       (hide yes)
       (effects
         (font
@@ -5891,7 +6007,7 @@
       )
     )
     (property "Manufacturer" "YAGEO"
-      (at 375.92 33.02 0)
+      (at 401.32 33.02 0)
       (hide yes)
       (effects
         (font
@@ -5916,8 +6032,8 @@
   )
   (wire
     (pts
-      (xy 375.92 29.21)
-      (xy 375.92 24.13)
+      (xy 401.32 29.21)
+      (xy 401.32 24.13)
     )
     (stroke
       (width 0)
@@ -5927,7 +6043,7 @@
   )
   (global_label "IGN_DET"
     (shape passive)
-    (at 375.92 24.13 90)
+    (at 401.32 24.13 90)
     (fields_autoplaced yes)
     (effects
       (font
@@ -5937,7 +6053,7 @@
     )
     (uuid "312a61df-8112-5232-a1cc-6ec284a92839")
     (property "Intersheetrefs" "${INTERSHEET_REFS}"
-      (at 375.92 24.13 0)
+      (at 401.32 24.13 0)
       (hide yes)
       (effects
         (font
@@ -5948,8 +6064,8 @@
   )
   (wire
     (pts
-      (xy 375.92 36.83)
-      (xy 375.92 41.91)
+      (xy 401.32 36.83)
+      (xy 401.32 41.91)
     )
     (stroke
       (width 0)
@@ -5959,7 +6075,7 @@
   )
   (global_label "GND"
     (shape passive)
-    (at 375.92 41.91 270)
+    (at 401.32 41.91 270)
     (fields_autoplaced yes)
     (effects
       (font
@@ -5969,7 +6085,7 @@
     )
     (uuid "ab42ef48-d11a-562c-b7da-ba1bab517f2f")
     (property "Intersheetrefs" "${INTERSHEET_REFS}"
-      (at 375.92 41.91 0)
+      (at 401.32 41.91 0)
       (hide yes)
       (effects
         (font

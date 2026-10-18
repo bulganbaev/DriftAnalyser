@@ -7,6 +7,11 @@ def test_stud_feeds_vin_and_tvs():
     assert ("J2", "1") in n()["VIN"]
     assert {r for r, _ in n()["VIN"]} >= {"J2", "D1", "U2", "Q1", "Q2"}
 
+def test_battery_negative_stud_on_gnd():
+    p = model.by_ref("J5")
+    assert p.footprint == model.by_ref("J2").footprint and p.pins == {"1": "GND"}
+    assert ("J5", "1") in n()["GND"]
+
 def test_nothing_but_ideal_diode_bridges_vin_to_vbus():
     vin = {r for r, _ in n()["VIN"]}
     vbus = {r for r, _ in n()["VBUS"]}

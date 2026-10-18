@@ -10,7 +10,8 @@ def test_board_size_target():
     # plus ~150 for the M3 holes, and 55 x 51.5 below J1 is 2830 mm2 - 100 %
     # fill, nothing left to route. 100 is what the placement packs into at ~68 %
     # courtyard fill below J1 (holes included); the author decides on the size.
-    assert placement.BOARD_W <= 55 and placement.BOARD_H <= 100
+    # 112 (proposal): the battery-negative stud J5 beside J2 does not fit in 100.
+    assert placement.BOARD_W <= 55 and placement.BOARD_H <= 112
 
 
 def test_every_part_placed():
