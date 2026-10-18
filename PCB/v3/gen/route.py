@@ -211,13 +211,17 @@ def bus_keepouts(pcb, dsn, nets=BUS):
     tells Freerouting the net is connected but not that the copper matters, so
     without this it drives signal traces straight through the LED channels and
     cuts the current path into pieces. On the signal layers that is every power
-    pour; on In3 it is the LED lanes (a keep-out there bars the router's vias,
-    and the lanes carry 5 A a via would cut), while the VBUS / VIN planes take
-    the router's vias as anti-pads."""
+    pour, plus the GND discs round the battery-negative stud J5 (the only GND
+    pours with a priority); on In3 it is the LED lanes (a keep-out there bars
+    the router's vias, and the lanes carry 5 A a via would cut), while the
+    VBUS / VIN planes take the router's vias as anti-pads."""
     board = pcbnew.LoadBoard(pcb)
     outs = []
     for z in board.Zones():
-        if z.GetIsRuleArea() or z.GetNetname() not in nets:
+        if z.GetIsRuleArea():
+            continue
+        if z.GetNetname() not in nets and not (z.GetNetname() == "GND"
+                                               and z.GetAssignedPriority() > 0):
             continue
         for layer in CU:
             if not z.IsOnLayer(layer):

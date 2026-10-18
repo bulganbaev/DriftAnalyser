@@ -415,6 +415,19 @@ def _zone(board, net, layer, rects, priority=0, clearance=ZONE_CLEAR, min_w=0.25
         board.Add(z)
 
 
+def _zone_pts(board, net, layer, pts, priority=0, clearance=ZONE_CLEAR):
+    """One solid (FULL) pour with an arbitrary outline."""
+    z = pcbnew.ZONE(board)
+    z.SetLayer(layer)
+    z.SetNet(net)
+    z.SetAssignedPriority(priority)
+    z.SetLocalClearance(pcbnew.FromMM(clearance))
+    z.SetMinThickness(pcbnew.FromMM(0.25))
+    z.SetPadConnection(pcbnew.ZONE_CONNECTION_FULL)
+    _outline_pts(z, pts)
+    board.Add(z)
+
+
 def _rule_area(board, pts):
     """Keep-out on every copper layer: no pour, no track, no via."""
     for layer in CU:
@@ -474,7 +487,18 @@ VBUS_F = [(13.4, 58.6, 24.2, 66.6), (0.8, 59.6, 13.6, 62.35),
 # drains, and a strip down the west edge to C4 and U2's sense pin
 # and under the CAN / K-line block below the ESP32 (the K-line pull-up, the
 # transceiver's battery pin, the battery sense divider)
-VBUS_IN3 = [(0.8, 26.3, 54.2, 66.9), (0.8, 66.9, 6.6, 78.0), (35.0, 66.0, 54.2, 92.0)]
+VBUS_IN3 = [(0.8, 26.3, 54.2, 66.9), (0.8, 66.9, 6.6, 78.0), (35.0, 66.0, 54.2, 85.9)]
+# ---- battery negative: J5, the strips' 35..40 A return. A GND disc on every
+# layer over its courtyard (r 10 - nothing else sits there), fenced off for the
+# router, with a ring of vias round the 14 mm pad on top of the pad's own eight.
+# From there In1 (solid GND, full width) and the GND fills carry it up to J1.
+J5_DISC_R = 9.9
+J5_VIA_R, J5_VIA_STEP = 9.3, 10.0       # ring radius (mm), angular step (deg)
+
+
+def _disc(cx, cy, r, n=48):
+    return [(cx + r * math.cos(2 * math.pi * k / n), cy + r * math.sin(2 * math.pi * k / n))
+            for k in range(n)]
 # B.Cu under each switch: the exposed pad's vias land here, and this is the
 # side the case's thermal pad presses on (it has to be an insulating one)
 SW_B = (1.9, 26.2, 29.2)        # half width, top, bottom: the exposed pad, no more (B.Cu
@@ -508,6 +532,9 @@ def _zones(board, nets):
     _zone(board, nets["VIN"], PWR, VIN_IN3, priority=2)
     _zone(board, nets["VBUS"], pcbnew.F_Cu, VBUS_F, priority=2)
     _zone(board, nets["VBUS"], PWR, VBUS_IN3, priority=2)
+    gx, gy, _, _ = placement.PLACE["J5"]
+    for layer in CU:
+        _zone_pts(board, nets["GND"], layer, _disc(gx, gy, J5_DISC_R), priority=2)
     hw, top, bot = SW_B
     for x in SW.values():
         _zone(board, nets["VBUS"], pcbnew.B_Cu, [(x - hw, top, x + hw, bot)], priority=2)
@@ -585,8 +612,8 @@ STUBS = [
     ("GND", 0.2, "F", [(29.8, 50.21), (30.3, 50.21)]),
     ("GND", 0.2, "F", [(30.05, 50.21), (30.05, 51.3)]),
     # C6 sits between R4's and R80's ground pads: joined to R80's
-    ("GND", 0.25, "F", [(38.1, placement.PLACE["C6"][1] - 0.77),
-                        (39.8, placement.PLACE["R80"][1] - 0.83)]),
+    ("GND", 0.25, "F", [(placement.PLACE["C6"][0], placement.PLACE["C6"][1] - 0.77),
+                        (placement.PLACE["R80"][0], placement.PLACE["R80"][1] - 0.83)]),
 ]
 STUB_VIAS = [("VIN", 9.36, 69.0), ("VIN", 9.72, 75.6), ("VBUS", 11.9, 66.4),
              ("LM_GATE", 13.2, 70.73), ("LM_GATE", 17.75, 69.6), ("LM_GATE", 24.1, 69.05),
@@ -612,7 +639,24 @@ def _stub_tracks(board, nets):
 DRAIN_VIAS = [(14.0 + 1.2 * i, y) for y in (59.45, 60.65) for i in range(9)]
 
 
+def _j5_vias(board, nets):
+    """The ring round J5's pad, wherever it misses the pad's own small vias."""
+    gx, gy, _, _ = placement.PLACE["J5"]
+    reach = pcbnew.FromMM(0.4 + 0.2)
+    out = []
+    a = 0.0
+    while a < 360.0 - 1e-6:
+        x = round(gx + J5_VIA_R * math.cos(math.radians(a)), 3)
+        y = round(gy + J5_VIA_R * math.sin(math.radians(a)), 3)
+        if _inside_board(x, y, 0.9) and _clear_of_everything(board, MM(x, y), reach, "GND"):
+            _via(board, nets["GND"], x, y)
+            out.append((x, y))
+        a += J5_VIA_STEP
+    return out
+
+
 def _fixed_vias(board, nets):
+    _j5_vias(board, nets)
     for x, y in DRAIN_VIAS:
         _via(board, nets["VBUS"], x, y)
     for x in SW.values():
