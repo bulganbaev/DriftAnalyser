@@ -20,11 +20,11 @@ FAB = os.path.join(env.PROJECT_DIR, "fab")
 PCB = os.path.join(env.PROJECT_DIR, env.PROJECT_NAME + ".kicad_pcb")
 SCH = os.path.join(env.PROJECT_DIR, env.PROJECT_NAME + ".kicad_sch")
 
-# JLCPCB's 4 layer order: the two inner layers go in the middle of the stack,
-# In1 = ground, In2 = VBAT / 12V_LED. --subtract-soldermask keeps silk off the
+# JLCPCB's 6 layer order, top to bottom: F, In1 = ground, In2 = signals,
+# In3 = VBUS / VIN / LED lanes, In4 = signals, B. --subtract-soldermask keeps silk off the
 # pads, --use-drill-file-origin puts every file on the board's bottom-left
 # corner (the builder sets the aux origin there) so the drill lines up.
-GERBER_LAYERS = ("F.Cu,In1.Cu,In2.Cu,B.Cu,F.Paste,B.Paste,"
+GERBER_LAYERS = ("F.Cu,In1.Cu,In2.Cu,In3.Cu,In4.Cu,B.Cu,F.Paste,B.Paste,"
                  "F.SilkS,B.SilkS,F.Mask,B.Mask,Edge.Cuts")
 
 
@@ -129,7 +129,9 @@ def cpl():
 TOP_VIEW = ("render-top.svg", "F.Cu,F.SilkS,F.Mask,Edge.Cuts", False)
 VIEWS = (("render-bottom.svg", "B.Cu,B.SilkS,B.Mask,Edge.Cuts", True),
          ("render-in1.svg", "In1.Cu,Edge.Cuts", False),
-         ("render-in2.svg", "In2.Cu,Edge.Cuts", False))
+         ("render-in2.svg", "In2.Cu,Edge.Cuts", False),
+         ("render-in3.svg", "In3.Cu,Edge.Cuts", False),
+         ("render-in4.svg", "In4.Cu,Edge.Cuts", False))
 
 
 # KiCad stamps the time of day into everything it plots. The gerbers keep theirs
@@ -198,7 +200,7 @@ def step():
     return out
 
 
-README = """# Fab notes - DriftAnalyser v2
+README = """# Fab notes - DriftAnalyser v3
 
 Order from `fab/gerbers.zip` (gerbers + Excellon drill, all on the board's
 bottom-left corner as the origin), assemble from `BOM.csv` + `CPL.csv`.
@@ -207,10 +209,11 @@ bottom-left corner as the origin), assemble from `BOM.csv` + `CPL.csv`.
 
 | option | value | why |
 | --- | --- | --- |
-| layers | 4 | In1.Cu = solid GND, In2.Cu = VBAT / 12V_LED |
-| thickness | 1.6 mm | stackup **JLC04161H-7628** (the one the board file declares) |
+| layers | 6 | F = parts, signals, power pours; In1 = solid GND; In2 = signals; In3 = VBUS / VIN planes + the outer four LED channels' lanes; In4 = signals; B = signals, VBUS copper under the four switches |
+| thickness | 1.6 mm | stackup **JLC06161H-3313** (JLC's default 6 layer build, the one the board file declares): 3313 0.0994 / core 0.55 / 2116 0.1164 / core 0.55 / 3313 0.0994 |
 | outer copper | 1 oz | |
-| **inner copper** | **1 oz - must be picked** | the VBAT path to U2 runs on In2. At the stock 0.5 oz the plane carries about half its rated current and the 20 A strip load runs the copper hot; 1 oz is what every number in the report assumes |
+| **inner copper** | **1 oz - must be picked** | the whole strip current (8 x 5 A) runs from the drains to the switches on the In3 VBUS plane, and the outer four LED channels share their current with In3 lanes. At the stock 0.5 oz the plane carries about half; 1 oz is what every number in the report assumes |
+| via | 0.3 mm hole / 0.6 mm pad (signals, ties, LED lanes), 0.4 / 0.8 (VIN / VBUS fields) | all through vias, no blind / buried |
 | surface finish | HASL lead free or ENIG | ENIG if the LGA-14 IMU is hand-reworked |
 | min hole | 0.2 mm | the ESP32-S3-WROOM-1 footprint brings its own 0.2 mm thermal vias under the module - JLC surcharges these, everything we drew is 0.4 mm |
 | min clearance | 0.15 mm | only U5's LGA-14 land pattern goes that low; our own copper keeps 0.25 mm |
@@ -264,7 +267,7 @@ The STEP, the 3D PNGs and the inner/bottom plots are not tracked at all - run
   higher, so the real margin is better than the numbers say, not worse.
 - **U2 dissipates about 1.1-1.8 W at 20 A** (R_DS(on) 2.8-4.5 mOhm hot). It gets
   rid of that through its exposed pad into the F.Cu tab pour and the 24 vias
-  that ring the pad in that pour, down into the In2 VBAT plane. **This was not thermally modelled** - it is
+  that ring the pad in that pour, down into the In3 VBUS plane. **This was not thermally modelled** - it is
   the standard "pad + via field + plane" construction sized by area, not a
   simulated junction temperature. If the strips really pull 20 A continuously,
   measure the tab before trusting it.

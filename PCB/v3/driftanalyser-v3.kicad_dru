@@ -2,7 +2,7 @@
 
 # Pad to pad spacing inside a land pattern is the part maker's, not ours. Measured
 # gaps (measured on v2, refs there differ): LGA-14 0.15 mm, USB-C and TSDSO-14 0.20, buck 0.25 -
-# all of them clear JLCPCB's 4 layer 1 oz floor (0.127 mm), none of them clear the
+# all of them clear JLCPCB's multilayer 1 oz floor (0.127 mm), none of them clear the
 # 0.25 mm we ask of our own copper. Both rules are scoped to pads of one footprint,
 # so the netclass clearance still governs everything we draw.
 (rule "same footprint pad spacing"

@@ -48,13 +48,15 @@ POURED = pcb_builder.POURED
 # tries to wire to the plane.
 KEEP_PIN = {"GND": "J1-26", "VIN": "J2-1", "VBUS": "JP1-1"}
 # the planes that stay in the DSN; every other power pour is a keep-out
-INNER_PLANES = {("GND", "In1.Cu"), ("VBUS", "In2.Cu"), ("VIN", "In2.Cu")}
+INNER_PLANES = {("GND", "In1.Cu"), ("VBUS", "In3.Cu"), ("VIN", "In3.Cu")}
 
-# F.Cu and B.Cu carry the signals; In1.Cu is the solid ground plane and In2.Cu
-# the VBUS / VIN / LED lane plane, and nothing is ever routed on either of them.
-OUTER = (pcbnew.F_Cu, pcbnew.B_Cu)
-CU = (pcbnew.F_Cu, pcbnew.In1_Cu, pcbnew.In2_Cu, pcbnew.B_Cu)
-INNER = ("In1.Cu", "In2.Cu")
+# F.Cu, In2.Cu, In4.Cu and B.Cu carry the signals; In1.Cu is the solid ground
+# plane and In3.Cu the VBUS / VIN / LED lane plane, and nothing is ever routed
+# on either of those two.
+CU = pcb_builder.CU
+LAYER_NAMES = ("F.Cu", "In1.Cu", "In2.Cu", "In3.Cu", "In4.Cu", "B.Cu")
+INNER = ("In1.Cu", "In3.Cu")
+SIGNAL = ("F.Cu", "In2.Cu", "In4.Cu", "B.Cu")
 
 # Areas no signal may cross, on top of the pours: the buck's switch node. L1,
 # C8 and the SW run are on F.Cu; under them on B.Cu nothing else goes (the data
@@ -126,9 +128,9 @@ def export_dsn(pcb, dsn):
 def dedicate_power_layers(dsn, layers=INNER):
     """Tell Freerouting the two inner layers are planes, not routing layers.
 
-    KiCad writes `(type signal)` for all four copper layers and has no setting
-    that says otherwise, so without this the router treats In1 and In2 as two
-    more signal layers and buries traces in the ground plane. Freerouting reads
+    KiCad writes `(type signal)` for every copper layer and has no setting
+    that says otherwise, so without this the router treats In1 and In3 as two
+    more signal layers and buries traces in the planes. Freerouting reads
     `(type power)` (Layer.isSignal) and says so on startup: "Layer 'In1.Cu' is a
     dedicated power plane and cannot be routed. Forcing active state to false."
 
@@ -208,9 +210,9 @@ def bus_keepouts(pcb, dsn, nets=BUS):
     """Fence the power pours off. KiCad exports zones as `(plane ...)`, which
     tells Freerouting the net is connected but not that the copper matters, so
     without this it drives signal traces straight through the LED channels and
-    cuts the current path into pieces. On the outer layers that is every power
-    pour; on In2 it is the LED lanes (a keep-out there bars the router's vias,
-    and the lanes have necks a via would cut), while the VBUS / VIN planes take
+    cuts the current path into pieces. On the signal layers that is every power
+    pour; on In3 it is the LED lanes (a keep-out there bars the router's vias,
+    and the lanes carry 5 A a via would cut), while the VBUS / VIN planes take
     the router's vias as anti-pads."""
     board = pcbnew.LoadBoard(pcb)
     outs = []
@@ -220,7 +222,8 @@ def bus_keepouts(pcb, dsn, nets=BUS):
         for layer in CU:
             if not z.IsOnLayer(layer):
                 continue
-            if layer not in OUTER and z.GetNetname() not in pcb_builder.LED_NETS:
+            name = board.GetLayerName(layer)
+            if name in INNER and z.GetNetname() not in pcb_builder.LED_NETS:
                 continue
             o = z.Outline()
             for n in range(o.OutlineCount()):
@@ -230,7 +233,7 @@ def bus_keepouts(pcb, dsn, nets=BUS):
                 outs.append(_keepout(board.GetLayerName(layer), pts))
     for layer, (x0, y0, x1, y1) in QUIET:
         outs.append(_keepout(layer, [(x0, y0), (x1, y0), (x1, y1), (x0, y1)]))
-    outs += corner_fences()
+    outs += corner_fences() + edge_fences()
     with open(dsn) as f:
         text = f.read()
     # into the structure scope, just ahead of its via declaration
@@ -244,7 +247,7 @@ def bus_keepouts(pcb, dsn, nets=BUS):
 def drop_plane(dsn, net, layer):
     """Take one `(plane ...)` scope out of the DSN.
 
-    The F, In2 and B ground pours go; In1's stays (see POURED: it is what makes
+    The F, In2, In3, In4 and B ground pours go; In1's stays (see POURED: it is what makes
     ground finished in the router's eyes, and Freerouting 2.5 turns a power layer
     with no plane back into a signal layer). On v2 all four went: Freerouting treats a plane as copper a trace may
     cross, and it extends that licence to the pads sitting inside it: with the
@@ -279,12 +282,14 @@ def drop_plane(dsn, net, layer):
     return dropped
 
 
-# Freerouting lands a few um short of the clearance it was given (rounding in
-# its own geometry): 0.189 for 0.2 at a USB pin, 0.298 for the 0.3 edge rule at a
-# rounded corner. It routes against these margins added on top, DRC checks the
-# real numbers.
-CLEAR_MARGIN_UM = 15
+# Freerouting lands up to 30 um short of the clearance it was given (rounding in
+# its own geometry): 0.17 for 0.2 at a 0603 pad, 0.28 for the 0.3 edge rule. And
+# the import widens its 0.187 mm neck-downs to 0.2, 6.5 um a side. It routes
+# against 0.25 for a 0.2 rule; DRC checks the real numbers.
+CLEAR_MARGIN_UM = 50
 EDGE_FENCE = 0.4
+# along the straight edges: 0.3 is the rule, the router has come in 0.02 under it
+EDGE_STRIP = 0.4
 
 
 def add_clearance_margin(dsn, um=CLEAR_MARGIN_UM):
@@ -298,7 +303,7 @@ def add_clearance_margin(dsn, um=CLEAR_MARGIN_UM):
     return n
 
 
-def corner_fences(layers=("F.Cu", "B.Cu"), width=EDGE_FENCE, steps=12):
+def corner_fences(layers=SIGNAL, width=EDGE_FENCE, steps=12):
     """Keep-outs along the four rounded corners, `width` deep: on the arcs the
     router's edge clearance comes out a hair under KiCad's 0.3 mm."""
     W, H, R = placement.BOARD_W, placement.BOARD_H, placement.CORNER_R
@@ -312,6 +317,15 @@ def corner_fences(layers=("F.Cu", "B.Cu"), width=EDGE_FENCE, steps=12):
         for layer in layers:
             outs.append(_keepout(layer, outer + inner))
     return outs
+
+
+def edge_fences(layers=SIGNAL, width=EDGE_STRIP):
+    """Keep-out strips along the four straight edges, `width` deep."""
+    W, H, R = placement.BOARD_W, placement.BOARD_H, placement.CORNER_R
+    boxes = [(R, -0.1, W - R, width), (R, H - width, W - R, H + 0.1),
+             (-0.1, R, width, H - R), (W - width, R, W + 0.1, H - R)]
+    return [_keepout(layer, [(x0, y0), (x1, y0), (x1, y1), (x0, y1)])
+            for layer in layers for x0, y0, x1, y1 in boxes]
 
 
 def isolate_wiring(dsn, nets=POURED):
@@ -526,7 +540,7 @@ def _spot(island, other, pads, margin, blockers, dia, step=0.1):
 
 
 def _islands(board, net):
-    """[(layer, poly)] for every filled island of the net, on all four layers."""
+    """[(layer, poly)] for every filled island of the net, on every copper layer."""
     return [(layer, poly) for layer in CU
             for poly in _fills(board, net, layer)]
 
@@ -647,15 +661,41 @@ def stitch_islands(board, nets=POURED):
 # What the autorouter would not finish, drawn by hand along free copper found on
 # the routed board. Each entry is (net, width, [(x, y, layer), ...]); a via goes in
 # wherever the layer changes, so the two points either side of it are the same
-# point. Only F and B: In1 and In2 are planes here too. Default netclass:
+# point. F, In2, In4 and B: In1 and In3 are planes here too. Default netclass:
 # 0.25 mm track, 0.6/0.3 via.
-HAND_ROUTES = []
+# The 6 layer draw (fab/route.ses) stalls at three links in every variant; these
+# were found by a grid search over F / In2 / In4 / B on the routed board, at the
+# board minimum 0.2 mm and 0.2 mm (+0.05) clear of everything.
+HAND_ROUTES = [
+    # J1.12 west round pin 5 on In4, then diagonally under the LED5 / LED6 pours
+    # and past U12's exposed-pad vias, then F along the east end of the control
+    # rows to D16
+    ("LED6_DO", 0.2, [(32.0, 18.0, "In4"), (29.55, 16.65, "In4"), (29.2, 16.55, "In4"),
+                      (28.75, 16.55, "In4"), (28.45, 16.65, "In4"), (28.1, 16.85, "In4"),
+                      (27.85, 17.1, "In4"), (27.6, 17.55, "In4"), (27.55, 17.9, "In4"),
+                      (27.6, 18.65, "In4"), (28.2, 19.25, "In4"), (28.25, 19.25, "In4"),
+                      (28.45, 19.4, "In4"), (28.65, 19.6, "In4"), (28.9, 20.05, "In4"),
+                      (28.95, 20.4, "In4"), (29.0, 21.2, "In4"), (34.3, 26.5, "In4"),
+                      (34.4, 26.7, "In4"), (35.05, 30.25, "In4"), (35.05, 30.25, "F"),
+                      (36.85, 35.55, "F"), (36.85, 38.15, "F"), (36.7, 38.4, "F"),
+                      (34.7, 40.4, "F"), (33.95, 42.1, "F")]),
+    # U7 EN west round C7's VBUS pad, B.Cu under the drains to R19
+    ("BUCK_EN", 0.2, [(5.025, 52.235, "F"), (3.65, 53.035, "F"), (3.6, 53.185, "F"),
+                      (3.6, 53.885, "F"), (4.4, 54.635, "F"), (5.6, 54.635, "F"),
+                      (5.6, 54.635, "B"), (7.9, 56.835, "B"), (11.3, 60.085, "B"),
+                      (13.65, 61.435, "B"), (26.75, 66.435, "B"), (30.35, 66.435, "B"),
+                      (30.5, 66.485, "B"), (32.75, 68.685, "B"), (32.75, 68.685, "F"),
+                      (32.2, 69.575, "F")]),
+    # R80.1 down to In2 and across to the router's IN2_SENSE via east of R81
+    ("IN2_SENSE", 0.2, [(39.8, 88.895, "F"), (39.1, 88.07, "F"), (39.1, 88.07, "In2"),
+                        (40.45, 88.67, "In2"), (41.35, 88.62, "In2"), (42.66, 88.02, "In2")]),
+]
 
 
 def finish_by_hand(board, routes=HAND_ROUTES):
     """Lay the hand-routed connections. They go in after the session import, so
     they are drawn against copper that already exists, and before the fill."""
-    layers = {"F": pcbnew.F_Cu, "B": pcbnew.B_Cu}
+    layers = {"F": pcbnew.F_Cu, "In2": pcbnew.In2_Cu, "In4": pcbnew.In4_Cu, "B": pcbnew.B_Cu}
     for name, width, path in routes:
         net = board.FindNet(name)
         if net is None:
@@ -782,7 +822,7 @@ def already_routed(pcb):
 
 
 def prepare_dsn(pcb=PCB, dsn=DSN):
-    """The DSN the router gets: power nets split, pours fenced, In1 / In2 planes."""
+    """The DSN the router gets: power nets split, pours fenced, In1 / In3 planes."""
     os.makedirs(os.path.dirname(dsn), exist_ok=True)
     export_dsn(pcb, dsn)
     kept = protect_existing(dsn)
@@ -790,7 +830,7 @@ def prepare_dsn(pcb=PCB, dsn=DSN):
     fenced = bus_keepouts(pcb, dsn)
     inner = dedicate_power_layers(dsn)
     for net in POURED:
-        for layer in ("F.Cu", "In1.Cu", "In2.Cu", "B.Cu"):
+        for layer in LAYER_NAMES:
             if (net, layer) not in INNER_PLANES:
                 drop_plane(dsn, net, layer)
     fixed = isolate_wiring(dsn)

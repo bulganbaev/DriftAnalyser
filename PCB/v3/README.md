@@ -111,10 +111,12 @@ KiCad's is 2.4 × 3.1 mm, so slightly less pad is soldered. Fine for this load, 
 
 ## Copper and routing (Task 11)
 
-Layers: F.Cu power pours near the parts + signals, **In1.Cu solid GND**, In2.Cu VBUS (middle of
-the board from the switches down to the drains, and under the CAN / K-line block) / VIN (under the
-stud) / GND in the rest, B.Cu signals + VBUS copper under each switch's exposed pad. Everything is
-drawn by `gen/pcb_builder.py`.
+Six layers (task 11 ruling), JLCPCB **JLC06161H-3313**, 1.6 mm, 1 oz outer, **1 oz inner** (order
+option). Top to bottom: F.Cu power pours near the parts + signals, **In1.Cu solid GND** (0.1 mm under
+F), In2.Cu signals + GND fill, In3.Cu VBUS (middle of the board from the switches down to the drains,
+and under the CAN / K-line block) / VIN (under the stud) / the outer four LED channels' lanes / GND in
+the rest, In4.Cu signals + GND fill, B.Cu signals + VBUS copper under each switch's exposed pad.
+Everything is drawn by `gen/pcb_builder.py`.
 
 - **Thermal pad: the B.Cu copper under U10..U13 is VBUS** (12 vias from each switch's exposed pad).
   The case's thermal pad that presses on it must be electrically insulating (silicone gap pad,

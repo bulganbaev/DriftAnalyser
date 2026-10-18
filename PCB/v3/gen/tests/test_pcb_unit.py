@@ -170,6 +170,55 @@ class TestPcb(unittest.TestCase):
                     self.assertTrue(any(z.GetFilledPolysList(pcbnew.F_Cu).Collide(pad.GetPosition())
                                         for z in zones), f"{net} {fp.GetReference()}.{pad.GetNumber()}")
 
+    def test_six_layers(self):
+        """JLC06161H-3313, six copper layers, declared in the board file."""
+        self.assertEqual(self.board.GetCopperLayerCount(), 6)
+        with open(PCB) as f:
+            text = f.read()
+        stack = text[text.index("(stackup"):text.index("(copper_finish")]
+        self.assertEqual(stack.count('(type "copper")'), 6)
+        self.assertIn('(material "3313")', stack)
+
+    def _channel_width(self, net, layer):
+        """Narrowest width of the net's fill on `layer` between the middle switch
+        output pin and its J1 pin: the widest disc that still gets through."""
+        j1 = [p for p in self.fps["J1"].Pads() if p.GetNetname() == net][0]
+        outs = sorted((p for r, fp in self.fps.items() if r in placement.SW_X
+                       for p in fp.Pads() if p.GetNetname() == net),
+                      key=lambda p: p.GetPosition().x)
+        mid = outs[len(outs) // 2]
+        a = pcbnew.VECTOR2I(mid.GetPosition().x, mid.GetBoundingBox().GetTop())
+        fill = pcbnew.SHAPE_POLY_SET()
+        for z in self.board.Zones():
+            if not z.GetIsRuleArea() and z.GetNetname() == net and z.IsOnLayer(layer):
+                fill.BooleanAdd(z.GetFilledPolysList(layer))
+        best, w = 0.0, 0.5
+        while not fill.IsEmpty() and w < 4:
+            p = pcbnew.SHAPE_POLY_SET(fill)
+            p.Deflate(pcbnew.FromMM(w / 2), pcbnew.CORNER_STRATEGY_ROUND_ALL_CORNERS, pcbnew.FromMM(0.005))
+            p.Inflate(pcbnew.FromMM(w / 2), pcbnew.CORNER_STRATEGY_ROUND_ALL_CORNERS, pcbnew.FromMM(0.005))
+            through = False
+            for i in range(p.OutlineCount()):
+                o = pcbnew.SHAPE_POLY_SET()
+                o.AddOutline(p.Outline(i))
+                through |= o.Collide(a, pcbnew.FromMM(0.35)) and o.Collide(j1.GetPosition(), pcbnew.FromMM(0.35))
+            if not through:
+                break
+            best, w = w, w + 0.05
+        return best
+
+    def test_led_channel_width(self):
+        """Every LED channel carries 5 A through >= 2 mm of copper: F.Cu alone for
+        the inner four, F.Cu plus its In3 lane (stitched to it) for the outer four."""
+        for net in pcb_builder.LED_NETS:
+            w = self._channel_width(net, pcbnew.F_Cu)
+            if net in pcb_builder.LED_IN3:
+                w += self._channel_width(net, pcbnew.In3_Cu)
+                vias = [t for t in self.board.Tracks() if t.GetClass() == "PCB_VIA"
+                        and t.GetNetname() == net]
+                self.assertGreaterEqual(len(vias), 2, net)
+            self.assertGreaterEqual(w, 2.0, net)
+
     def test_switch_exposed_pads_stitched(self):
         """12 vias in each BTS7008's exposed pad, down to the B.Cu VBUS copper."""
         for u in placement.SW_X:

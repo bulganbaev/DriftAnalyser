@@ -17,10 +17,13 @@ from gen import env, libs, model, placement, sch_writer
 
 EDGE_W = pcbnew.FromMM(0.1)
 
-# F.Cu / In1.Cu (solid GND) / In2.Cu (VBUS / VIN / LED lanes + GND) / B.Cu, in stack order.
-# pcbnew numbers them 0, 4, 6, 2 - never assume the ids are ordered.
-CU = (pcbnew.F_Cu, pcbnew.In1_Cu, pcbnew.In2_Cu, pcbnew.B_Cu)
-INNER = (pcbnew.In1_Cu, pcbnew.In2_Cu)
+# Six layers, in stack order: F.Cu / In1.Cu (solid GND) / In2.Cu (signals + GND) /
+# In3.Cu (VBUS / VIN planes, LED lanes, GND) / In4.Cu (signals + GND) / B.Cu.
+# pcbnew numbers them 0, 4, 6, 8, 10, 2 - never assume the ids are ordered.
+CU = (pcbnew.F_Cu, pcbnew.In1_Cu, pcbnew.In2_Cu, pcbnew.In3_Cu, pcbnew.In4_Cu, pcbnew.B_Cu)
+INNER = (pcbnew.In1_Cu, pcbnew.In2_Cu, pcbnew.In3_Cu, pcbnew.In4_Cu)
+# the inner layer the power planes live on
+PWR = pcbnew.In3_Cu
 
 
 def _pro_path():
@@ -41,7 +44,7 @@ def write_project_netclasses():
     with open(_pro_path()) as f:
         pro = json.load(f)
     pro.setdefault("board", {})["design_settings"] = {
-        # JLCPCB 4 layer, 1 oz on all four layers - the inner weight is an
+        # JLCPCB 6 layer, 1 oz outer and 1 oz inner - the inner weight is an
         # order option, not JLC's stock 0.5 oz - not the KiCad defaults. 0.15 mm clearance is above that process' floor (0.127 mm); it
         # is only U3 (IMU)'s LGA-14 land pattern that ever needs to go that low.
         "rules": {"min_clearance": 0.15, "min_track_width": 0.2, "min_via_diameter": 0.6,
@@ -84,7 +87,7 @@ DRU = """(version 1)
 
 # Pad to pad spacing inside a land pattern is the part maker's, not ours. Measured
 # gaps (measured on v2, refs there differ): LGA-14 0.15 mm, USB-C and TSDSO-14 0.20, buck 0.25 -
-# all of them clear JLCPCB's 4 layer 1 oz floor (0.127 mm), none of them clear the
+# all of them clear JLCPCB's multilayer 1 oz floor (0.127 mm), none of them clear the
 # 0.25 mm we ask of our own copper. Both rules are scoped to pads of one footprint,
 # so the netclass clearance still governs everything we draw.
 (rule "same footprint pad spacing"
@@ -130,10 +133,12 @@ def write_design_rules():
         f.write(DRU)
 
 
-# JLCPCB's 4 layer 1.6 mm stack (JLC04161H-7628) with the **1 oz inner copper**
-# option: 1 oz on all four layers, one 7628 prepreg either side of a 1.065 mm
-# core. The inner weight is the whole reason the VBAT plane can carry the strip
-# current - see the report; at the stock 0.5 oz it is half of everything below.
+# JLCPCB's 6 layer 1.6 mm stack JLC06161H-3313 (their default 6 layer build) with
+# the **1 oz inner copper** option: 3313 prepreg (0.0994) / 0.55 core / 2116 prepreg
+# (0.1164) / 0.55 core / 3313 prepreg (0.0994). In1 (GND) sits 0.1 mm under F, so
+# every F.Cu signal has its return right under it; In2 / In3 are the tight pair in
+# the middle, In4 sits 0.1 mm over B. The inner weight is what lets the In3 VBUS
+# plane carry the strip current; at the stock 0.5 oz it is half of everything below.
 # pcbnew does not wrap BOARD_STACKUP usefully, so this goes into the saved file
 # as text - without it KiCad spreads the 1.6 mm evenly and the fab has to guess.
 STACKUP = """	(stackup
@@ -141,11 +146,15 @@ STACKUP = """	(stackup
 		(layer "F.Paste" (type "Top Solder Paste"))
 		(layer "F.Mask" (type "Top Solder Mask") (thickness 0.01))
 		(layer "F.Cu" (type "copper") (thickness 0.035))
-		(layer "dielectric 1" (type "prepreg") (thickness 0.2104) (material "7628") (epsilon_r 4.4) (loss_tangent 0.02))
-		(layer "In1.Cu" (type "copper") (thickness 0.035))
-		(layer "dielectric 2" (type "core") (thickness 1.065) (material "FR4") (epsilon_r 4.6) (loss_tangent 0.02))
-		(layer "In2.Cu" (type "copper") (thickness 0.035))
-		(layer "dielectric 3" (type "prepreg") (thickness 0.2104) (material "7628") (epsilon_r 4.4) (loss_tangent 0.02))
+		(layer "dielectric 1" (type "prepreg") (thickness 0.0994) (material "3313") (epsilon_r 4.1) (loss_tangent 0.02))
+		(layer "In1.Cu" (type "copper") (thickness 0.03))
+		(layer "dielectric 2" (type "core") (thickness 0.55) (material "FR4") (epsilon_r 4.6) (loss_tangent 0.02))
+		(layer "In2.Cu" (type "copper") (thickness 0.03))
+		(layer "dielectric 3" (type "prepreg") (thickness 0.1164) (material "2116") (epsilon_r 4.16) (loss_tangent 0.02))
+		(layer "In3.Cu" (type "copper") (thickness 0.03))
+		(layer "dielectric 4" (type "core") (thickness 0.55) (material "FR4") (epsilon_r 4.6) (loss_tangent 0.02))
+		(layer "In4.Cu" (type "copper") (thickness 0.03))
+		(layer "dielectric 5" (type "prepreg") (thickness 0.0994) (material "3313") (epsilon_r 4.1) (loss_tangent 0.02))
 		(layer "B.Cu" (type "copper") (thickness 0.035))
 		(layer "B.Mask" (type "Bottom Solder Mask") (thickness 0.01))
 		(layer "B.Paste" (type "Bottom Solder Paste"))
@@ -307,9 +316,13 @@ def _footprints(board, nets):
 #   F.Cu   power copper next to the parts (the VIN input block, the VBUS drain
 #          block, the LED channel pours from the switches up into J1 row 1),
 #          signals elsewhere
-#   In1.Cu solid GND, nothing else ever
-#   In2.Cu VBUS over the middle of the board (drains -> switches) and under the
-#          CAN / K-line block, VIN under the stud, GND in what is left
+#   In1.Cu solid GND, nothing else ever (0.1 mm under F: the return of every
+#          F.Cu signal, the strip data lines and the buck included)
+#   In2.Cu signals, GND fill in what is left
+#   In3.Cu VBUS over the middle of the board (drains -> switches) and under the
+#          CAN / K-line block, VIN under the stud, the outer four LED channels'
+#          lanes (in parallel with their F.Cu necks), GND in what is left
+#   In4.Cu signals, GND fill in what is left
 #   B.Cu   signals; VBUS copper under each switch's exposed pad (thermal pad side)
 #
 # The board is built without the project loaded, so the fill cannot see the
@@ -435,28 +448,39 @@ LED_F = {
     "LED2_12V": [(38.6, 20.5, 44.4, 22.6), (42.2, 22.6, 44.4, 25.7)],
 }
 
-# ---- VIN: stud -> TVS -> the two FET sources, on F.Cu and on In2 under it.
+# The outer four channels shift sideways past a neighbour and neck down to
+# 1.0..1.2 mm on F.Cu. Each gets the same lane again on In3 (no pads there to
+# neck it), joined to the F pour by 0.6 / 0.3 vias wherever both overlap, and
+# to the J1 pin through the pin's own barrel.
+LED_IN3 = {
+    "LED7_12V": [(10.6, 19.6, 16.4, 22.6), (10.6, 22.6, 12.8, 25.0)],
+    "LED8_12V": [(13.3, 23.0, 19.4, 25.0), (17.6, 19.6, 19.4, 23.0)],
+    "LED1_12V": [(35.6, 23.0, 41.7, 25.0), (35.6, 19.6, 37.4, 23.0)],
+    "LED2_12V": [(38.6, 19.6, 44.4, 22.6), (42.2, 22.6, 44.4, 25.0)],
+}
+
+# ---- VIN: stud -> TVS -> the two FET sources, on F.Cu and on In3 under it.
 # The F pour stops east of U2 (its VBUS sense pin and the gate pin are there)
 # and west of D1's ground pad.
 # (the stud's eight small ring pads are separate copper of the same pad: the
 # pours have to take all of them)
 VIN_F = [(13.3, 67.2, 23.0, 70.9), (13.3, 67.2, 20.6, 79.0), (4.8, 77.5, 23.3, 95.9)]
-VIN_IN2 = [(7.0, 67.3, 24.5, 99.2), (4.8, 78.6, 24.5, 99.2)]
-# ---- VBUS: the two drain tabs and the strip north of them (In2 vias), west
+VIN_IN3 = [(7.0, 67.3, 24.5, 99.2), (4.8, 78.6, 24.5, 99.2)]
+# ---- VBUS: the two drain tabs and the strip north of them (In3 vias), west
 # over the top of C3's ground pad to C3's and C37's VBUS pads.
 VBUS_F = [(13.4, 58.6, 24.2, 66.6), (0.8, 59.6, 13.6, 62.35),
           (0.8, 59.6, 5.3, 66.0), (0.8, 55.6, 3.2, 59.6)]
-# In2: the whole middle of the board from just under the switches down to the
+# In3: the whole middle of the board from just under the switches down to the
 # drains, and a strip down the west edge to C4 and U2's sense pin
 # and under the CAN / K-line block below the ESP32 (the K-line pull-up, the
 # transceiver's battery pin, the battery sense divider)
-VBUS_IN2 = [(0.8, 26.3, 54.2, 66.9), (0.8, 66.9, 6.6, 78.0), (35.0, 66.0, 54.2, 92.0)]
+VBUS_IN3 = [(0.8, 26.3, 54.2, 66.9), (0.8, 66.9, 6.6, 78.0), (35.0, 66.0, 54.2, 92.0)]
 # B.Cu under each switch: the exposed pad's vias land here, and this is the
 # side the case's thermal pad presses on (it has to be an insulating one)
 SW_B = (1.9, 26.2, 29.2)        # half width, top, bottom: the exposed pad, no more (B.Cu
                                 # between the switches is where J1's signals get through)
 # 12 vias in each switch's exposed pad (4 x 3, 0.6 / 0.3): that pad is VS, so
-# they are also how VBUS gets from In2 into the switch
+# they are also how VBUS gets from In3 into the switch
 EP_VIA_DX = (-1.35, -0.45, 0.45, 1.35)
 EP_VIA_DY = (-0.8, 0.0, 0.8)
 
@@ -477,11 +501,13 @@ def _zones(board, nets):
     # one priority per channel, so two neighbours never tie for the same copper
     for k, name in enumerate(LED_NETS):
         _zone(board, nets[name], pcbnew.F_Cu, LED_F[name], priority=3 + k)
+        if name in LED_IN3:
+            _zone(board, nets[name], PWR, LED_IN3[name], priority=3 + k)
 
     _zone(board, nets["VIN"], pcbnew.F_Cu, VIN_F, priority=2)
-    _zone(board, nets["VIN"], pcbnew.In2_Cu, VIN_IN2, priority=2)
+    _zone(board, nets["VIN"], PWR, VIN_IN3, priority=2)
     _zone(board, nets["VBUS"], pcbnew.F_Cu, VBUS_F, priority=2)
-    _zone(board, nets["VBUS"], pcbnew.In2_Cu, VBUS_IN2, priority=2)
+    _zone(board, nets["VBUS"], PWR, VBUS_IN3, priority=2)
     hw, top, bot = SW_B
     for x in SW.values():
         _zone(board, nets["VBUS"], pcbnew.B_Cu, [(x - hw, top, x + hw, bot)], priority=2)
@@ -531,13 +557,13 @@ def _cap_stubs():
 STUBS = [
     # U2 (LM74700) sits in a knot: VIN on pins 1 and 5, the VBUS sense on pin 8
     # between them and the pour, the gate on pin 6. Pin 1 takes C2 and a via to
-    # the In2 VIN plane; pin 5 goes east into the F.Cu pour under the gate pin.
+    # the In3 VIN plane; pin 5 goes east into the F.Cu pour under the gate pin.
     ("VIN", 0.3, "F", [(7.9, 69.95), (9.1, 69.95)]),
     ("VIN", 0.3, "F", [(9.36, 69.9), (9.36, 69.0)]),
     ("VIN", 0.25, "F", [(11.64, 72.0), (13.6, 72.0)]),
-    # C1, the controller's own VIN decoupling, drops to In2 VIN south of itself
+    # C1, the controller's own VIN decoupling, drops to In3 VIN south of itself
     ("VIN", 0.4, "F", [(9.72, 74.4), (9.72, 75.6)]),
-    # the VBUS sense pin goes north, past C3's ground pad, to an In2 via
+    # the VBUS sense pin goes north, past C3's ground pad, to an In3 via
     ("VBUS", 0.3, "F", [(11.64, 69.9), (11.64, 69.3), (11.9, 66.4)]),
     # LM_GATE: out of pin 6 between the VIN and the VBUS runs, down to B.Cu, and
     # along under the VIN pour to both gates (Q2's is 12 mm from U2). Never on
@@ -579,9 +605,9 @@ def _stub_tracks(board, nets):
             _via(board, nets[name], x, y, 0.6, 0.3)
 
 
-# VBUS F.Cu <-> In2 right above the two drain tabs (no via in the tabs: JLC
+# VBUS F.Cu <-> In3 right above the two drain tabs (no via in the tabs: JLC
 # assembles this board): two rows of nine, 18 x 0.8 / 0.4. Only here - the strip
-# over C3's ground pad is F.Cu path with In2 under it anyway, and a row of vias
+# over C3's ground pad is F.Cu path with In3 under it anyway, and a row of vias
 # there walls off B.Cu.
 DRAIN_VIAS = [(14.0 + 1.2 * i, y) for y in (59.45, 60.65) for i in range(9)]
 
@@ -617,11 +643,11 @@ def _clear_of_everything(board, p, reach, net, keep_pad=None):
 
 def _foreign_pours(board, net):
     """Pours this net's vias must stay out of: another net's power pour on an
-    outer layer, or an LED lane on In2. The In2 VBUS / VIN planes are not on the
+    outer layer, or an LED lane on In3. The In3 VBUS / VIN planes are not on the
     list - they are big enough that an anti-pad costs them nothing."""
     return [z for z in board.Zones() if not z.GetIsRuleArea()
             and z.GetNetname() in POWER_NETS and z.GetNetname() != net
-            and (z.GetNetname() in LED_NETS or not z.IsOnLayer(pcbnew.In2_Cu))]
+            and (z.GetNetname() in LED_NETS or not z.IsOnLayer(PWR))]
 
 
 def stitch(board, net, upper, lower, box=None, step=1.2, d=0.8, drill=0.4):
@@ -683,7 +709,9 @@ def _inside_board(x, y, keep):
 def power_stitch(board):
     """The vias between the outer power pours and their inner planes."""
     out = {}
-    out["VIN F-In2"] = stitch(board, "VIN", pcbnew.F_Cu, pcbnew.In2_Cu)
+    out["VIN F-In3"] = stitch(board, "VIN", pcbnew.F_Cu, PWR)
+    for name in LED_IN3:
+        out[f"{name} F-In3"] = stitch(board, name, pcbnew.F_Cu, PWR, step=0.7, d=0.6, drill=0.3)
     return out
 
 
@@ -693,7 +721,7 @@ TIE_D, TIE_DRILL, TIE_CLEAR = 0.6, 0.3, 0.3
 # next pin, which is what gets it out of a 0.65 mm pitch row
 TIE_W, TIE_TRACK_CLEAR = 0.25, 0.25
 # which inner plane a tie for each net lands on
-TIE_PLANE = {"GND": pcbnew.In1_Cu, "VBUS": pcbnew.In2_Cu, "VIN": pcbnew.In2_Cu}
+TIE_PLANE = {"GND": pcbnew.In1_Cu, "VBUS": PWR, "VIN": PWR}
 
 
 def _covered(board, pad, net):
@@ -786,9 +814,10 @@ def _track_clear(board, net, a, b, width):
 
 def _thin_j1_pads(board):
     """J1's pads keep their copper on F and B only, and on an inner layer only
-    where a pour of their own net meets them. On In2 the LED lanes run between
-    those holes; with 2.2 mm pads on every layer the gaps there would be 0.7 mm
-    instead of ~1 mm, and on In1 the ground plane gets the same room."""
+    where a pour or a track of their own net meets them. On In2 / In4 the
+    signals run between those holes; with 2.2 mm pads on every layer the gaps
+    there would be 0.7 mm instead of ~1 mm, and on In1 / In3 the planes and the
+    LED lanes get the same room."""
     fp = board.FindFootprintByReference("J1")
     for pad in fp.Pads():
         if pad.GetAttribute() == pcbnew.PAD_ATTRIB_PTH:
@@ -969,7 +998,7 @@ def build(path):
     board = pcbnew.BOARD()
     board.SetFileName(path)
     ds = board.GetDesignSettings()
-    ds.SetCopperLayerCount(4)
+    ds.SetCopperLayerCount(6)
     ds.SetBoardThickness(pcbnew.FromMM(1.6))
     # gerbers / pick-and-place are exported relative to the bottom-left corner
     ds.SetAuxOrigin(MM(0.0, placement.BOARD_H))
