@@ -1,7 +1,7 @@
 # ZVER L8
 
 LED-контроллер линейки ZVER, бывший DriftAnalyser (ZverCustomLed).
-Репозиторий: `~/Documents/Code/ZVER/L8`; старый путь `~/Documents/Code/DriftAnalyser` удалён. Git remote остаётся `github.com/bulganbaev/DriftAnalyser`, рабочая ветка — `pcb-v3`.
+Репозиторий: `~/Documents/Code/ZVER/L8`; старый путь `~/Documents/Code/DriftAnalyser` удалён. GitHub: [ZverCustom/l8](https://github.com/ZverCustom/l8/tree/pcb-v3), рабочая ветка — `pcb-v3`.
 Актуальная восьмиканальная плата — [PCB v3](PCB/v3/README.md). Описание прошивки и шестиканальной v2 ниже относится к предыдущей ревизии.
 Общая линейка и vault: `~/Documents/Code/ZVER`, `~/Documents/Code/bobr-projects/ZVER`.
 
