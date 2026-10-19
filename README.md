@@ -1,4 +1,9 @@
-# DriftAnalyser (ZverCustomLed)
+# ZVER L8
+
+LED-контроллер линейки ZVER, бывший DriftAnalyser (ZverCustomLed).
+Репозиторий: `~/Documents/Code/ZVER/L8`; старый путь `~/Documents/Code/DriftAnalyser` сохранён ссылкой.
+Актуальная восьмиканальная плата — [PCB v3](PCB/v3/README.md). Описание прошивки и шестиканальной v2 ниже относится к предыдущей ревизии.
+Общая линейка и vault: `~/Documents/Code/ZVER`, `~/Documents/Code/bobr-projects/ZVER`.
 
 Прошивка для платы на ESP32-S3, которая управляет шестью адресными 12 В лентами (WS2815) по данным с машины. Данные берутся с CAN-шины (OBD2 или пассивно с BMW MS43), с MS43 по K-line (DS2) и со встроенного гироскопа/акселерометра LSM6DS3TR-C. Настройка через веб-интерфейс GyverHub, который отдаётся с самой платы по Wi-Fi, приложение не нужно.
 

@@ -1,4 +1,6 @@
-# DriftAnalyser PCB v3
+# ZVER L8 PCB v3
+
+Product name: ZVER L8 (formerly DriftAnalyser). Existing technical filenames and fabrication outputs retain their names.
 
 Car LED controller: eight switched 12 V WS2812 strip channels, CAN, K-line, IMU, three inputs,
 ESP32-S3. 55 × 112 mm, 6 layers, every part on the top side.
