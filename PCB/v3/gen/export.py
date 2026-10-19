@@ -85,16 +85,27 @@ def _refkey(ref):
     return (m.group(1), int(m.group(2))) if m else (ref, 0)
 
 
+# parts we ship to the assembler ourselves (BOM-cn.csv 备注 column)
+CONSIGNED = {
+    "J1": "客供，插件，焊接",
+    "J2": "客供，压接端子（不焊，压入即可）",
+    "J5": "客供，压接端子（不焊，压入即可）",
+}
+
+
 def bom():
     """One line per orderable part. BOM.csv uses JLCPCB's column names plus an explicit
     per-board Quantity (the domestic jlc.com side and human assemblers ask for it);
     BOM-cn.csv is the same table with Chinese headers and MPN/manufacturer columns."""
-    rows = {}
+    rows, rows_cn = {}, {}
     for p in model.PARTS:
+        key = (p.value, p.footprint.split(":")[1], p.lcsc, p.mpn, p.mfr)
+        rows_cn.setdefault(key, []).append(p.ref)
         if HAND_FIT in p.mpn:           # the studs: pressed in by hand, not JLC's
             continue
-        rows.setdefault((p.value, p.footprint.split(":")[1], p.lcsc, p.mpn, p.mfr), []).append(p.ref)
-    ordered = sorted(rows.items(), key=lambda kv: _refkey(sorted(kv[1], key=_refkey)[0]))
+        rows.setdefault(key, []).append(p.ref)
+    _sort = lambda d: sorted(d.items(), key=lambda kv: _refkey(sorted(kv[1], key=_refkey)[0]))
+    ordered, ordered_cn = _sort(rows), _sort(rows_cn)
     out = os.path.join(FAB, "BOM.csv")
     with open(out, "w", newline="") as f:
         w = csv.writer(f)
@@ -103,9 +114,11 @@ def bom():
             w.writerow([val, ",".join(sorted(refs, key=_refkey)), fp, len(refs), lcsc])
     with open(os.path.join(FAB, "BOM-cn.csv"), "w", newline="", encoding="utf-8-sig") as f:
         w = csv.writer(f)
-        w.writerow(["型号/值", "位号", "封装", "单套数量", "立创编号", "厂家型号", "厂家"])
-        for (val, fp, lcsc, mpn, mfr), refs in ordered:
-            w.writerow([val, ",".join(sorted(refs, key=_refkey)), fp, len(refs), lcsc, mpn, mfr])
+        w.writerow(["型号/值", "位号", "封装", "单套数量", "立创编号", "厂家型号", "厂家", "备注"])
+        for (val, fp, lcsc, mpn, mfr), refs in ordered_cn:
+            note = CONSIGNED.get(sorted(refs, key=_refkey)[0], "")
+            w.writerow([val, ",".join(sorted(refs, key=_refkey)), fp, len(refs), lcsc,
+                        mpn.replace(f" {HAND_FIT}", ""), mfr, note])
     return out
 
 
